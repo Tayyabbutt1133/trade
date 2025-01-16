@@ -18,7 +18,7 @@ const Suppliers = () => {
           <button
             className={`flex ${fonts.montserrat} items-center gap-1 text-white px-3 py-2 focus:outline-none text-sm`}
           >
-            Knowde for Suppliers
+            Trade for Suppliers
             <IoChevronDown className="h-4 w-4 opacity-50" />
           </button>
         </DropdownMenuTrigger>

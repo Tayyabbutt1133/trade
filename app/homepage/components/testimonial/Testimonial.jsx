@@ -10,7 +10,7 @@ import { fonts } from "@/components/ui/font";
 const testimonials = [
   {
     quote:
-      "Knowde is especially helping us with newer, smaller but up-and-coming suppliers that are useful to have on our radar especially in the field of Sustainability.",
+      "TradeTroppers is especially helping us with newer, smaller but up-and-coming suppliers that are useful to have on our radar especially in the field of Sustainability.",
     author: "Unilever",
     position: "Team Leader",
     image: "/building 1.jpg",
