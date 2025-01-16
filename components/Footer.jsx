@@ -98,6 +98,9 @@ export default function Footer() {
                 height={40}
               /> */}
                 <div className="text-xl font-semibold text-gray-900">Logo</div>
+                <Link href={"https://admin-trade-crm.vercel.app/login"}>
+                  <p>Admin Panel</p>
+                  </Link>
                 <span className="text-sm text-gray-500">
                   © 2025 TradeTropper. All Rights Reserved.
                 </span>
