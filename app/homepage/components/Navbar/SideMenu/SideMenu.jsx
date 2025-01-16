@@ -3,18 +3,16 @@ import { IoClose } from "react-icons/io5";
 import { MdChevronRight, MdArrowBack } from "react-icons/md";
 import { fonts } from "@/components/ui/font";
 import { menuData } from '@/app/menudata';
+import Link from 'next/link';
 
 export default function SideMenu({ onclose }) {
   const [isVisible, setIsVisible] = useState(false);
   const menuRef = useRef(null);
   
-  // Track navigation state with a single array
   const [navigationPath, setNavigationPath] = useState([{
     level: 'main',
-    // title: 'Main Menu'
   }]);
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
@@ -22,7 +20,6 @@ export default function SideMenu({ onclose }) {
       }
     };
 
-    // Trigger entrance animation on mount
     setIsVisible(true);
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -31,13 +28,11 @@ export default function SideMenu({ onclose }) {
     };
   }, []);
 
-  // Handle closing with animation
   const handleClose = () => {
     setIsVisible(false);
-    // Wait for animation to complete before calling onclose
     setTimeout(() => {
       onclose();
-    }, 300); // Match this with CSS transition duration
+    }, 300);
   };
 
   const getCurrentView = () => {
@@ -123,14 +118,22 @@ export default function SideMenu({ onclose }) {
               </button>
             );
           } else {
+            // Get the mainId and categoryId from navigation path
+            const mainId = navigationPath[1].id;
+            const categoryTitle = navigationPath[2].title;
+            
+            // Create URL-safe version of the subcategory
+            const subcategorySlug = item.toLowerCase().replace(/\s+/g, '-');
+            
             return (
-              // We need to set link here to route to product listing page
-              <div
+              <Link
                 key={item}
-                className="py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
+                href={`/${mainId}/${categoryTitle.toLowerCase()}/${subcategorySlug}`}
+                className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
+                onClick={handleClose}
               >
                 <span className={`${fonts.montserrat} font-medium text-black`}>{item}</span>
-              </div>
+              </Link>
             );
           }
         })}
@@ -140,7 +143,6 @@ export default function SideMenu({ onclose }) {
 
   return (
     <>
-      {/* Overlay */}
       <div 
         className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out ${
           isVisible ? 'opacity-50' : 'opacity-0'
@@ -148,7 +150,6 @@ export default function SideMenu({ onclose }) {
         onClick={handleClose}
       />
       
-      {/* Menu */}
       <div 
         ref={menuRef}
         className={`fixed z-20 inset-y-0 left-0 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${

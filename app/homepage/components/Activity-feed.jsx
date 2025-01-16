@@ -13,7 +13,7 @@ const ActivityFeed = ({
     <div className="bg-white border p-6">
       <div className="flex flex-col items-center justify-center min-h-[166px]">
         <p
-          className={`text-4xl text-center md:text-5xl ${fonts.montserrat} text-green-500 mb-4`}
+          className={`text-4xl text-center md:text-5xl ${fonts.montserrat} text-[#37bfb1] mb-4`}
         >
           +{number}
         </p>
@@ -43,7 +43,7 @@ const ActivityFeed = ({
               The industry's destination for discovery.
             </h2>
             <button
-              className={`bg-green-500 text-white px-8 py-3 rounded hover:bg-teal-600 transition-colors ${fonts.montserrat} font-medium`}
+              className={`bg-[#37bfb1] text-white px-8 py-3 rounded hover:bg-teal-600 transition-colors ${fonts.montserrat} font-medium`}
             >
               Sign Up for FREE
             </button>

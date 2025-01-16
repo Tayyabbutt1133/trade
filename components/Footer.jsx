@@ -13,6 +13,12 @@ const footerLinks = {
       { text: "Periodical", href: "#" },
     ],
   },
+  admin: {  // Added new admin section
+    title: "Admin",
+    links: [
+      { text: "Admin Panel", href: "https://admin-trade-crm.vercel.app/login" },
+    ],
+  },
   suppliers: {
     title: "For Suppliers",
     links: [
@@ -63,12 +69,8 @@ export default function Footer() {
       <footer
         className={`bg-white ${fonts.montserrat} border-t border-gray-200`}
       >
-        {/* Nav Links */}
         <div className="max-w-7xl mx-auto py-12">
-        <Link href={"https://admin-trade-crm.vercel.app/login"}>
-                  <p>Admin Panel</p>
-                  </Link>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
             {Object.values(footerLinks).map((section) => (
               <div key={section.title}>
                 <h2 className="font-semibold text-gray-900 mb-4">
@@ -90,16 +92,9 @@ export default function Footer() {
             ))}
           </div>
 
-            {/* Bottom Nav */}
           <div className="mt-12 pt-8 border-t border-gray-200">
             <div className="flex flex-col justify-between items-start space-y-4 md:space-y-6">
               <section className="flex items-center space-x-4 mb-4">
-                {/* <Image
-                src="/placeholder.svg?height=40&width=40"
-                alt="Knowde Logo"
-                width={40}
-                height={40}
-              /> */}
                 <div className="text-xl font-semibold text-gray-900">Logo</div>
                 <span className="text-sm text-gray-500">
                   © 2025 TradeTropper. All Rights Reserved.

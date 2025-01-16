@@ -85,7 +85,7 @@ export default function InsightsAndInnovations() {
                   <Button 
                     size="lg" 
                     variant="default"
-                    className="bg-green-500 hover:bg-teal-600 text-white w-full md:w-auto"
+                    className="bg-[#37bfb1] hover:bg-teal-600 text-white w-full md:w-auto"
                   >
                     {item.cta.text}
                   </Button>

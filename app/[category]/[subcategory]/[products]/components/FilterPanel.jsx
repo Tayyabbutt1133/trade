@@ -1,5 +1,3 @@
-"use client"
-
 import { X } from 'lucide-react'
 import { Input } from "@/components/ui/input"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -12,7 +10,7 @@ export default function FilterPanel({
   options = []
 }) {
   return (
-    <div className="w-[400px] border-l bg-white h-full">
+    <div className="fixed inset-0 lg:inset-y-0 lg:left-80 z-50 w-full max-w-[400px] bg-white h-full border-r">
       <div className="flex items-center justify-between p-4 border-b bg-white">
         <h2 className="text-xl font-semibold">{title}</h2>
         <Button variant="ghost" size="icon" onClick={onClose}>

@@ -1,3 +1,4 @@
+
 import SidebarProductsGrid from "./components/SidebarProductsGrid";
 import SidebarBreadcrumbs from "./components/SidebarBreadCrumbs";
 import FilterDropdowns from "./components/FilterDropdown/FilterDropdown";
@@ -106,7 +107,7 @@ const Page = async ({ params }) => {
   return (
     <div className="flex min-h-screen">
       <FilterSidebar />
-      <main className="flex-1 my-10 p-6">
+      <main className="flex-1 my-10 mx-2">
         <SidebarBreadcrumbs
           category={category}
           subcategory={subcategory}

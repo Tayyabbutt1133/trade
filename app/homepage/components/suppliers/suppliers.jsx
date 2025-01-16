@@ -66,7 +66,7 @@ export default function SuppliersSection() {
         ))}
       </div>
       <div className="w-full flex justify-center lg:justify-end">
-        <Button className="bg-green-500 hover:bg-teal-600 w-full lg:w-fit lg:px-8">
+        <Button className="bg-[#37bfb1] hover:bg-teal-600 w-full lg:w-fit lg:px-8">
           View 8,000+ Suppliers
         </Button>
       </div>
