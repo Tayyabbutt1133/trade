@@ -65,6 +65,9 @@ export default function Footer() {
       >
         {/* Nav Links */}
         <div className="max-w-7xl mx-auto py-12">
+        <Link href={"https://admin-trade-crm.vercel.app/login"}>
+                  <p>Admin Panel</p>
+                  </Link>
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
             {Object.values(footerLinks).map((section) => (
               <div key={section.title}>
@@ -98,9 +101,6 @@ export default function Footer() {
                 height={40}
               /> */}
                 <div className="text-xl font-semibold text-gray-900">Logo</div>
-                <Link href={"https://admin-trade-crm.vercel.app/login"}>
-                  <p>Admin Panel</p>
-                  </Link>
                 <span className="text-sm text-gray-500">
                   © 2025 TradeTropper. All Rights Reserved.
                 </span>
