@@ -43,6 +43,9 @@ export function SignInForm() {
       <Button type="submit" className="w-full bg-[#37bfb1] hover:bg-[#2ea89b]">
         Sign In
       </Button>
+      <div className="text-sm text-center mt-4">
+        <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">Reset password</span>
+      </div>
     </form>
   )
 }
