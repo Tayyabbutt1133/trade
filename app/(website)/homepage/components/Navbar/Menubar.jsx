@@ -8,7 +8,7 @@ import { HiDotsHorizontal } from "react-icons/hi";
 import SideMenu from "./SideMenu/SideMenu";
 import { fonts } from "@/components/ui/font";
 import { menuData } from "@/app/menudata";
-import MegaMenu from "@/app/homepage/components/Navbar/MegaMenu";
+import MegaMenu from "./MegaMenu";
 import Link from "next/link";
 import Suppliers from "./Suppliers";
 

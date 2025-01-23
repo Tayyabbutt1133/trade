@@ -1,8 +1,8 @@
 "use client"
-import Footer from "@/components/Footer";
 import "./globals.css";
-import Navbar from "./homepage/components/Navbar/Navbar";
+import Navbar from "./(website)/homepage/components/Navbar/Navbar";
 import { usePathname } from "next/navigation";
+import Footer from "@/components/Footer";
 
 // export const metadata = {
 //   title: "Create Next App",

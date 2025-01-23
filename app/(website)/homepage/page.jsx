@@ -5,7 +5,7 @@ import FeaturesSection from "./components/Whytrop";
 import FeaturedSuppliers from "./components/Feature-Supplier";
 import Whychem from "./components/Whychem";
 import ActivityFeed from "./components/Activity-feed";
-import TestimonialCarousel from "@/app/homepage/components/testimonial/Testimonial";
+import TestimonialCarousel from "./components/testimonial/Testimonial";
 import SuppliersSection from "./components/suppliers/suppliers";
 import InsightsAndInnovations from "./components/insightsAndInnovations/InsightsAndInnovations";
 
