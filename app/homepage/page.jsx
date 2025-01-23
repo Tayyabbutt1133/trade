@@ -17,10 +17,10 @@ const HomePage = () => {
       <FeaturesSection />
       <FeaturedSuppliers />
       <Whychem />
-     <TestimonialCarousel/>
-      <ActivityFeed/>
+      <TestimonialCarousel />
+      <ActivityFeed />
       <InsightsAndInnovations />
-      <SuppliersSection/>
+      <SuppliersSection />
     </>
   );
 };

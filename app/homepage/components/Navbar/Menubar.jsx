@@ -74,6 +74,7 @@ export function Menubar() {
           </div>
         </div>
 
+        {/* TradeTropper for suppliers */}
         <Suppliers/>
       </nav>
 

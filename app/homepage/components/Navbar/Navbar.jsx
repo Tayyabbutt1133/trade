@@ -11,6 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { IoChevronDown } from "react-icons/io5"
 import Link from "next/link"
 import SearchBar from "./Search"
+import { usePathname } from "next/navigation"
 
 const Navbar = () => {
   const [isMenuOpen, setisMenuOpen] = useState(false)
@@ -18,6 +19,8 @@ const Navbar = () => {
   const handleToggle = () => {
     setisMenuOpen(!isMenuOpen)
   }
+
+  const pathname = usePathname();
 
   return (
     <header className="bg-[#37bfb1] sticky top-0 z-50">
@@ -43,21 +46,35 @@ const Navbar = () => {
           </button>
 
           <div className="flex gap-1">
-            <Link href="/signin">
-              <button
-                className={`text-sm px-5 text-white ${fonts.montserrat} py-2 rounded-md transition-all bg-transparent hover:bg-[#081023CC] hover:scale-105 hover:text-white`}
-              >
-                Sign in
-              </button>
-            </Link>
-            <Link href="/signup">
-              <button
-                className={`text-sm text-white ${fonts.montserrat} px-5 py-2 rounded-md transition-all bg-[#060E1BCC] hover:scale-105 hover:bg-[#081023CC]`}
-              >
-                Sign up
-              </button>
-            </Link>
-          </div>
+      <Link href="/signin">
+        <button
+          className={`
+            text-sm px-5 text-white ${fonts.montserrat} py-2 rounded-md transition-all
+            ${pathname === '/signin' 
+              ? 'bg-green-600 hover:bg-green-700' 
+              : 'bg-transparent hover:bg-[#081023CC]'
+            } 
+            hover:scale-105
+          `}
+        >
+          Sign in
+        </button>
+      </Link>
+      <Link href="/signup">
+        <button
+          className={`
+            text-sm text-white ${fonts.montserrat} px-5 py-2 rounded-md transition-all
+            ${pathname === '/signup'
+              ? 'bg-green-600 hover:bg-green-700'
+              : 'bg-transparent hover:bg-[#081023CC]'
+            }
+            hover:scale-105
+          `}
+        >
+          Sign up
+        </button>
+      </Link>
+    </div>
         </div>
       </div>
       {/* Menu bar */}
