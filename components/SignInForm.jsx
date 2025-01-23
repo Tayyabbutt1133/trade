@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { fonts } from "@/components/ui/font"
+import Link from "next/link"
 
 export function SignInForm() {
   const [email, setEmail] = useState("")
@@ -40,9 +41,11 @@ export function SignInForm() {
           required
         />
       </div>
-      <Button type="submit" className="w-full bg-[#37bfb1] hover:bg-[#2ea89b]">
+      <Link href={'/dashboard'}>
+      <Button type="submit" className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]">
         Sign In
-      </Button>
+        </Button>
+        </Link>
       <div className="text-sm text-center mt-4">
         <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">Reset password</span>
       </div>

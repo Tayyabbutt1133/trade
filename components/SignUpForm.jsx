@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { fonts } from "@/components/ui/font"
+import Link from "next/link"
 
 export function SignUpForm() {
   const [name, setName] = useState("")
@@ -63,9 +64,11 @@ export function SignUpForm() {
           required
         />
       </div>
-      <Button type="submit" className="w-full bg-[#37bfb1] hover:bg-[#2ea89b]">
+      <Link href={'/dashboard'}>
+      <Button type="submit" className="w-full  mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]">
         Sign Up
-      </Button>
+        </Button>
+        </Link>
     </form>
   )
 }
