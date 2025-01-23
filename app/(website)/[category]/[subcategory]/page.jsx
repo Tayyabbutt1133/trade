@@ -1,7 +1,7 @@
 
 import ProductCategoryHeader from '../components/ProductCategoryHeader'
 import Container from '@/components/container'
-import SearchBar from '@/app/homepage/components/Navbar/Search'
+import SearchBar from '../../homepage/components/Navbar/Search'
 import CategoryFilters from '../components/CategoryFilter'
 import ProductsGrid from '../components/ProductsGrid'
 import SuppliersGrid from '../components/SupplierGrid/SuppliersGrid'

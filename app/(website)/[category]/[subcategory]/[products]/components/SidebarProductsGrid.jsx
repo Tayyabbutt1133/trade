@@ -1,5 +1,5 @@
 import { fonts } from "@/components/ui/font"
-import ProductCard from "@/app/[category]/components/ProductCard"
+import ProductCard from "../../../components/ProductCard"
 import ProductTabsFilter from "./ProductTabFilter"
 import Link from "next/link"
 
