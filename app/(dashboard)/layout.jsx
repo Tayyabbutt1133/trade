@@ -99,7 +99,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
       >
         <Link href={'/dashboard'}>
           {!isCollapsed && (
-            <h2 className="text-xl font-bold text-white truncate">Admin Panel</h2>
+            <h2 className="text-xl font-bold text-white truncate">Panel</h2>
           )}
         </Link>
         <Button

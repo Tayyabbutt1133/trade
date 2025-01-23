@@ -16,6 +16,9 @@ export function SignUpForm() {
     confirmPassword: "",
   })
   const [userType, setUserType] = useState("buyer")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
@@ -69,51 +72,11 @@ export function SignUpForm() {
           />
         </div>
       ))}
-
+      <Link  href={'/dashboard'}>
       <Button
         type="submit"
-        className="w-full bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
+        className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
       >
-        Sign Up
-      </Button>
-      <p className="text-sm text-gray-500 mt-2">
-        <span className="text-red-500">*</span> Indicates required field
-      </p>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
-          type="password"
-          placeholder="Enter your password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          placeholder="Confirm your password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-      </div>
-      <Link href={'/dashboard'}>
-      <Button type="submit" className="w-full  mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]">
         Sign Up
         </Button>
         </Link>
