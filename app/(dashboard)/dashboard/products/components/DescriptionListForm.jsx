@@ -11,7 +11,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import { RichTextEditor } from "./RichTextEditor"
-import { Section } from "@/types/description-list"
 
 export function DescriptionListForm() {
   const [sections, setSections] = useState([
