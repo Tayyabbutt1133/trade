@@ -16,9 +16,6 @@ export function SignUpForm() {
     confirmPassword: "",
   })
   const [userType, setUserType] = useState("buyer")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
 
   const handleInputChange = (e) => {
     const { name, value } = e.target
