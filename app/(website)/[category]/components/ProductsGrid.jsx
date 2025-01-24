@@ -11,7 +11,7 @@ export default function ProductsGrid({ products, category, totalProducts }) {
       </h1>
 
       {/* catch all route here  */}
-      <Link href={`/product/${category}`}>
+      <section>
       <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
         {/* Mobile: Only show category card */}
         <div className="sm:hidden col-span-1">
@@ -54,7 +54,7 @@ export default function ProductsGrid({ products, category, totalProducts }) {
           />
         </div>
         </div>
-        </Link>
+        </section>
     </div>
   );
 }

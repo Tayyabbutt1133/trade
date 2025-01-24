@@ -19,7 +19,8 @@ import {
   Menu,
   LayoutDashboard,
   LogOut,
-  Armchair
+  Armchair,
+  BookUser
 } from "lucide-react";
 import { fonts } from '@/components/ui/font';
 
@@ -31,6 +32,7 @@ const SIDEBAR_ITEMS = [
   { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
   { name: "Email", href: "/dashboard/email", icon: Mail },
   { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
+  { name: "Audience", href: "/dashboard/audience", icon: BookUser },
   { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
