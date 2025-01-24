@@ -10,7 +10,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible"
-import { RichTextEditor } from "./RichTextEditor"
+import RichTextEditor  from "@/components/RichTextEditor"
 
 export function DescriptionListForm() {
   const [sections, setSections] = useState([
@@ -146,11 +146,6 @@ export function DescriptionListForm() {
                   <div className="col-span-2">
                     <Label htmlFor={`details-${item.id}`}>Details</Label>
                     <RichTextEditor
-                      id={`details-${item.id}`}
-                      content={item.details}
-                      onUpdate={(content) =>
-                        updateItem(section.id, item.id, "details", content)
-                      }
                     />
                     <Button
                       type="button"
