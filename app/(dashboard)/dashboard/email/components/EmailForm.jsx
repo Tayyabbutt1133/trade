@@ -3,8 +3,8 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import RichTextEditor from "@/components/RichTextEditor"
 
 const positionOptions = [
   { value: "left", label: "Left" },
@@ -15,7 +15,7 @@ const positionOptions = [
 const formFields = [
   { id: "title", label: "Title", type: "text", required: true },
   { id: "subject", label: "Subject", type: "text", required: true },
-  { id: "description", label: "Description", type: "textarea", required: true },
+  { id: "description", label: "Description", type: "rich-text-editor", required: true },
   { id: "header-logo", label: "Header Logo", type: "file", required: false },
   {
     id: "header-logo-position",
@@ -69,13 +69,18 @@ export function EmailForm() {
             <Label htmlFor={field.id}>
               {field.label} {field.required && <span className="text-red-500">*</span>}
             </Label>
-            {field.type === "textarea" ? (
-              <Textarea
-                id={field.id}
-                required={field.required}
-                onChange={handleInputChange}
-                value={formData[field.id] || ""}
-              />
+            {field.type === "rich-text-editor" ? (
+              <RichTextEditor
+              content={formData.description || ''}
+              onChange={(content) => {
+                setFormData(prev => ({
+                  ...prev, 
+                  description: content
+                }))
+              }}
+              defaultButtons={true}
+              className="h-[200px]"
+            />
             ) : field.type === "file" ? (
               <Input id={field.id} type="file" required={field.required} onChange={handleFileChange} />
             ) : field.type === "select" ? (
