@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Plus, Trash2, ChevronDown } from 'lucide-react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { Plus, Trash2, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
-import RichTextEditor  from "@/components/RichTextEditor"
+} from "@/components/ui/collapsible";
+import RichTextEditor from "@/components/RichTextEditor";
 
 export function DescriptionListForm() {
   const [sections, setSections] = useState([
@@ -23,7 +23,7 @@ export function DescriptionListForm() {
         { id: "1-3", property: "Technologies", details: "" },
       ],
     },
-  ])
+  ]);
 
   const addSection = () => {
     setSections([
@@ -33,8 +33,8 @@ export function DescriptionListForm() {
         title: "",
         items: [],
       },
-    ])
-  }
+    ]);
+  };
 
   const addItem = (sectionId) => {
     setSections(
@@ -53,23 +53,18 @@ export function DescriptionListForm() {
             }
           : section
       )
-    )
-  }
+    );
+  };
 
   const updateSection = (sectionId, title) => {
     setSections(
       sections.map((section) =>
         section.id === sectionId ? { ...section, title } : section
       )
-    )
-  }
+    );
+  };
 
-  const updateItem = (
-    sectionId,
-    itemId,
-    field,
-    value
-  ) => {
+  const updateItem = (sectionId, itemId, field, value) => {
     setSections(
       sections.map((section) =>
         section.id === sectionId
@@ -81,12 +76,12 @@ export function DescriptionListForm() {
             }
           : section
       )
-    )
-  }
+    );
+  };
 
   const removeSection = (sectionId) => {
-    setSections(sections.filter((section) => section.id !== sectionId))
-  }
+    setSections(sections.filter((section) => section.id !== sectionId));
+  };
 
   const removeItem = (sectionId, itemId) => {
     setSections(
@@ -98,8 +93,8 @@ export function DescriptionListForm() {
             }
           : section
       )
-    )
-  }
+    );
+  };
 
   return (
     <form className="space-y-6">
@@ -133,19 +128,29 @@ export function DescriptionListForm() {
               {section.items.map((item) => (
                 <div key={item.id} className="grid grid-cols-3 gap-4 pl-8">
                   <div className="flex flex-col gap-3">
-                    <Label htmlFor={`property-${item.id}`} className="">Property</Label>
+                    <Label htmlFor={`property-${item.id}`} className="">
+                      Property
+                    </Label>
                     <Input
                       id={`property-${item.id}`}
                       placeholder="Property"
                       value={item.property}
                       onChange={(e) =>
-                        updateItem(section.id, item.id, "property", e.target.value)
+                        updateItem(
+                          section.id,
+                          item.id,
+                          "property",
+                          e.target.value
+                        )
                       }
                     />
                   </div>
                   <div className="col-span-2">
                     <Label htmlFor={`details-${item.id}`}>Details</Label>
                     <RichTextEditor
+                      sectionId={section.id}
+                      itemId={item.id}
+                      updateItem={updateItem}
                     />
                     <Button
                       type="button"
@@ -182,6 +187,5 @@ export function DescriptionListForm() {
         <Button type="submit">Save Details</Button>
       </div>
     </form>
-  )
+  );
 }
-

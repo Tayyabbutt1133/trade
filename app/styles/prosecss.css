@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  .prose h1 {
+    @apply text-3xl font-bold mt-6 mb-4;
+  }
+  .prose h2 {
+    @apply text-2xl font-semibold mt-5 mb-3;
+  }
+  .prose h3 {
+    @apply text-xl font-medium mt-4 mb-2;
+  }
+  .prose ul {
+    @apply list-disc pl-5 my-3;
+  }
+  .prose ol {
+    @apply list-decimal pl-5 my-3;
+  }
+  .prose li {
+    @apply my-1;
+  }
+}
+
