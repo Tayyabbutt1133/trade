@@ -34,6 +34,7 @@ const formFields = [
   },
   { id: "seller-address", label: "Address", type: "text", required: true },
   { id: "seller-country", label: "Country", type: "text", required: true },
+  { id: "seller-designation", label: "Designation", type: "text", required: true },
   { id: "poc-name", label: "POC Name", type: "text", required: true },
   { id: "poc-contact", label: "POC Contact", type: "text", required: true },
   { id: "document", label: "Document", type: "file", required: true },
