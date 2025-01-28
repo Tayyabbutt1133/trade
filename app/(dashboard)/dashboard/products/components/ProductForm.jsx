@@ -1,57 +1,33 @@
 "use client"
 
-import { useState, useRef, useCallback } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { X } from "lucide-react"
-
-const formFields = [
-  { id: "product-name", label: "Name", type: "text" },
-  { id: "product-description", label: "Description", type: "textarea" },
-  { id: "product-code", label: "Code", type: "text" },
-  { id: "product-function", label: "Function", type: "text" },
-]
-
-
+import { FunctionInput } from "./FunctionInput"
+import { CategorySelect } from "./CategorySelect"
+import { ImageUpload } from "./ImageUpload"
+import { formFields, existingFunctions, mainCategories, subCategories, subSubCategories, brandOptions } from "../_data"
 
 export function ProductForm() {
   const [images, setImages] = useState([])
-  const fileInputRef = useRef(null)
-
-  const handleImageUpload = useCallback(
-    (event) => {
-      const files = event.target.files
-      if (files) {
-        const newImages = Array.from(files)
-          .slice(0, 5 - images.length)
-          .map((file) => ({
-            id: Math.random().toString(36).substr(2, 9),
-            file,
-            preview: URL.createObjectURL(file),
-          }))
-        setImages((prevImages) => [...prevImages, ...newImages].slice(0, 5))
-      }
-      // Reset the file input value to allow re-uploading the same file
-      if (fileInputRef.current) {
-        fileInputRef.current.value = ""
-      }
-    },
-    [images.length],
-  )
-
-  const removeImage = useCallback((id) => {
-    setImages((prevImages) => {
-      const newImages = prevImages.filter((img) => img.id !== id)
-      return newImages
-    })
-  }, [])
+  const [functions, setFunctions] = useState([])
+  const [mainCategory, setMainCategory] = useState("")
+  const [subCategory, setSubCategory] = useState("")
+  const [subSubCategory, setSubSubCategory] = useState("")
+  const [brand, setBrand] = useState("")
 
   const handleSubmit = (event) => {
     event.preventDefault()
-    // Handle form submission here
-    console.log("Form submitted", images)
+    console.log("Form submitted", {
+      images,
+      functions,
+      brand,
+      mainCategory,
+      subCategory,
+      subSubCategory,
+    })
   }
 
   return (
@@ -67,50 +43,56 @@ export function ProductForm() {
             )}
           </div>
         ))}
-        <div className="grid gap-2">
-          <Label htmlFor="product-images">Product Images (up to 5)</Label>
-          <div className="flex flex-wrap gap-4">
-            {images.map((image) => (
-              <div key={image.id} className="relative">
-                <img
-                  src={image.preview || "/placeholder.svg"}
-                  alt={`Preview ${image.id}`}
-                  className="w-24 h-24 object-cover rounded-md"
-                />
-                <Button
-                  type="button"
-                  variant="destructive"
-                  size="icon"
-                  className="absolute -top-2 -right-2 rounded-full w-6 h-6"
-                  onClick={() => removeImage(image.id)}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ))}
-            {images.length < 5 && (
-              <Button
-                type="button"
-                variant="outline"
-                className="w-24 h-24"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                +
-              </Button>
-            )}
-          </div>
-          <Input
-            id="product-images"
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleImageUpload}
-            ref={fileInputRef}
-          />
-        </div>
+        <CategorySelect
+          label="Brand"
+          value={brand}
+          onChange={setBrand}
+          onClear={() => setBrand("")}
+          options={brandOptions}
+        />
+        <CategorySelect
+          label="Main Category"
+          value={mainCategory}
+          onChange={(value) => {
+            setMainCategory(value)
+            setSubCategory("")
+            setSubSubCategory("")
+          }}
+          onClear={() => {
+            setMainCategory("")
+            setSubCategory("")
+            setSubSubCategory("")
+          }}
+          options={mainCategories}
+        />
+        <CategorySelect
+          label="Subcategory"
+          value={subCategory}
+          onChange={(value) => {
+            setSubCategory(value)
+            setSubSubCategory("")
+          }}
+          onClear={() => {
+            setSubCategory("")
+            setSubSubCategory("")
+          }}
+          options={mainCategory ? subCategories[mainCategory] : []}
+          disabled={!mainCategory}
+        />
+        <CategorySelect
+          label="Sub-subcategory"
+          value={subSubCategory}
+          onChange={setSubSubCategory}
+          onClear={() => setSubSubCategory("")}
+          options={subCategory ? subSubCategories[subCategory] : []}
+          disabled={!subCategory}
+        />
+        <FunctionInput functions={functions} setFunctions={setFunctions} existingFunctions={existingFunctions} />
+        <ImageUpload images={images} setImages={setImages} />
       </div>
-      <Button className="w-fit" type="submit">Save Product</Button>
+      <Button className="w-fit" type="submit">
+        Save Chemical Product
+      </Button>
     </form>
   )
 }

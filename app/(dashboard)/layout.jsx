@@ -20,7 +20,8 @@ import {
   LayoutDashboard,
   LogOut,
   Armchair,
-  BookUser
+  BookUser,
+  Grid2x2
 } from "lucide-react";
 import { fonts } from '@/components/ui/font';
 
@@ -34,6 +35,7 @@ const SIDEBAR_ITEMS = [
   { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
   { name: "Audience", href: "/dashboard/audience", icon: BookUser },
   { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
+  { name: "Categories", href: "/dashboard/categories", icon: Grid2x2 },
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
   { name: "Sign out", href: "/signin", icon: LogOut },
