@@ -1,12 +1,12 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { fonts } from "@/components/ui/font"
-import { CustomRadio } from "./CustomRadio"
-import Link from "next/link"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { fonts } from "@/components/ui/font";
+import { CustomRadio } from "./CustomRadio";
+import Link from "next/link";
 
 export function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -14,26 +14,26 @@ export function SignUpForm() {
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [userType, setUserType] = useState("buyer")
+  });
+  const [userType, setUserType] = useState("buyer");
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
     // Handle sign up logic here
-    console.log("Sign up:", { ...formData, userType })
-  }
+    console.log("Sign up:", { ...formData, userType });
+  };
 
   const formFields = [
     { id: "name", label: "Name", type: "text" },
     { id: "email", label: "Email", type: "email" },
     { id: "password", label: "Password", type: "password" },
     { id: "confirmPassword", label: "Confirm Password", type: "password" },
-  ]
+  ];
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${fonts.montserrat}`}>
@@ -49,7 +49,6 @@ export function SignUpForm() {
           onChange={(value) => setUserType(value)}
         />
       </div>
-
 
       {formFields.map((field) => (
         <div key={field.id} className="space-y-2">
@@ -69,15 +68,14 @@ export function SignUpForm() {
           />
         </div>
       ))}
-      <Link  href={'/dashboard'}>
-      <Button
-        type="submit"
-        className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
-      >
-        Sign Up
+      <Link href={"/dashboard"}>
+        <Button
+          type="submit"
+          className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
+        >
+          Sign Up
         </Button>
-        </Link>
+      </Link>
     </form>
-  )
+  );
 }
-

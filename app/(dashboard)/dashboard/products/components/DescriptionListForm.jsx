@@ -1,16 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Trash2, ChevronDown } from "lucide-react";
+import RichTextEditor from "@/components/rich-text-editor/RichTextEditor";
 import { Button } from "@/components/ui/button";
+import {
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import RichTextEditor from "@/components/RichTextEditor";
+import { ChevronDown, Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export function DescriptionListForm() {
   const [sections, setSections] = useState([
