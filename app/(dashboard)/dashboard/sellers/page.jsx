@@ -16,10 +16,10 @@ export default function SellerPage() {
     { accessorKey: "country", header: "Country" },
     {
       accessorKey: "Actions",
-      cell: ({ row }) => <TableActionBtn href="sellers" data={row.original} />,
+      cell: ({ row }) => <TableActionBtn page="sellers" data={row.original} />,
     },
   ];
-
+  
   const data = [
     {
       id: "1",

@@ -4,15 +4,14 @@ import { Edit } from "lucide-react";
 import { Button } from "./ui/button";
 
 
-const TableActionBtn = ({href, data}) => {
+const TableActionBtn = ({ data, page }) => {
   return (
-    <Link href={`/dashboard/${href}/${data.id}`}>
+    <Link href={`/dashboard/${page}/${data.id}`}>
       <Button
-        size="icon"
-        variant="outline"
-        asChild
+        size="sm"
+        variant="secondary"
       >   
-        <Edit className="mr-2 h-4 w-4" />
+        <Edit className="h-4 w-4" />
       </Button>
     </Link>
   );

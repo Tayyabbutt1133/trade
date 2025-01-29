@@ -60,7 +60,7 @@ const formFields = [
   { id: "seller-address", label: "Address", type: "textarea", required: true, maxLength: 199 },
   { id: "seller-country", label: "Country", type: "select", required: true, options: countries },
   { id: "seller-industry", label: "Industry", type: "select", required: true, options: industries },
-  { id: "seller-designation", label: "Designation", type: "text", required: true, suggestions: designations },
+  { id: "seller-designation", label: "Designation", type: "select", required: true, options: designations},
   { id: "poc-name", label: "POC Name", type: "text", required: true, maxLength: 99 },
   { id: "poc-contact", label: "POC Contact", type: "contact", required: true },
   {
@@ -146,14 +146,19 @@ export function SellerForm() {
                 maxLength={field.maxLength}
               />
             ) : field.type === "file" ? (
-              <Input
-                id={field.id}
-                type="file"
-                onChange={(e) => handleInputChange(field.id, e.target.files)}
-                required={field.required}
-                multiple={field.multiple}
-                accept={field.accept}
-              />
+              <>
+                <Input
+                  id={field.id}
+                  type="file"
+                  onChange={(e) => handleInputChange(field.id, e.target.files)}
+                  required={field.required}
+                  multiple={field.multiple}
+                  accept={field.accept}
+                />
+                <p className="text-gray-500 text-sm mt-1">
+                  Accepted file types: {field.accept.replace(/\./g, '').replace(/,/g, ', ')}
+                </p>
+              </>
             ) : (
               <Input
                 id={field.id}
@@ -165,14 +170,6 @@ export function SellerForm() {
                 list={field.suggestions ? `${field.id}-suggestions` : undefined}
               />
             )}
-            {field.suggestions && (
-              <datalist id={`${field.id}-suggestions`}>
-                {field.suggestions.map((suggestion) => (
-                  <option key={suggestion} value={suggestion} />
-                ))}
-              </datalist>
-            )}
-            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
           </div>
         ))}
       </div>
