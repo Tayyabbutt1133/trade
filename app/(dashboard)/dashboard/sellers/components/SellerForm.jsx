@@ -167,7 +167,6 @@ export function SellerForm() {
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
                 required={field.required}
                 maxLength={field.maxLength}
-                list={field.suggestions ? `${field.id}-suggestions` : undefined}
               />
             )}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTable } from "@/components/data-table";
+import TableActionBtn from "@/components/table-action-btn";
 import { Button } from "@/components/ui/button";
 import { fonts } from "@/components/ui/font";
 import { PlusCircle } from "lucide-react";
@@ -12,6 +13,10 @@ const columns = [
   { accessorKey: "phone", header: "Phone" },
   { accessorKey: "address", header: "Address" },
   { accessorKey: "country", header: "Country" },
+  {
+    accessorKey: "Actions",
+    cell: ({ row }) => <TableActionBtn page="buyers" data={row.original} />,
+  },
 ];
 
 const data = [
