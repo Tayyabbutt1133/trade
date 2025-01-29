@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button"
+import { fonts } from "@/components/ui/font"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -29,7 +30,7 @@ const formFields = [
 
 export function BuyerForm() {
   return (
-    <form className="grid gap-6">
+    <form className={`grid ${fonts.montserrat} gap-6`}>
       <div className="grid gap-4">
         {formFields.map((field) => (
           <div key={field.id} className="grid gap-2">

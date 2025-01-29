@@ -2,6 +2,7 @@
 
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
+import { fonts } from "@/components/ui/font";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 
@@ -28,12 +29,16 @@ export default function BuyersPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold ml-14 sm:ml-0">Buyers</h1>
+        <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
+          Buyers
+        </h1>
         <Link href="/dashboard/buyers/new">
-          <Button>
+          <button
+            className={`flex  items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Buyer
-          </Button>
+          </button>
         </Link>
       </div>
       <DataTable columns={columns} data={data} />

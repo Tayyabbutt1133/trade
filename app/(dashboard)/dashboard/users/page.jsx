@@ -2,8 +2,18 @@
 
 import React, { useState } from "react";
 import { PlusCircle, Search } from "lucide-react";
+import { DataTable } from "@/components/data-table";
+import { fonts } from "@/components/ui/font";
 
 export default function UsersPage() {
+  const columns = [
+    { accessorKey: "name", header: "Name" },
+    { accessorKey: "email", header: "Email" },
+    { accessorKey: "role", header: "Role" },
+    { accessorKey: "status", header: "Status" },
+    { accessorKey: "lastLogin", header: "Last Login" },
+  ];
+
   const [userData, setUserData] = useState([
     {
       id: "1",
@@ -22,6 +32,7 @@ export default function UsersPage() {
       lastLogin: "2024-03-20",
     },
   ]);
+
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
@@ -76,9 +87,11 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="sm:text-3xl text-2xl font-bold ml-14 lg:ml-0">Users</h1>
+        <h1 className={`text-3xl font-bold ml-14 ${fonts.montserrat} sm:ml-0`}>
+          Users
+        </h1>
         <button
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className={`flex  items-center px-4 py-2 bg-black text-white rounded ${fonts.montserrat}`}
           onClick={() => setOpen(true)}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -86,6 +99,7 @@ export default function UsersPage() {
         </button>
       </div>
 
+      {/* Add User Modal */}
       {open && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 w-[425px]">
@@ -156,7 +170,7 @@ export default function UsersPage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+                className="w-full bg-black text-white py-2 rounded"
               >
                 Add User
               </button>
@@ -178,33 +192,12 @@ export default function UsersPage() {
           placeholder="Search users..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm p-2 border rounded"
+          className="w-full p-2 border rounded"
         />
       </div>
 
-      <div className="border rounded-md">
-        <div className="grid grid-cols-5 gap-4 bg-gray-100 p-4 font-medium">
-          <div>Name</div>
-          <div>Email</div>
-          <div>Role</div>
-          <div>Status</div>
-          <div>Last Login</div>
-        </div>
-        <div className="p-4 space-y-2">
-          {filteredUsers.map((user) => (
-            <div
-              key={user.id}
-              className="grid grid-cols-5 gap-4 p-4 border-b last:border-none"
-            >
-              <div>{user.name}</div>
-              <div>{user.email}</div>
-              <div>{user.role}</div>
-              <div>{user.status}</div>
-              <div>{user.lastLogin}</div>
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* DataTable Component */}
+      <DataTable columns={columns} data={filteredUsers} />
     </div>
   );
 }
