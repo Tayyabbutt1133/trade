@@ -4,7 +4,6 @@ import React, { useState } from "react"
 import { PlusCircle, Check, ChevronsUpDown } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
 const statuses = [
@@ -72,37 +71,31 @@ export default function RFQ() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[200px] p-0">
-              <Command>
-                <CommandInput placeholder="Search status..." />
-                <CommandList>
-                  <CommandEmpty>No status found.</CommandEmpty>
-                  <CommandGroup>
-                    {statuses.map((status) => (
-                      <CommandItem
-                        key={status.value}
-                        value={status.value}
-                        onSelect={(currentValue) => {
-                          setTableData((current) =>
-                            current.map((item) =>
-                              item.id === row.original.id ? { ...item, status: currentValue } : item,
-                            ),
-                          )
-                          setOpen(false)
-                        }}
+              <div className="max-h-[300px] overflow-y-auto">
+                {statuses.map((status) => (
+                  <div
+                    key={status.value}
+                    className={`flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                      row.original.status === status.value ? "bg-gray-100" : ""
+                    }`}
+                    onClick={() => {
+                      setTableData((current) =>
+                        current.map((item) => (item.id === row.original.id ? { ...item, status: status.value } : item)),
+                      )
+                      setOpen(false)
+                    }}
+                  >
+                    <div className="flex items-center">
+                      <span
+                        className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${status.className}`}
                       >
-                        <Check
-                          className={`mr-2 h-4 w-4 ${row.original.status === status.value ? "opacity-100" : "opacity-0"}`}
-                        />
-                        <div className="flex flex-col">
-                          <span className={`rounded-md px-2 py-1 text-xs font-semibold ${status.className}`}>
-                            {status.label}
-                          </span>
-                        </div>
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
+                        {status.label}
+                      </span>
+                    </div>
+                    {row.original.status === status.value && <Check className="h-4 w-4" />}
+                  </div>
+                ))}
+              </div>
             </PopoverContent>
           </Popover>
         )
