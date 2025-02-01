@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { ContactInput } from "../../../../../components/ContactInput"
+import { addSellerToDatabase } from "../[sellerId]/page"
+import { revalidatePath } from "next/cache"
+import { redirect } from "next/navigation"
 
 const industries = [
   "Technology",
@@ -32,7 +35,6 @@ const countries = [
   "India",
   "Brazil",
   "South Africa",
-  // Add more countries as needed
 ]
 
 const designations = [
@@ -48,7 +50,6 @@ const designations = [
   "Designer",
   "Analyst",
   "Consultant",
-  // Add more designations as needed
 ]
 
 const statusOptions = ["Active", "Inactive", "Block"]
@@ -56,13 +57,13 @@ const statusOptions = ["Active", "Inactive", "Block"]
 const formFields = [
   { id: "seller-name", label: "Name", type: "text", required: true },
   { id: "seller-email", label: "Email", type: "email", required: true },
-  { id: "seller-company-contact", label: "Company Contact", type: "contact", required: true },
+  { id: "seller-company-contact", label: "Company Contact", type: "contact", required: true, maxLength: 10 },
   { id: "seller-address", label: "Address", type: "textarea", required: true, maxLength: 199 },
   { id: "seller-country", label: "Country", type: "select", required: true, options: countries },
   { id: "seller-industry", label: "Industry", type: "select", required: true, options: industries },
-  { id: "seller-designation", label: "Designation", type: "select", required: true, options: designations},
+  { id: "seller-designation", label: "Designation", type: "select", required: true, options: designations },
   { id: "poc-name", label: "POC Name", type: "text", required: true, maxLength: 99 },
-  { id: "poc-contact", label: "POC Contact", type: "contact", required: true },
+  { id: "poc-contact", label: "POC Contact", type: "contact", required: true, maxLength: 10 },
   {
     id: "document",
     label: "Document",
@@ -77,10 +78,21 @@ const formFields = [
 export function SellerForm() {
   const [formData, setFormData] = useState({})
   const [errors, setErrors] = useState({})
+  const [submissionError, setSubmissionError] = useState(null);
+  const [submissionSuccess, setSubmissionSuccess] = useState(null);
+  const [companyContactLength, setCompanyContactLength] = useState(0);
+  const [pocContactLength, setPocContactLength] = useState(0);
 
   const handleInputChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }))
     validateField(id, value)
+
+    // Update length for company contact and POC contact
+    if (id === "seller-company-contact") {
+      setCompanyContactLength(value.length);
+    } else if (id === "poc-contact") {
+      setPocContactLength(value.length);
+    }
   }
 
   const validateField = (id, value) => {
@@ -93,7 +105,7 @@ export function SellerForm() {
     setErrors((prev) => ({ ...prev, [id]: error }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     const newErrors = {}
     formFields.forEach((field) => {
@@ -103,8 +115,34 @@ export function SellerForm() {
       }
     })
     if (Object.keys(newErrors).length === 0) {
-      console.log("Form submitted:", formData)
-      // Handle form submission
+      const formDataToSend = new FormData();
+      for (const key in formData) {
+        // If the value is an object and not a File list (or array), JSON-stringify it.
+        if (
+          typeof formData[key] === "object" &&
+          !Array.isArray(formData[key]) &&
+          !(formData[key] instanceof File)
+        ) {
+          formDataToSend.append(key, JSON.stringify(formData[key]));
+        } else if (Array.isArray(formData[key])) {
+          // Append each file in the array (for file inputs)
+          for (const file of formData[key]) {
+            formDataToSend.append(key, file);
+          }
+        } else {
+          formDataToSend.append(key, formData[key]);
+        }
+      }
+      try {
+        await addSellerToDatabase(formDataToSend);
+        console.log(formDataToSend);
+        setSubmissionSuccess("Seller added successfully!");
+        revalidatePath('/sellers')
+        redirect('/sellers')
+      } catch (error) {
+        setSubmissionError("Failed to add seller. Please try again.");
+        setSubmissionSuccess(null);
+      }
     } else {
       setErrors(newErrors)
     }
@@ -136,6 +174,7 @@ export function SellerForm() {
                 id={field.id}
                 value={formData[field.id] || { countryCode: "", number: "" }}
                 onChange={handleInputChange}
+                countryCode={field.id === "seller-company-contact" ? formData["seller-country"] : undefined} // Set country code logic
               />
             ) : field.type === "textarea" ? (
               <Textarea
@@ -166,8 +205,16 @@ export function SellerForm() {
                 value={formData[field.id] || ""}
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
                 required={field.required}
-                maxLength={field.maxLength}
+                maxLength={field.maxLength} // Set maxLength for text inputs
               />
+            )}
+            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
+            {/* Show limit exceeded message for Company Contact and POC Contact */}
+            {(field.id === "seller-company-contact" && companyContactLength > 10) && (
+              <p className="text-red-500 text-sm">Limit exceeded for Company Contact</p>
+            )}
+            {(field.id === "poc-contact" && pocContactLength > 10) && (
+              <p className="text-red-500 text-sm">Limit exceeded for POC Contact</p>
             )}
           </div>
         ))}
@@ -175,7 +222,8 @@ export function SellerForm() {
       <Button className="w-fit" type="submit">
         Save Seller
       </Button>
+      {submissionError && <p className="text-red-500">{submissionError}</p>}
+      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
   )
 }
-
