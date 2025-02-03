@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ContactInput } from "../../../../../components/ContactInput";
 // Import the server action (this import is allowed even in a client component)
 import { useRouter } from "next/navigation";
-import { addSellerAction } from "../[sellerId]/page";
+import { addSellerToDatabase } from "../[sellerId]/page";
 
 const industries = [
   "Technology",
@@ -61,10 +61,23 @@ const designations = [
 const statusOptions = ["Active", "Inactive", "Block"];
 
 const formFields = [
-  { id: "seller-name", label: "Name", type: "text", required: true },
-  { id: "seller-email", label: "Email", type: "email", required: true },
+  {
+    id: "seller-name",
+    name: "sname",
+    label: "Name",
+    type: "text",
+    required: true
+  },
+  {
+    id: "seller-email",
+    name: "email",
+    label: "Email",
+    type: "email",
+    required: true
+  },
   {
     id: "seller-company-contact",
+    name: "compcontact",
     label: "Company Contact",
     type: "contact",
     required: true,
@@ -75,6 +88,7 @@ const formFields = [
     label: "Address",
     type: "textarea",
     required: true,
+    name : "saddress",
     maxLength: 199,
   },
   {
@@ -82,12 +96,14 @@ const formFields = [
     label: "Country",
     type: "select",
     required: true,
+    name: "country",
     options: countries,
   },
   {
     id: "seller-industry",
     label: "Industry",
     type: "select",
+    name : "industry",
     required: true,
     options: industries,
   },
@@ -95,15 +111,24 @@ const formFields = [
     id: "seller-designation",
     label: "Designation",
     type: "select",
+    name: "designation",
     required: true,
     options: designations,
   },
-  { id: "poc-name", label: "POC Name", type: "text", required: true, maxLength: 99 },
+  {
+    id: "poc-name",
+    label: "POC Name",
+    type: "text",
+    required: true,
+    name: "pocname",
+    maxLength: 99
+  },
   {
     id: "poc-contact",
     label: "POC Contact",
     type: "contact",
     required: true,
+    name : "poccontact",
     maxLength: 10,
   },
   {
@@ -111,6 +136,7 @@ const formFields = [
     label: "Document",
     type: "file",
     required: true,
+    name: "doc",
     multiple: true,
     accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.bmp,.tiff",
   },
@@ -118,8 +144,16 @@ const formFields = [
     id: "status",
     label: "Status",
     type: "select",
+    name: "status",
     required: true,
     options: statusOptions,
+  },
+  {
+    id: "checkbox",
+    label: "checkbox",
+    type: "checkbox",
+    name: "blocked",
+    required: true,
   },
 ];
 
@@ -226,7 +260,7 @@ export function SellerForm() {
       }
       try {
         // Call the server action.
-        await addSellerAction(plainData);
+        await addSellerToDatabase(plainData);
         console.log("Data successfully sent to the server.");
         setSubmissionSuccess("Seller added successfully!");
         // Optionally, you can call revalidatePath or redirect.
@@ -325,7 +359,7 @@ export function SellerForm() {
       </div>
       <Button className="w-fit" type="submit">
         Save Seller
-      </Button>
+      </Button> 
       {submissionError && <p className="text-red-500">{submissionError}</p>}
       {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
