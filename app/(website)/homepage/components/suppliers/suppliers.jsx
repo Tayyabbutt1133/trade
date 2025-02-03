@@ -34,7 +34,7 @@ const suppliers = [
   },
   {
     name: "ICL",
-    logo: "/Knowde ICL Logo Homepage.webp",
+    logo: "/Trade toppers ICL Logo Homepage.webp",
   },
 ];
 
