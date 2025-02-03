@@ -18,7 +18,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Check Node.js version
         run: node -v
@@ -30,10 +30,10 @@ jobs:
 
       - name: Deploy to VPS
         env:
-          HOST: XX.XX.XX.XX
+          HOST: 95.111.226.228
           USERNAME: root
-          TARGET_DIR: /var/www/folder_name
-          APP_NAME: app_name #should match the name of the server block
+          TARGET_DIR: /var/www/trade
+          APP_NAME: trade #should match the name of the server block
           PORT: 3000
           
         run: |
