@@ -36,14 +36,14 @@ const Whychem = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <p className={`text-[15px] ${fonts.montserrat} leading-relaxed`}>
-              At Knowde, we believe in the power of chemistry. We believe that easy and efficient access to information and raw materials enables you to work smarter and faster so you can continue to make a rich global impact.
+              At trade toppers, we believe in the power of chemistry. We believe that easy and efficient access to information and raw materials enables you to work smarter and faster so you can continue to make a rich global impact.
             </p>
             <p className={`text-[15px] ${fonts.montserrat} leading-relaxed`}>
               Your innovations have decreased the carbon footprint of the automotive industry, imagined a sustainable agricultural future, developed alternative, biodegradable packaging materials, and changed the landscape of connectivity forever – to name a few. This is only the beginning.
             </p>
           </div>
           <p className={`text-2xl font-medium ${fonts.montserrat} flex justify-end`}>
-            We can't wait to see what you create with Knowde.
+            We can't wait to see what you create with trade toppers.
           </p>
         </div>
       </Container>

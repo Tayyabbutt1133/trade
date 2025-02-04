@@ -19,7 +19,7 @@ export default function FeaturesSection() {
     {
       icon: <GiChemicalDrop className="w-12 h-12 text-gray-700" />,
       title: "Order samples, request documents, and get quotes",
-      description: "Knowde concierge will handle all the details and ensure your requests are handled faster than ever.",
+      description: "trade toppers concierge will handle all the details and ensure your requests are handled faster than ever.",
     },
   ]
 
