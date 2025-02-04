@@ -1,7 +1,8 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { fonts } from "@/components/ui/font";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -13,68 +14,17 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ContactInput } from "../../../../../components/ContactInput";
-// Import the server action (this import is allowed even in a client component)
-import { useRouter } from "next/navigation";
+import { fonts } from "@/components/ui/font";
 import { addSellerToDatabase } from "../[sellerId]/page";
 
-const industries = [
-  "Technology",
-  "Healthcare",
-  "Finance",
-  "Education",
-  "Manufacturing",
-  "Retail",
-  "Agriculture",
-  "Energy",
-  "Transportation",
-  "Entertainment",
-];
-
-const countries = [
-  "United States",
-  "United Kingdom",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Japan",
-  "India",
-  "Brazil",
-  "South Africa",
-];
-
-const designations = [
-  "CEO",
-  "CTO",
-  "CFO",
-  "COO",
-  "Manager",
-  "Director",
-  "Supervisor",
-  "Team Lead",
-  "Developer",
-  "Designer",
-  "Analyst",
-  "Consultant",
-];
-
+// Static options for the status field.
 const statusOptions = ["Active", "Inactive", "Block"];
 
-const formFields = [
-  {
-    id: "seller-name",
-    name: "sname",
-    label: "Name",
-    type: "text",
-    required: true
-  },
-  {
-    id: "seller-email",
-    name: "email",
-    label: "Email",
-    type: "email",
-    required: true
-  },
+
+// with dynamic data passed as props.
+const baseFormFields = [
+  { id: "seller-name", name: "sname", label: "Name", type: "text", required: true },
+  { id: "seller-email", name: "email", label: "Email", type: "email", required: true },
   {
     id: "seller-company-contact",
     name: "compcontact",
@@ -85,79 +35,57 @@ const formFields = [
   },
   {
     id: "seller-address",
+    name: "saddress",
     label: "Address",
     type: "textarea",
     required: true,
-    name : "saddress",
     maxLength: 199,
   },
   {
     id: "seller-country",
+    name: "country",
     label: "Country",
     type: "select",
     required: true,
-    name: "country",
-    options: countries,
+    options: [], // dynamic data will be injected here
+    optionKey: "country", // use each country's "country" property
   },
   {
     id: "seller-industry",
+    name: "industry",
     label: "Industry",
     type: "select",
-    name : "industry",
     required: true,
-    options: industries,
+    options: [],
+    optionKey: "industry", // use each industry's "industry" property
   },
   {
     id: "seller-designation",
+    name: "designation",
     label: "Designation",
     type: "select",
-    name: "designation",
     required: true,
-    options: designations,
+    options: [],
+    optionKey: "designation", // use each designation's "designation" property
   },
-  {
-    id: "poc-name",
-    label: "POC Name",
-    type: "text",
-    required: true,
-    name: "pocname",
-    maxLength: 99
-  },
-  {
-    id: "poc-contact",
-    label: "POC Contact",
-    type: "contact",
-    required: true,
-    name : "poccontact",
-    maxLength: 10,
-  },
+  { id: "poc-name", name: "pocname", label: "POC Name", type: "text", required: true, maxLength: 99 },
+  { id: "poc-contact", name: "poccontact", label: "POC Contact", type: "contact", required: true, maxLength: 10 },
   {
     id: "document",
+    name: "doc",
     label: "Document",
     type: "file",
     required: true,
-    name: "doc",
     multiple: true,
     accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.bmp,.tiff",
   },
-  {
-    id: "status",
-    label: "Status",
-    type: "select",
-    name: "status",
-    required: true,
-    options: statusOptions,
-  },
-  {
-    id: "checkbox",
-    label: "checkbox",
-    type: "checkbox",
-    name: "blocked",
-    required: true,
-  },
+  { id: "status", name: "status", label: "Status", type: "select", required: true, options: statusOptions },
+  // Checkbox field for blocked
+  { id: "blocked", name: "blocked", label: "Blocked", type: "checkbox", required: true },
 ];
 
-export function SellerForm() {
+export function SellerForm({ countries = [], industries = [], designations = [] }) {
+  const router = useRouter();
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
@@ -165,112 +93,120 @@ export function SellerForm() {
   const [companyContactLength, setCompanyContactLength] = useState(0);
   const [pocContactLength, setPocContactLength] = useState(0);
 
-  const router = useRouter()
+  // Log dynamic data for debugging
+  useEffect(() => {
+    console.log("Countries Data:", countries);
+    console.log("Industries Data:", industries);
+    console.log("Designations Data:", designations);
+  }, [countries, industries, designations]);
 
-  // Update field values and validate them.
-  const handleInputChange = (id, value) => {
-    // For contact fields, enforce only digits and a maximum of 10 characters.
-    if (id === "seller-company-contact" || id === "poc-contact") {
-      let formattedValue = value;
-      if (typeof value === "object" && value !== null && "number" in value) {
-        formattedValue = {
-          ...value,
-          number: value.number.replace(/\D/g, "").slice(0, 10),
-        };
-        if (id === "seller-company-contact") {
-          setCompanyContactLength(formattedValue.number.length);
-        } else {
-          setPocContactLength(formattedValue.number.length);
-        }
-      } else if (typeof value === "string") {
-        formattedValue = value.replace(/\D/g, "").slice(0, 10);
-        if (id === "seller-company-contact") {
-          setCompanyContactLength(formattedValue.length);
-        } else {
-          setPocContactLength(formattedValue.length);
-        }
-      }
-      value = formattedValue;
+
+
+  // Merge dynamic data into our base fields for select inputs.
+  const formFields = baseFormFields.map((field) => {
+    if (field.id === "seller-country") {
+      return { ...field, options: countries };
+    } else if (field.id === "seller-industry") {
+      return { ...field, options: industries };
+    } else if (field.id === "seller-designation") {
+      return { ...field, options: designations };
     }
-    setFormData((prev) => ({ ...prev, [id]: value }));
-    validateField(id, value);
-  };
+    return field;
+  });
 
+  // Validation function for each field.
   const validateField = (id, value) => {
     let error = "";
     const fieldDef = formFields.find((field) => field.id === id);
     if (fieldDef?.required) {
-      if (id === "seller-company-contact" || id === "poc-contact") {
-        const phoneNumber =
-          typeof value === "object" && value !== null ? value.number : value;
-        if (!phoneNumber) {
+      // For checkbox: require a boolean (true/false)
+      if (fieldDef.type === "checkbox") {
+        if (value !== true && value !== false) {
           error = "This field is required";
         }
-      } else if (!value) {
+      }
+      // For file inputs, you might want additional validation.
+      else if (!value) {
         error = "This field is required";
       }
     }
-
-    if (!error) {
-      if (id === "seller-email" && !/\S+@\S+\.\S+/.test(value)) {
-        error = "Invalid email address";
-      }
-      if (id === "seller-company-contact" || id === "poc-contact") {
-        const phoneNumber =
-          typeof value === "object" && value !== null ? value.number : value;
-        if (/\D/.test(phoneNumber)) {
-          error = "Only numbers allowed";
-        } else if (phoneNumber.length > 10) {
-          error = "Maximum 10 digits allowed";
-        }
+    // Email validation
+    if (id === "seller-email" && value && !/\S+@\S+\.\S+/.test(value)) {
+      error = "Invalid email address";
+    }
+    // For contact fields, ensure only digits and up to 10 characters.
+    if ((id === "seller-company-contact" || id === "poc-contact") && value) {
+      const phoneNumber = typeof value === "object" && value !== null ? value.number : value;
+      if (!phoneNumber) {
+        error = "This field is required";
+      } else if (/\D/.test(phoneNumber)) {
+        error = "Only numbers allowed";
+      } else if (phoneNumber.length > 10) {
+        error = "Maximum 10 digits allowed";
       }
     }
+    return error;
+  };
+
+  // Handle input changes; for checkboxes, use the checked value.
+  const handleInputChange = (id, value) => {
+    // For contact fields, enforce digits-only formatting (if applicable)
+    if (id === "seller-company-contact" || id === "poc-contact") {
+      if (typeof value === "string") {
+        value = value.replace(/\D/g, "").slice(0, 10);
+        if (id === "seller-company-contact") setCompanyContactLength(value.length);
+        else setPocContactLength(value.length);
+      } else if (typeof value === "object" && value !== null && "number" in value) {
+        value = { ...value, number: value.number.replace(/\D/g, "").slice(0, 10) };
+        if (id === "seller-company-contact") setCompanyContactLength(value.number.length);
+        else setPocContactLength(value.number.length);
+      }
+    }
+
+    setFormData((prev) => ({ ...prev, [id]: value }));
+    const error = validateField(id, value);
     setErrors((prev) => ({ ...prev, [id]: error }));
   };
 
-  // When the form is submitted, convert the data to a plain object and call the server action.
+  // Handle form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form data:", formData);
 
-    // Validate all fields.
+    // Validate every field.
     const newErrors = {};
     formFields.forEach((field) => {
-      validateField(field.id, formData[field.id]);
-      if (errors[field.id]) {
-        newErrors[field.id] = errors[field.id];
+      const error = validateField(field.id, formData[field.id]);
+      if (error) {
+        newErrors[field.id] = error;
       }
     });
 
-    if (Object.keys(newErrors).length === 0) {
-      // Convert formData into a plain object.
-      // (For example, if any field holds an object, ensure it’s serializable.)
-      const plainData = {};
-      for (const key in formData) {
-        // For objects that are not files or arrays, we can JSON‑stringify them.
-        if (
-          typeof formData[key] === "object" &&
-          !Array.isArray(formData[key]) &&
-          !(formData[key] instanceof File)
-        ) {
-          plainData[key] = JSON.stringify(formData[key]);
-        } else {
-          plainData[key] = formData[key];
-        }
-      }
-      try {
-        // Call the server action.
-        await addSellerToDatabase(plainData);
-        console.log("Data successfully sent to the server.");
-        setSubmissionSuccess("Seller added successfully!");
-        // Optionally, you can call revalidatePath or redirect.
-        router.push('/dashboard/sellers')
-      } catch (error) {
-        setSubmissionError("Failed to add seller. Please try again.");
-        setSubmissionSuccess(null);
-      }
-    } else {
+    if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
+      return;
+    }
+
+    // Prepare data for submission.
+    const plainData = {};
+    for (const key in formData) {
+      // JSON-stringify non-file objects.
+      if (typeof formData[key] === "object" && !(formData[key] instanceof File)) {
+        plainData[key] = JSON.stringify(formData[key]);
+      } else {
+        plainData[key] = formData[key];
+      }
+    }
+
+    try {
+      console.log("Submitting data:", plainData);
+      await addSellerToDatabase(plainData);
+      setSubmissionSuccess("Seller added successfully!");
+      setSubmissionError(null);
+      router.push("/dashboard/sellers");
+    } catch (error) {
+      setSubmissionError("Failed to add seller. Please try again.");
+      setSubmissionSuccess(null);
     }
   };
 
@@ -288,27 +224,34 @@ export function SellerForm() {
                 required={field.required}
               >
                 <SelectTrigger id={field.id}>
-                  <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                  <SelectValue placeholder={`Select ${field.label}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {field.options.map((option) => (
-                    <SelectItem key={option} value={option.toLowerCase()}>
-                      {option}
-                    </SelectItem>
-                  ))}
+                  {field.options && field.options.length > 0 ? (
+                    field.options.map((option, index) => {
+                      // If an optionKey exists, assume option is an object.
+                      const display = field.optionKey ? option[field.optionKey] : option;
+                      return (
+                        <SelectItem key={index} value={display}>
+                          {display}
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem disabled>No options available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
-            ) : field.type === "contact" ? (
-              <ContactInput
-                id={field.id}
-                value={formData[field.id] || { countryCode: "", number: "" }}
-                onChange={handleInputChange}
-                countryCode={
-                  field.id === "seller-company-contact"
-                    ? formData["seller-country"]
-                    : undefined
-                }
-              />
+            ) : field.type === "checkbox" ? (
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={field.id}
+                  checked={formData[field.id] || false}
+                  onChange={(e) => handleInputChange(field.id, e.target.checked)}
+                />
+                <span>{field.label}</span>
+              </div>
             ) : field.type === "textarea" ? (
               <Textarea
                 id={field.id}
@@ -331,6 +274,12 @@ export function SellerForm() {
                   Accepted file types: {field.accept.replace(/\./g, "").replace(/,/g, ", ")}
                 </p>
               </>
+            ) : field.type === "contact" ? (
+              <ContactInput
+                id={field.id}
+                value={formData[field.id] || { countryCode: "", number: "" }}
+                onChange={handleInputChange}
+              />
             ) : (
               <Input
                 id={field.id}
@@ -338,28 +287,15 @@ export function SellerForm() {
                 value={formData[field.id] || ""}
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
                 required={field.required}
-                maxLength={field.maxLength}
               />
             )}
-            {errors[field.id] && (
-              <p className="text-red-500 text-sm">{errors[field.id]}</p>
-            )}
-            {field.id === "seller-company-contact" && companyContactLength > 10 && (
-              <p className="text-red-500 text-sm">
-                Limit exceeded for Company Contact
-              </p>
-            )}
-            {field.id === "poc-contact" && pocContactLength > 10 && (
-              <p className="text-red-500 text-sm">
-                Limit exceeded for POC Contact
-              </p>
-            )}
+            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
           </div>
         ))}
       </div>
-      <Button className="w-fit" type="submit">
+      <Button type="submit" className="w-fit">
         Save Seller
-      </Button> 
+      </Button>
       {submissionError && <p className="text-red-500">{submissionError}</p>}
       {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
