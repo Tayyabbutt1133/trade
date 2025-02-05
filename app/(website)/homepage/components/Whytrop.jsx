@@ -13,7 +13,7 @@ export default function FeaturesSection() {
     },
     {
       icon: <HiOutlineDocumentText className="w-12 h-12 text-gray-700" />,
-      title: "Talk directly to suppliers' experts",
+      title: "Chat directly to suppliers' experts",
       description: "Ask technical product questions, talk to a sales rep and inquire about pricing.",
     },
     {
