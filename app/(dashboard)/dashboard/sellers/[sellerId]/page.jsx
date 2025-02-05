@@ -43,9 +43,6 @@ const SellerDetailClient = async ({ params }) => {
     const industryText = await industryRes.text();
     const designationText = await designationRes.text();
 
-    // console.log("Country Response:", countryText);
-    // console.log("Industry Response:", industryText);
-    // console.log("Designation Response:", designationText);
 
     // Parse the JSON data.
     const countriesData = JSON.parse(countryText);
