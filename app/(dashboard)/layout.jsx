@@ -1,79 +1,232 @@
-import { SellerForm } from "./dashboard/seller/components/SellerForm";
+"use client";
+
+import React, { useState } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import {
+  Users,
+  Store,
+  ShoppingCart,
+  MessageSquare,
+  Mail,
+  Megaphone,
+  User,
+  BoxesIcon,
+  Menu,
+  LayoutDashboard,
+  LogOut,
+  Armchair,
+  BookUser,
+  Grid2x2,
+} from "lucide-react";
+import { fonts } from "@/components/ui/font";
 import roleAccessStore from "@/store/role-access-permission";
 
-export async function addSellerToDatabase(data) {
-  const formData = new FormData();
-  for (const key in data) {
-    formData.append(key, data[key]);
-  }
+// Sidebar items for Seller, Buyer, and Admin
+const sellerSidebarItems = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Seller", href: "/dashboard/seller", icon: User },
+  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
+  { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
+  { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
 
-  const response = await fetch("/api/sellers", {
-    method: "POST",
-    body: formData,
-  });
+const buyerSidebarItems = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Buyer", href: "/dashboard/buyer", icon: User },
+  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
+  { name: "Inquiry", href: "/dashboard/inquiry", icon: MessageSquare },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
 
-  if (!response.ok) {
-    throw new Error("Failed to add seller");
-  }
+const ADMIN_ITEMS = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Sellers", href: "/dashboard/sellers", icon: Store },
+  { name: "Buyers", href: "/dashboard/buyers", icon: Users },
+  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
+  { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
+  { name: "Email", href: "/dashboard/email", icon: Mail },
+  { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
+  { name: "Audience", href: "/dashboard/audience", icon: BookUser },
+  { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
+  { name: "Categories", href: "/dashboard/categories", icon: Grid2x2 },
+  { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
+  { name: "Users", href: "/dashboard/users", icon: User },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
 
-  return response.json();
-}
+// SidebarItem Component
+const SidebarItem = ({ item, isActive, isCollapsed, onClick }) => {
+  const Icon = item.icon;
+  const handleClick = () => {
+    if (onClick) onClick();
+  };
 
-const SellerDetailClient = async ({ params }) => {
-  const sellerId = (await params).sellerId;
-  const roleData = roleAccessStore.getState().role; // Get role data from Zustand
-
-  console.log("Zustand Response in dashboard", roleData);
-  console.log(sellerId);
-
-  try {
-    const [countryRes, industryRes, designationRes] = await Promise.all([
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation"),
-    ]);
-
-    if (!countryRes.ok || !industryRes.ok || !designationRes.ok) {
-      throw new Error("One or more API requests failed");
-    }
-
-    const countriesData = await countryRes.json();
-    const industriesData = await industryRes.json();
-    const designationsData = await designationRes.json();
-
-    const countries = countriesData?.Country || [];
-    const industries = industriesData?.Industry || [];
-    const designations = designationsData?.Designations || [];
-    const countryCodes = countries.map((item) => item.code);
-
-    let pageTitle = "Unauthorized Access";
-    if (roleData === "admin") {
-      pageTitle = sellerId === "new" ? "Add New Seller" : "Edit Seller";
-    } else if (roleData === "buyer") {
-      pageTitle = "Buyer";
-    } else if (roleData === "seller") {
-      pageTitle = "Seller";
-    }
-
-    return (
-      <div className="container mx-auto py-10">
-        <h1 className="text-3xl font-bold mb-6">{pageTitle}</h1>
-        {roleData === "admin" ? (
-          <SellerForm
-            countries={countries}
-            industries={industries}
-            countrycodes={countryCodes}
-            designations={designations}
-          />
-        ) : (
-          <p className="text-lg text-gray-700">You do not have permission to access this page.</p>
+  return (
+    <Link href={item.href} onClick={handleClick}>
+      <span
+        className={cn(
+          "group relative flex items-center rounded-lg px-4 py-3 transition-all duration-200",
+          "hover:bg-white/10",
+          isActive ? "bg-white/10 text-white" : "text-gray-200 hover:text-white",
+          isCollapsed ? "justify-center" : "justify-start"
         )}
-      </div>
-    );
-  } catch (error) {
-    console.error("Error fetching data:", error);
-    return <div>Failed to load seller data. Please try again.</div>;
-  }
+      >
+        <Icon
+          className={cn("h-5 w-5 transition-all duration-200", isCollapsed ? "mr-0" : "mr-3")}
+        />
+        {!isCollapsed && (
+          <span className={`font-medium ${fonts.montserrat} truncate`}>
+            {item.name}
+          </span>
+        )}
+      </span>
+    </Link>
+  );
 };
 
-export default SellerDetailClient;
+// Desktop Sidebar Component
+const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
+  const pathname = usePathname();
+
+  return (
+    <aside
+      className={cn(
+        "hidden lg:flex flex-col transition-all duration-300",
+        isCollapsed ? "w-20" : "w-64",
+        "bg-gradient-to-b from-teal-600 to-teal-700 shadow-xl"
+      )}
+    >
+      <div
+        className={cn(
+          "flex items-center p-4 border-b border-white/10",
+          isCollapsed ? "justify-center" : "justify-between"
+        )}
+      >
+        <Link href="/dashboard">
+          {!isCollapsed && (
+            <h2 className="text-xl font-bold text-white truncate">Panel</h2>
+          )}
+        </Link>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-white hover:bg-white/10"
+          onClick={onToggleCollapse}
+          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+      </div>
+      <ScrollArea className="flex-1 px-3">
+        <nav className="flex flex-col gap-1 py-4">
+          {items.map((item) => (
+            <SidebarItem
+              key={item.href}
+              item={item}
+              isActive={pathname === item.href}
+              isCollapsed={isCollapsed}
+            />
+          ))}
+        </nav>
+      </ScrollArea>
+    </aside>
+  );
+};
+
+// Mobile Sidebar Component
+const MobileSidebar = ({ items }) => {
+  const pathname = usePathname();
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleItemClick = () => {
+    setIsSheetOpen(false);
+  };
+
+  return (
+    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <SheetTrigger asChild>
+        <Button variant="ghost" className="lg:hidden p-2 absolute top-4 left-4">
+          <Menu className="h-6 w-6" />
+        </Button>
+      </SheetTrigger>
+      <SheetTitle />
+      <SheetContent
+        side="left"
+        className="w-64 p-0 bg-gradient-to-b from-teal-600 to-teal-700"
+        aria-describedby="sidebar"
+      >
+        <div className="p-4 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white">Panel</h2>
+        </div>
+        <ScrollArea className="h-[calc(100vh-5rem)]">
+          <nav className="p-4">
+            {items.map((item) => (
+              <SidebarItem
+                key={item.href}
+                item={item}
+                isActive={pathname === item.href}
+                isCollapsed={false}
+                onClick={handleItemClick}
+              />
+            ))}
+          </nav>
+        </ScrollArea>
+      </SheetContent>
+    </Sheet>
+  );
+};
+
+// Dashboard Layout Component
+const DashboardLayout = ({ children }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Retrieve role data from Zustand store
+  const roleData = roleAccessStore((state) => state.role);
+  console.log("Zustand Response in dashboard", roleData);
+
+  // If role data is missing, show a fallback UI (e.g., a loading spinner)
+  if (!roleData) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-xl">Loading...</p>
+      </div>
+    );
+  }
+
+  // Determine sidebar items based on the user's role type.
+  const sidebarItems =
+    roleData.type === "admin"
+      ? ADMIN_ITEMS
+      : roleData.type === "seller"
+      ? sellerSidebarItems
+      : roleData.type === "buyer"
+      ? buyerSidebarItems
+      : [];
+
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar
+        items={sidebarItems}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
+      />
+      <MobileSidebar items={sidebarItems} />
+      <main className="flex-1 overflow-y-auto">
+        <div className="container mx-auto p-6 lg:p-8">{children}</div>
+      </main>
+    </div>
+  );
+};
+
+export default DashboardLayout;

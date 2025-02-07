@@ -64,7 +64,7 @@ export function SignUpForm() {
 
         setTimeout(() => {
           router.push(`/dashboard/${formData.role.toLowerCase()}/new`);
-        }, 2000);
+        }, 1000);
       } else {
         setErrors({ server: result.error || "An unknown error occurred" });
       }
