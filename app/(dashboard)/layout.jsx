@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,12 +26,11 @@ import {
   LogOut,
   Armchair,
   BookUser,
-  Grid2x2,
 } from "lucide-react";
 import { fonts } from "@/components/ui/font";
 import roleAccessStore from "@/store/role-access-permission";
 
-// Sidebar items for Seller, Buyer, and Admin
+// Sidebar items
 const sellerSidebarItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Seller", href: "/dashboard/seller", icon: User },
@@ -59,46 +58,33 @@ const ADMIN_ITEMS = [
   { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
   { name: "Audience", href: "/dashboard/audience", icon: BookUser },
   { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
-  // { name: "Categories", href: "/dashboard/categories", icon: Grid2x2 },
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 
 // SidebarItem Component
-const SidebarItem = ({ item, isActive, isCollapsed, onClick }) => {
+const SidebarItem = ({ item, isActive, isCollapsed }) => {
   const Icon = item.icon;
-  const handleClick = () => {
-    if (onClick) onClick();
-  };
-
   return (
-    <Link href={item.href} onClick={handleClick}>
+    <Link href={item.href}>
       <span
         className={cn(
-          "group relative flex items-center rounded-lg px-4 py-3 transition-all duration-200",
-          "hover:bg-white/10",
+          "group flex items-center rounded-lg px-4 py-3 transition-all",
           isActive ? "bg-white/10 text-white" : "text-gray-200 hover:text-white",
           isCollapsed ? "justify-center" : "justify-start"
         )}
       >
-        <Icon
-          className={cn("h-5 w-5 transition-all duration-200", isCollapsed ? "mr-0" : "mr-3")}
-        />
-        {!isCollapsed && (
-          <span className={`font-medium ${fonts.montserrat} truncate`}>
-            {item.name}
-          </span>
-        )}
+        <Icon className={cn("h-5 w-5", isCollapsed ? "mr-0" : "mr-3")} />
+        {!isCollapsed && <span className={`font-medium ${fonts.montserrat}`}>{item.name}</span>}
       </span>
     </Link>
   );
 };
 
-// Desktop Sidebar Component
+// Sidebar Component
 const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
   const pathname = usePathname();
-
   return (
     <aside
       className={cn(
@@ -107,36 +93,18 @@ const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
         "bg-gradient-to-b from-teal-600 to-teal-700 shadow-xl"
       )}
     >
-      <div
-        className={cn(
-          "flex items-center p-4 border-b border-white/10",
-          isCollapsed ? "justify-center" : "justify-between"
-        )}
-      >
+      <div className="flex items-center justify-between p-4 border-b border-white/10">
         <Link href="/dashboard">
-          {!isCollapsed && (
-            <h2 className="text-xl font-bold text-white truncate">Panel</h2>
-          )}
+          {!isCollapsed && <h2 className="text-xl font-bold text-white">Panel</h2>}
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-white hover:bg-white/10"
-          onClick={onToggleCollapse}
-          title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-        >
+        <Button variant="ghost" className="text-white" onClick={onToggleCollapse}>
           <Menu className="h-5 w-5" />
         </Button>
       </div>
       <ScrollArea className="flex-1 px-3">
         <nav className="flex flex-col gap-1 py-4">
           {items.map((item) => (
-            <SidebarItem
-              key={item.href}
-              item={item}
-              isActive={pathname === item.href}
-              isCollapsed={isCollapsed}
-            />
+            <SidebarItem key={item.href} item={item} isActive={pathname === item.href} isCollapsed={isCollapsed} />
           ))}
         </nav>
       </ScrollArea>
@@ -144,84 +112,35 @@ const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
   );
 };
 
-// Mobile Sidebar Component
-const MobileSidebar = ({ items }) => {
-  const pathname = usePathname();
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
-
-  const handleItemClick = () => {
-    setIsSheetOpen(false);
-  };
-
-  return (
-    <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
-      <SheetTrigger asChild>
-        <Button variant="ghost" className="lg:hidden p-2 absolute top-4 left-4">
-          <Menu className="h-6 w-6" />
-        </Button>
-      </SheetTrigger>
-      <SheetTitle />
-      <SheetContent
-        side="left"
-        className="w-64 p-0 bg-gradient-to-b from-teal-600 to-teal-700"
-        aria-describedby="sidebar"
-      >
-        <div className="p-4 border-b border-white/10">
-          <h2 className="text-xl font-bold text-white">Panel</h2>
-        </div>
-        <ScrollArea className="h-[calc(100vh-5rem)]">
-          <nav className="p-4">
-            {items.map((item) => (
-              <SidebarItem
-                key={item.href}
-                item={item}
-                isActive={pathname === item.href}
-                isCollapsed={false}
-                onClick={handleItemClick}
-              />
-            ))}
-          </nav>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
-  );
-};
-
-// Dashboard Layout Component
+// Dashboard Layout Component with LocalStorage Fix
 const DashboardLayout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  // Retrieve role data from Zustand store
+  const storedRole = typeof window !== "undefined" ? localStorage.getItem("role") : null;
+  const [roleType, setRoleType] = useState(storedRole);
   const roleData = roleAccessStore((state) => state.role);
-  console.log("Zustand Response in dashboard", roleData);
 
-  // If role data is missing, show a fallback UI (e.g., a loading spinner)
-  if (!roleData) {
+  useEffect(() => {
+    if (roleData?.type) {
+      localStorage.setItem("role", roleData.type);
+      setRoleType(roleData.type);
+    }
+  }, [roleData]);
+
+  if (!roleType) {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl">Loading...</p>
+        <p className="text-xl animate-pulse">Loading Dashboard...</p>
       </div>
     );
   }
 
-  // Determine sidebar items based on the user's role type.
-  const sidebarItems =
-    roleData.type === "admin"
-      ? ADMIN_ITEMS
-      : roleData.type === "seller"
-      ? sellerSidebarItems
-      : roleData.type === "buyer"
-      ? buyerSidebarItems
-      : [];
+  const sidebarItems = roleType === "admin" ? ADMIN_ITEMS :
+    roleType === "seller" ? sellerSidebarItems :
+    roleType === "buyer" ? buyerSidebarItems : [];
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar
-        items={sidebarItems}
-        isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
-      />
-      <MobileSidebar items={sidebarItems} />
+      <Sidebar items={sidebarItems} isCollapsed={isCollapsed} onToggleCollapse={() => setIsCollapsed((prev) => !prev)} />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6 lg:p-8">{children}</div>
       </main>

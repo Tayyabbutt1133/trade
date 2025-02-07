@@ -15,7 +15,7 @@ const columns = [
   { accessorKey: "country", header: "Country" },
   {
     accessorKey: "Actions",
-    cell: ({ row }) => <TableActionBtn page="buyers" data={row.original} />,
+    cell: ({ row }) => <TableActionBtn page="buyer" data={row.original} />,
   },
 ];
 

@@ -16,7 +16,7 @@ export default function SellerPage() {
     { accessorKey: "country", header: "Country" },
     {
       accessorKey: "Actions",
-      cell: ({ row }) => <TableActionBtn page="sellers" data={row.original} />,
+      cell: ({ row }) => <TableActionBtn page="seller" data={row.original} />,
     },
   ];
   
