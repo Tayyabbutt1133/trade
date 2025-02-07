@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import {
@@ -148,9 +148,11 @@ const MobileSidebar = () => {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
+      <SheetTitle></SheetTitle>
       <SheetContent
         side="left"
         className="w-64 p-0 bg-gradient-to-b from-teal-600 to-teal-700"
+        aria-describedby="sidebar"
       >
         <div className="p-4 border-b border-white/10">
           <h2 className="text-xl font-bold text-white">Admin Panel</h2>

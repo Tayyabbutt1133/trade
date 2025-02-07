@@ -8,10 +8,10 @@ export async function addSellerToDatabase(data) {
   }
 
   // Send the data to the Next.js API route
-  const response = await fetch('/api/sellers', {
-    method: 'POST',
-    body: formData,
-  });
+  // const response = await fetch('/api/sellers', {
+  //   method: 'POST',
+  //   body: formData,
+  // });
 
   // Handle errors
   if (!response.ok) {
@@ -22,7 +22,7 @@ export async function addSellerToDatabase(data) {
 }
 
 const SellerDetailClient = async ({ params }) => {
-  const sellerId =  params.sellerId;
+  const sellerId =  (await params).sellerId;
 
   try {
     const [countryRes, industryRes, designationRes] = await Promise.all([
