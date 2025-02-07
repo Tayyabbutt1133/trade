@@ -1,13 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    async rewrites() {
-      return [
-        {
-          source: '/api/sellers',
-          destination: 'https://tradetoppers.esoftideas.com/esi-api/requests/seller/',
-        },
-      ];
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '3mb',
     },
+  },
   };
   
   export default nextConfig;
