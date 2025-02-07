@@ -1,13 +1,14 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { fonts } from "@/components/ui/font"
-import { CustomRadio } from "./CustomRadio"
-import { useRouter } from "next/navigation"
-import { SocialSignInButtons } from "./SocialSignInButtons"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { fonts } from "@/components/ui/font";
+import { CustomRadio } from "./CustomRadio";
+import { useRouter } from "next/navigation";
+import { SocialSignInButtons } from "./SocialSignInButtons";
+import { Register } from "@/app/actions/signup";
 
 export function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -15,80 +16,108 @@ export function SignUpForm() {
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [userType, setUserType] = useState("buyer")
-  const [errors, setErrors] = useState({})
-  const router = useRouter()
+    role: "buyer", // role is part of formData
+  });
+
+  const [errors, setErrors] = useState({});
+  const [success, setSuccess] = useState();
+  const router = useRouter();
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
-    setErrors((prev) => ({ ...prev, [name]: "" })) // Clear error on change
-  }
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" })); // Clear error on change
+  };
 
-  const validateForm = (formData) => {
-    let errors = {}
+  // Update the role in formData when the radio selection changes
+  const handleRoleChange = (value) => {
+    setFormData((prev) => ({ ...prev, role: value }));
+  };
 
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required'
-    } else if (formData.name.length < 2) {
-      errors.name = 'Name must be at least 2 characters'
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!formData.email) {
-      errors.email = 'Email is required'
-    } else if (!emailRegex.test(formData.email)) {
-      errors.email = 'Invalid email format'
-    }
-
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
-    if (!formData.password) {
-      errors.password = 'Password is required'
-    } else if (!passwordRegex.test(formData.password)) {
-      errors.password = 'Password must be at least 8 characters, include uppercase, lowercase, number, and special character'
-    }
-
-    if (!formData.confirmPassword) {
-      errors.confirmPassword = 'Confirm Password is required'
-    } else if (formData.confirmPassword !== formData.password) {
-      errors.confirmPassword = 'Passwords do not match'
-    }
-
-    return errors
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const formErrors = validateForm(formData)
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formErrors = validateForm(formData);
     if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors)
-      return
+      setErrors(formErrors);
+      return;
     }
-    console.log("Sign up:", { ...formData, userType })
-    router.push("/dashboard")
-  }
+  
+    // Create FormData from the form element
+    const formDataTosubmit = new FormData(e.target);
+    console.log("Form data :", formDataTosubmit)
+    // Remove the confirmPassword field so it won't be sent to the API
+    formDataTosubmit.delete("confirmPassword");
+  
+    // Send the modified FormData to your API
+    const result = await Register(formDataTosubmit);
+    console.log("Server response :", result);
+
+    if (result.success) {
+      setSuccess("Registration successful");
+      router.push("/dashboard");
+    } else {
+      setErrors({ server: "Error Occured" });
+    }
+  };
+  
 
   const formFields = [
     { id: "name", label: "Name", type: "text" },
     { id: "email", label: "Email", type: "email" },
     { id: "password", label: "Password", type: "password" },
     { id: "confirmPassword", label: "Confirm Password", type: "password" },
-  ]
+  ];
+
+  const validateForm = (data) => {
+    const errors = {};
+
+    if (!data.name.trim()) {
+      errors.name = "Name is required";
+    } else if (data.name.length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!data.email) {
+      errors.email = "Email is required";
+    } else if (!emailRegex.test(data.email)) {
+      errors.email = "Invalid email format";
+    }
+
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!data.password) {
+      errors.password = "Password is required";
+    } else if (!passwordRegex.test(data.password)) {
+      errors.password =
+        "Password must be at least 8 characters, include uppercase, lowercase, number, and special character";
+    }
+
+    if (!data.confirmPassword) {
+      errors.confirmPassword = "Confirm Password is required";
+    } else if (data.confirmPassword !== data.password) {
+      errors.confirmPassword = "Passwords do not match";
+    }
+
+    return errors;
+  };
 
   return (
     <div className={`space-y-6 ${fonts.montserrat}`}>
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
-          <Label className="text-lg font-semibold">I am registering as a:</Label>
+          <Label className="text-lg font-semibold">
+            I am registering as a:
+          </Label>
           <CustomRadio
             options={[
-              { value: "buyer", label: "Buyer" },
-              { value: "seller", label: "Seller" },
+              { value: "Buyer", label: "Buyer" },
+              { value: "Seller", label: "Seller" },
             ]}
-            name="userType"
+            name="type"
             defaultValue="buyer"
-            onChange={(value) => setUserType(value)}
+            value={formData.role} // Pass the current role value
+            onChange={handleRoleChange}
           />
         </div>
 
@@ -105,11 +134,20 @@ export function SignUpForm() {
               placeholder={`Enter your ${field.label.toLowerCase()}`}
               value={formData[field.id]}
               onChange={handleInputChange}
-              className={`w-full px-3 py-2 border ${errors[field.id] ? 'border-red-500' : 'border-gray-300'} rounded-md focus:outline-none focus:ring-2 focus:ring-[#37bfb1]`}
+              className={`w-full px-3 py-2 border ${
+                errors[field.id] ? "border-red-500" : "border-gray-300"
+              } rounded-md focus:outline-none focus:ring-2 focus:ring-[#37bfb1]`}
             />
-            {errors[field.id] && <div className="text-red-500 text-sm">{errors[field.id]}</div>}
+            {errors[field.id] && (
+              <div className="text-red-500 text-sm">{errors[field.id]}</div>
+            )}
           </div>
         ))}
+
+        {errors.server && (
+          <div className="text-red-500 text-sm">{errors.server}</div>
+        )}
+
         <Button
           type="submit"
           className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition-colors duration-300"
@@ -123,11 +161,13 @@ export function SignUpForm() {
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
         </div>
       </div>
 
       <SocialSignInButtons />
     </div>
-  )
+  );
 }

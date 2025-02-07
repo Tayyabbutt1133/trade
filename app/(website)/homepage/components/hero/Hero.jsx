@@ -8,7 +8,7 @@ const Hero = () => {
       <Container className={`${fonts.montserrat}`}>
         <div className="w-full mt-9">
           {/* Advertisement Placeholder */}
-          <div className="mb-16 p-4 bg-gray-200 text-center text-gray-700">
+          <div className="mb-16 py-16 bg-green-300 text-center text-gray-700">
             Advertisement
           </div>
           
