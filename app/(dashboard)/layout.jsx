@@ -46,7 +46,7 @@ const buyerSidebarItems = [
 
 const adminItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Sellers", href: "/dashboard/sellers", icon: Store },
+  { name: "Sellers", href: "/dashboard/seller", icon: Store },
   { name: "Buyers", href: "/dashboard/buyers", icon: Users },
   { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
   { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
