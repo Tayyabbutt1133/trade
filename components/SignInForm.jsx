@@ -22,47 +22,40 @@ export function SignInForm() {
   const setRole = roleAccessStore((state)=>state.setRole)
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    // Reset messages for each attempt
-    setErrorMessage("")
-    setSuccessMessage("")
-
+    e.preventDefault();
+  
+    // Reset messages before every attempt
+    setErrorMessage("");
+    setSuccessMessage("");
+  
     try {
-      // Create FormData from the form element
-      const loginToSubmit = new FormData(e.target)
-      const server_response = await LOGIN(loginToSubmit)
-      console.log("Server Response : ", server_response)
-      
-      // Adjust the condition based on your API's response structure.
-      // For example, if a successful response always includes an "id" property:
-      if (server_response?.id) {
-        setSuccessMessage("Login Successfully")
-
-
+      const loginToSubmit = new FormData(e.target);
+      const server_response = await LOGIN(loginToSubmit);
+  
+      console.log("Server Response:", server_response);
+  
+      if (server_response.success) {
+        setSuccessMessage("Login Successfully");
+  
         setRole({
-          id: server_response.id,
-          type: server_response.type.toLowerCase(),
+          id: server_response.data.id,
+          type: server_response.data.type.toLowerCase(),
         });
-
-
-
-
-        // Optionally delay the redirect so the user can see the message.
+  
+        // Redirect after a delay
         setTimeout(() => {
-          // now based on type we are getting from response->it will route
-          router.push("/dashboard")
-        }, 1000)
+          router.push("/dashboard");
+        }, 1000);
       } else {
-        setErrorMessage("Invalid login credentials. Please try again!")
+        // Set the error message from the server response
+        setErrorMessage(server_response.message);
       }
-      
     } catch (error) {
-      setErrorMessage("An error occurred while processing your login. Please try again later.")
-      console.error("Login error:", error)
+      setErrorMessage("An error occurred. Please try again.");
+      console.error("Login error:", error);
     }
-  }
-
+  };
+  
   return (
     <div className={`space-y-6 ${fonts.montserrat}`}>
       <form onSubmit={handleSubmit} className="space-y-4">

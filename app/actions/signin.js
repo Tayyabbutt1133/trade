@@ -1,9 +1,7 @@
-
 "use server"
 
 export async function LOGIN(formdata) {
   try {
-
     console.log(formdata);
     const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/registeration/", {
       method: 'POST',
@@ -11,21 +9,18 @@ export async function LOGIN(formdata) {
     });
 
     if (!response.ok) {
-      // Attempt to extract error information from the response.
-      // Depending on your API, this might be JSON or plain text.
+      // Try to extract an error message from the response
       const errorText = await response.text();
-      throw new Error(`Login failed: ${response.status} ${errorText}`);
+      return { success: false, message: `Login failed: ${errorText}` };
     }
 
-  // Parse and return the JSON response from the API.
+    // Parse the JSON response
     const data = await response.json();
-    console.log("sever response : ", data);
-    return data;
-  }
-  
-  catch (error) {
-    // Log the error to the console (handle it as needed in your application)
-    console.error('Error during login:', error);
-    throw error;
+    console.log("Server response:", data);
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error during login:", error);
+    return { success: false, message: "An unexpected error occurred. Please try again later." };
   }
 }

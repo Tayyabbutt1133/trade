@@ -2,34 +2,29 @@
 
 export async function Register(data) {
   try {
-
-    // When sending FormData, do not set the "Content-Type" header manually.
     const response = await fetch(
       "https://tradetoppers.esoftideas.com/esi-api/requests/registeration/",
       {
         method: "POST",
-        // Directly pass the FormData object as the request body
         body: data,
       }
     );
 
-    // Check if the response is not OK (non-2xx status)
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(
-        "Registration failed:",
-        response.status,
-        response.statusText,
-        errorText
-      );
-      return { success: false, error: response.statusText };
+      let errorMessage = "Registration failed. Please try again.";
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData?.message || errorMessage;
+      } catch {
+        // Ignore JSON parsing error, use default error message
+      }
+      return { success: false, error: errorMessage };
     }
 
-    console.log("Registration Successful");
     const result = await response.json();
     return { success: true, data: result };
   } catch (error) {
-    console.error("An error occurred during registration:", error);
-    return { success: false, error: error.message };
+    console.error("Registration Error:", error);
+    return { success: false, error: "A network error occurred. Please try again." };
   }
 }
