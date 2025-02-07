@@ -37,7 +37,7 @@ export default function BuyersPage() {
         <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
           Buyers
         </h1>
-        <Link href="/dashboard/buyers/new">
+        <Link href="/dashboard/buyer/new">
           <button
             className={`flex  items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
           >
