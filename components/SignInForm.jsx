@@ -1,61 +1,74 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { fonts } from "@/components/ui/font"
-// import Link from "next/link"
-import { SocialSignInButtons } from "./SocialSignInButtons"
-import { LOGIN } from "@/app/actions/signin"
-import { useRouter } from "next/navigation"
-import roleAccessStore from "@/store/role-access-permission"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { fonts } from "@/components/ui/font";
+import { SocialSignInButtons } from "./SocialSignInButtons";
+import { LOGIN } from "@/app/actions/signin";
+import { useRouter } from "next/navigation";
+import roleAccessStore from "@/store/role-access-permission";
 
 export function SignInForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [errorMessage, setErrorMessage] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const router = useRouter()
-
-  const setRole = roleAccessStore((state)=>state.setRole)
+  const router = useRouter();
+  const setRole = roleAccessStore((state) => state.setRole);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+
     // Reset messages before every attempt
     setErrorMessage("");
     setSuccessMessage("");
-  
+    setLoading(true);
+
     try {
       const loginToSubmit = new FormData(e.target);
       const server_response = await LOGIN(loginToSubmit);
-  
-      console.log("Server Response:", server_response);
-  
+      setLoading(false);
+
       if (server_response.success) {
-        setSuccessMessage("Login Successfully");
-  
-        setRole({
-          id: server_response.data.id,
-          type: server_response.data.type.toLowerCase(),
-        });
-  
-        // Redirect after a delay
+        setSuccessMessage("Login successful!");
+
+        // Validate the response before using its properties
+        if (
+          server_response.data &&
+          server_response.data.id &&
+          server_response.data.type &&
+          typeof server_response.data.type === "string"
+        ) {
+          // Safely convert the role type to lowercase
+          const roleType = server_response.data.type.toLowerCase();
+          setRole({
+            id: server_response.data.id,
+            type: roleType,
+          });
+        } else {
+          setErrorMessage("Invalid server response: Missing user information.");
+          return;
+        }
+
+        // Redirect after a short delay for a smooth experience
         setTimeout(() => {
           router.push("/dashboard");
         }, 1000);
       } else {
-        // Set the error message from the server response
-        setErrorMessage(server_response.message);
+        // Display the error message provided by the server (or a fallback message)
+        setErrorMessage(server_response.message || "Login failed. Please try again.");
       }
     } catch (error) {
-      setErrorMessage("An error occurred. Please try again.");
+      setLoading(false);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
       console.error("Login error:", error);
     }
   };
-  
+
   return (
     <div className={`space-y-6 ${fonts.montserrat}`}>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -84,8 +97,12 @@ export function SignInForm() {
           />
         </div>
         <div>
-          <Button type="submit" className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]">
-            Sign In
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]"
+          >
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
         </div>
         <div className="text-sm text-center mt-4">
@@ -97,14 +114,10 @@ export function SignInForm() {
 
       {/* Display success or error messages */}
       {successMessage && (
-        <div className="text-green-600 text-center mt-4">
-          {successMessage}
-        </div>
+        <div className="text-green-600 text-center mt-4">{successMessage}</div>
       )}
       {errorMessage && (
-        <div className="text-red-600 text-center mt-4">
-          {errorMessage}
-        </div>
+        <div className="text-red-600 text-center mt-4">{errorMessage}</div>
       )}
 
       <div className="relative">
@@ -120,5 +133,5 @@ export function SignInForm() {
 
       <SocialSignInButtons />
     </div>
-  )
+  );
 }
