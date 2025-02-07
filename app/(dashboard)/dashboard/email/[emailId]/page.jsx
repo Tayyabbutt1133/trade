@@ -8,7 +8,7 @@ const EmailFormPage = async ({ params }) => {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-3xl font-bold mb-6 capitalize">
-        {isNewEmail ? "Add New Email" : "Edit Email"}
+        {isNewEmail ? "Add Email Template" : "Edit Email Template"}
       </h1>
       <div>
         <EmailForm />
