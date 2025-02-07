@@ -79,14 +79,14 @@ export function ProductForm() {
           options={mainCategory ? subCategories[mainCategory] : []}
           disabled={!mainCategory}
         />
-        <CategorySelect
+        {/* <CategorySelect
           label="Sub-subcategory"
           value={subSubCategory}
           onChange={setSubSubCategory}
           onClear={() => setSubSubCategory("")}
           options={subCategory ? subSubCategories[subCategory] : []}
           disabled={!subCategory}
-        />
+        /> */}
         <FunctionInput functions={functions} setFunctions={setFunctions} existingFunctions={existingFunctions} />
         <ImageUpload images={images} setImages={setImages} />
       </div>

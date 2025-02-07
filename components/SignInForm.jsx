@@ -9,6 +9,7 @@ import { fonts } from "@/components/ui/font"
 import { SocialSignInButtons } from "./SocialSignInButtons"
 import { LOGIN } from "@/app/actions/signin"
 import { useRouter } from "next/navigation"
+import roleAccessStore from "@/store/role-access-permission"
 
 export function SignInForm() {
   const [email, setEmail] = useState("")
@@ -17,6 +18,8 @@ export function SignInForm() {
   const [successMessage, setSuccessMessage] = useState("")
 
   const router = useRouter()
+
+  const setRole = roleAccessStore((state)=>state.setRole)
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -35,10 +38,20 @@ export function SignInForm() {
       // For example, if a successful response always includes an "id" property:
       if (server_response?.id) {
         setSuccessMessage("Login Successfully")
+
+
+        setRole({
+          id: server_response.id,
+          type: server_response.type.toLowerCase(),
+        });
+
+
+
+
         // Optionally delay the redirect so the user can see the message.
         setTimeout(() => {
           // now based on type we are getting from response->it will route
-          router.push(`/dashboard/${server_response.type.toLowerCase()}`)
+          router.push("/dashboard")
         }, 1000)
       } else {
         setErrorMessage("Invalid login credentials. Please try again!")

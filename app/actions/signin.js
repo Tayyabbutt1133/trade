@@ -17,9 +17,9 @@ export async function LOGIN(formdata) {
       throw new Error(`Login failed: ${response.status} ${errorText}`);
     }
 
-    // Parse and return the JSON response from the API.
+  // Parse and return the JSON response from the API.
     const data = await response.json();
-    // console.log("sever response : ", data);
+    console.log("sever response : ", data);
     return data;
   }
   

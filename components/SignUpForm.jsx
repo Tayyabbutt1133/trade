@@ -9,6 +9,7 @@ import { CustomRadio } from "./CustomRadio";
 import { useRouter } from "next/navigation";
 import { SocialSignInButtons } from "./SocialSignInButtons";
 import { Register } from "@/app/actions/signup";
+import roleAccessStore from "@/store/role-access-permission";
 
 export function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -22,6 +23,9 @@ export function SignUpForm() {
   const [errors, setErrors] = useState({});
   const [success, setSuccess] = useState();
   const router = useRouter();
+
+  const setRole = roleAccessStore((state)=>state.setRole)
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,19 +48,28 @@ export function SignUpForm() {
   
     // Create FormData from the form element
     const formDataTosubmit = new FormData(e.target);
-    console.log("Form data :", formDataTosubmit)
+    console.log("Form data :", formDataTosubmit);
+    
     // Remove the confirmPassword field so it won't be sent to the API
     formDataTosubmit.delete("confirmPassword");
   
     // Send the modified FormData to your API
     const result = await Register(formDataTosubmit);
     console.log("Server response :", result);
-
+  
     if (result.success) {
       setSuccess("Registration successful");
-      router.push("/dashboard");
+  
+      // Use the type from the frontend form (formData.role) instead of the API response.
+      setRole({
+        id: result.id, // Assuming your API returns an id; adjust as needed.
+        type: formData.role.toLowerCase(), // Convert to lowercase for consistency.
+      });
+  
+      // Redirect the user to a dynamic dashboard URL based on their selected type.
+      router.push(`/dashboard/${formData.role.toLowerCase()}/new`);
     } else {
-      setErrors({ server: "Error Occured" });
+      setErrors({ server: "Error Occurred" });
     }
   };
   

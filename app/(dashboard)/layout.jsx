@@ -24,8 +24,27 @@ import {
   Grid2x2
 } from "lucide-react";
 import { fonts } from '@/components/ui/font';
+import roleAccessStore from '@/store/role-access-permission';
 
-const SIDEBAR_ITEMS = [
+// Sidebar items for Seller and Buyer
+const sellerSidebarItems = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Seller", href: "/dashboard/seller", icon: User },
+  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
+  { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
+  { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
+
+const buyerSidebarItems = [
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Buyer", href: "/dashboard/buyer", icon: User },
+  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
+  { name: "Inquiry", href: "/dashboard/inquiry", icon: MessageSquare },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
+
+const adminItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Sellers", href: "/dashboard/sellers", icon: Store },
   { name: "Buyers", href: "/dashboard/buyers", icon: Users },
@@ -39,16 +58,14 @@ const SIDEBAR_ITEMS = [
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
   { name: "Sign out", href: "/signin", icon: LogOut },
-];
+]
 
+
+// SidebarItem Component
 const SidebarItem = ({ item, isActive, isCollapsed, onClick }) => {
   const Icon = item.icon;
-  const isLastItem = item.name === "Sign out";
-
-  const handleClick = (e) => {
-    if (onClick) {
-      onClick();
-    }
+  const handleClick = () => {
+    if (onClick) onClick();
   };
 
   return (
@@ -58,33 +75,20 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick }) => {
           "group relative flex items-center rounded-lg px-4 py-3 transition-all duration-200",
           "hover:bg-white/10",
           isActive ? "bg-white/10 text-white" : "text-gray-200 hover:text-white",
-          isCollapsed ? "justify-center" : "justify-start",
-          isLastItem ? "mt-0" : "mt-0"
+          isCollapsed ? "justify-center" : "justify-start"
         )}
       >
-        <Icon
-          className={cn(
-            "h-5 w-5 transition-all duration-200",
-            isCollapsed ? "mr-0" : "mr-3"
-          )}
-        />
+        <Icon className={cn("h-5 w-5 transition-all duration-200", isCollapsed ? "mr-0" : "mr-3")} />
         {!isCollapsed && (
           <span className={`font-medium ${fonts.montserrat} truncate`}>{item.name}</span>
-        )}
-        {isCollapsed && (
-          <div
-            className="absolute left-full ml-6 hidden rounded-md bg-gray-900 px-3 py-2 text-sm 
-                        text-white opacity-0 transition-all group-hover:opacity-100 group-hover:block"
-          >
-            {item.name}
-          </div>
         )}
       </span>
     </Link>
   );
 };
 
-const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
+// Desktop Sidebar Component
+const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
   const pathname = usePathname();
 
   return (
@@ -101,7 +105,7 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
           isCollapsed ? "justify-center" : "justify-between"
         )}
       >
-        <Link href={'/dashboard'}>
+        <Link href="/dashboard">
           {!isCollapsed && (
             <h2 className="text-xl font-bold text-white truncate">Panel</h2>
           )}
@@ -116,10 +120,9 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
           <Menu className="h-5 w-5" />
         </Button>
       </div>
-
       <ScrollArea className="flex-1 px-3">
         <nav className="flex flex-col gap-1 py-4">
-          {SIDEBAR_ITEMS.map((item) => (
+          {items.map((item) => (
             <SidebarItem
               key={item.href}
               item={item}
@@ -133,7 +136,8 @@ const Sidebar = ({ isCollapsed, onToggleCollapse }) => {
   );
 };
 
-const MobileSidebar = () => {
+// Mobile Sidebar Component
+const MobileSidebar = ({ items }) => {
   const pathname = usePathname();
   const [isSheetOpen, setIsSheetOpen] = useState(false);
 
@@ -148,18 +152,18 @@ const MobileSidebar = () => {
           <Menu className="h-6 w-6" />
         </Button>
       </SheetTrigger>
-      <SheetTitle></SheetTitle>
+      <SheetTitle />
       <SheetContent
         side="left"
         className="w-64 p-0 bg-gradient-to-b from-teal-600 to-teal-700"
         aria-describedby="sidebar"
       >
         <div className="p-4 border-b border-white/10">
-          <h2 className="text-xl font-bold text-white">Admin Panel</h2>
+          <h2 className="text-xl font-bold text-white">Panel</h2>
         </div>
         <ScrollArea className="h-[calc(100vh-5rem)]">
           <nav className="p-4">
-            {SIDEBAR_ITEMS.map((item) => (
+            {items.map((item) => (
               <SidebarItem
                 key={item.href}
                 item={item}
@@ -175,17 +179,33 @@ const MobileSidebar = () => {
   );
 };
 
+// Dashboard Layout Component
 const DashboardLayout = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Retrieve role data from Zustand store
+  const roleData = roleAccessStore((state) => state.role);
+  console.log("Zustand Response in dashboard", roleData);
+
+  // Determine sidebar items based on the user's role type.
+  const sidebarItems =
+  roleData && roleData.type === "seller"
+    ? sellerSidebarItems
+    : roleData && roleData.type === "buyer"
+    ? buyerSidebarItems
+    : roleData && roleData.type === "admin"
+    ? adminItems
+    : [];
+
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar
+        items={sidebarItems}
         isCollapsed={isCollapsed}
-        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        onToggleCollapse={() => setIsCollapsed((prev) => !prev)}
       />
-      <MobileSidebar />
-
+      <MobileSidebar items={sidebarItems} />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6 lg:p-8">{children}</div>
       </main>
