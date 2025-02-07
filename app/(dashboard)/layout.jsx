@@ -51,8 +51,8 @@ const buyerSidebarItems = [
 
 const ADMIN_ITEMS = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { name: "Sellers", href: "/dashboard/sellers", icon: Store },
-  { name: "Buyers", href: "/dashboard/buyers", icon: Users },
+  { name: "Sellers", href: "/dashboard/seller", icon: Store },
+  { name: "Buyers", href: "/dashboard/buyer", icon: Users },
   { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
   { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare },
   { name: "Email", href: "/dashboard/email", icon: Mail },
