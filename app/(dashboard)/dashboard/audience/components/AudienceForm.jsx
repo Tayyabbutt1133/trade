@@ -1,106 +1,90 @@
 "use client"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-const recipientTypes = ["Seller", "Buyer"]
-const originCountries = [
-  "United States",
-  "Canada",
-  "United Kingdom",
-  "Germany",
-  "France",
-  "Japan",
-  "Australia",
-  "Brazil",
-  "India",
-  "China",
-]
-const industries = [
-  "Technology",
-  "Healthcare",
-  "Finance",
-  "Education",
-  "Manufacturing",
-  "Retail",
-  "Agriculture",
-  "Energy",
-  "Transportation",
-  "Entertainment",
-]
-const functions = [
-  "Sales",
-  "Marketing",
-  "Operations",
-  "Human Resources",
-  "Finance",
-  "IT",
-  "Research and Development",
-  "Customer Service",
-  "Legal",
-  "Executive",
-]
-const regions = ["North America", "South America", "Europe", "Asia", "Africa", "Australia", "Middle East"]
-const taggings = ["Premium", "New", "Verified", "Partner", "High Volume"] // Example tags, replace with actual business tags from your directory
+// Static options for fields that aren't dynamic
+const recipientTypes = ["Seller", "Buyer", "Both"]
+const taggings = ["Premium", "New", "Verified", "Partner", "High Volume"]
 
-const formFields = [
-  { id: "title", label: "Title", type: "text", required: true },
-  { id: "recipient-type", label: "Recipient Type", type: "select", options: recipientTypes, required: true },
-  { id: "origin-country", label: "Origin Country", type: "select", options: originCountries, required: true },
-  { id: "industry", label: "Industry", type: "select", options: industries, required: true },
-  { id: "functions", label: "Functions", type: "select", options: functions, required: true },
-  { id: "region", label: "Region", type: "select", options: regions, required: true },
-  { id: "tagging", label: "Tagging", type: "select", options: taggings, required: false },
-]
-
-// Mock data for the table
-const mockTableData = [
-  { id: 1, name: "Company A", industry: "Technology", region: "North America" },
-  { id: 2, name: "Company B", industry: "Healthcare", region: "Europe" },
-  { id: 3, name: "Company C", industry: "Finance", region: "Asia" },
-]
-
-export function AudienceForm() {
+export function AudienceForm({ countries = [], industries = [], regions = [] }) {
   const [formData, setFormData] = useState({})
-  const [selectedAudience, setSelectedAudience] = useState([])
-  const [allChecked, setAllChecked] = useState(false)
+  const [analytics, setAnalytics] = useState({
+    totalAudience: 0,
+    averageAge: 0,
+    topIndustries: [],
+    genderDistribution: { male: 0, female: 0, other: 0 },
+  })
 
-  const handleInputChange = (id, value) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-  }
+  const dynamicFormFields = [
+    { id: "title", label: "Title", type: "text", required: true },
+    {
+      id: "recipient-type",
+      label: "Recipient Type",
+      type: "select",
+      options: recipientTypes,
+      required: true,
+    },
+    {
+      id: "origin-country",
+      label: "Origin Country",
+      type: "select",
+      options: countries,
+      required: true,
+      optionKey: "country",
+    },
+    {
+      id: "industry",
+      label: "Industry",
+      type: "select",
+      options: industries,
+      required: true,
+      optionKey: "industry",
+    },
+    {
+      id: "region",
+      label: "Region",
+      type: "select",
+      options: regions,
+      required: true,
+      optionKey: "region",
+    },
+    { id: "tagging", label: "Tagging", type: "select", options: taggings, required: false },
+  ]
 
-  const handleCheckboxChange = (id) => {
-    setSelectedAudience((prev) => {
-      const newSelection = prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-      setAllChecked(newSelection.length === mockTableData.length)
-      return newSelection
-    })
-  }
+  const handleInputChange = async (id, value) => {
+    const newFormData = { ...formData, [id]: value }
+    setFormData(newFormData)
 
-  const handleToggleAll = () => {
-    if (allChecked) {
-      setSelectedAudience([])
-    } else {
-      setSelectedAudience(mockTableData.map((item) => item.id))
+    // Make API call to fetch updated analytics
+    try {
+      const response = await fetch("/api/audience-analytics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newFormData),
+      })
+      const data = await response.json()
+      setAnalytics(data)
+    } catch (error) {
+      console.error("Error fetching analytics:", error)
     }
-    setAllChecked(!allChecked)
   }
 
   const handleSubmit = (e) => {
     e.preventDefault()
     console.log("Form data:", formData)
-    console.log("Selected audience:", selectedAudience)
+    console.log("Final analytics:", analytics)
     // Handle form submission logic here
   }
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
       <div className="grid gap-4">
-        {formFields.map((field) => (
+        {dynamicFormFields.map((field) => (
           <div key={field.id} className="grid gap-2">
             <Label htmlFor={field.id}>
               {field.label} {field.required && <span className="text-red-500">*</span>}
@@ -108,14 +92,21 @@ export function AudienceForm() {
             {field.type === "select" ? (
               <Select onValueChange={(value) => handleInputChange(field.id, value)} required={field.required}>
                 <SelectTrigger id={field.id}>
-                  <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
+                  <SelectValue placeholder={`Select ${field.label}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {field.options.map((option) => (
-                    <SelectItem key={option} value={option.toLowerCase()}>
-                      {option}
-                    </SelectItem>
-                  ))}
+                  {field.options && field.options.length > 0 ? (
+                    field.options.map((option) => {
+                      const display = field.optionKey ? option[field.optionKey] : option
+                      return (
+                        <SelectItem key={display} value={display}>
+                          {display}
+                        </SelectItem>
+                      )
+                    })
+                  ) : (
+                    <SelectItem disabled>No options available</SelectItem>
+                  )}
                 </SelectContent>
               </Select>
             ) : (
@@ -130,38 +121,16 @@ export function AudienceForm() {
         ))}
       </div>
 
-      <div className="mt-6">
-        <div className="flex justify-between items-center mb-2">
-          <h2 className="text-lg font-semibold">Audience Selection</h2>
-          <Button type="button" onClick={handleToggleAll} variant="outline">
-            {allChecked ? "Uncheck All" : "Check All"}
-          </Button>
-        </div>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[50px]">Select</TableHead>
-              <TableHead>Company Name</TableHead>
-              <TableHead>Industry</TableHead>
-              <TableHead>Region</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {mockTableData.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedAudience.includes(item.id)}
-                    onCheckedChange={() => handleCheckboxChange(item.id)}
-                  />
-                </TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>{item.industry}</TableCell>
-                <TableCell>{item.region}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      {/* Analytics Display */}
+      <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Audience</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{analytics.totalAudience.toLocaleString()}</div>
+          </CardContent>
+        </Card>
       </div>
 
       <Button className="w-fit" type="submit">
