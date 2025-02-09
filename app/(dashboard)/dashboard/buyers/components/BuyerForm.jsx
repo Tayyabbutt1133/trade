@@ -1,165 +1,380 @@
 "use client"
-import React, { useState } from "react"
+
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { fonts } from "@/components/ui/font"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { ContactInput } from "@/components/ContactInput"
+import { ContactInput } from "../../../../../components/ContactInput"
+import { fonts } from "@/components/ui/font"
+import { createBuyer } from "@/app/actions/createBuyer"
+import { redirect } from "next/navigation"
 
-const industries = [
-  "Technology",
-  "Healthcare",
-  "Finance",
-  "Education",
-  "Manufacturing",
-  "Retail",
-  "Agriculture",
-  "Energy",
-  "Transportation",
-  "Entertainment",
-]
+// Static options for the status field
+const statusOptions = ["Active", "Inactive"]
 
-const countries = [
-  "United States",
-  "United Kingdom",
-  "Canada",
-  "Australia",
-  "Germany",
-  "France",
-  "Japan",
-  "India",
-  "Brazil",
-  "South Africa",
-  // Add more countries as needed
-]
+// Maximum file size constant
+const MAX_FILE_SIZE = 3 * 1024 * 1024 // 3MB in bytes
 
-const statusOptions = ["Active", "Inactive", "Block"]
+// Function to convert file to base64
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = (error) => reject(error)
+  })
+}
 
-const formFields = [
-  { id: "buyer-name", label: "Name", type: "text", required: true },
-  { id: "buyer-email", label: "Email", type: "email", required: true },
-  { id: "buyer-company-contact", label: "Company Contact", type: "contact", required: true },
-  { id: "buyer-address", label: "Address", type: "textarea", required: true, maxLength: 199 },
-  { id: "buyer-country", label: "Country", type: "select", required: true, options: countries },
-  { id: "buyer-industry", label: "Industry", type: "select", required: true, options: industries },
-  { id: "poc-name", label: "POC Name", type: "text", required: false, maxLength: 99 },
-  { id: "poc-contact", label: "POC Contact", type: "contact", required: false },
-  {
-    id: "document",
-    label: "Document",
-    type: "file",
-    required: false,
-    multiple: true,
-    accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png,.bmp,.tiff",
-  },
-  { id: "status", label: "Status", type: "select", required: true, options: statusOptions },
-]
-
-export function BuyerForm() {
-  const [formData, setFormData] = useState({})
+export function BuyerForm({ countries = [], industries = [], designations = [] }) {
+  const [formData, setFormData] = useState({
+    ccontact: { countryCode: "", number: "" },
+    poccontact: { countryCode: "", number: "" },
+    document: [],
+  })
   const [errors, setErrors] = useState({})
+  const [submissionError, setSubmissionError] = useState(null)
+  const [submissionSuccess, setSubmissionSuccess] = useState(null)
 
-  const handleInputChange = (id, value) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-    validateField(id, value)
-  }
-
+  // Validation function for each field
   const validateField = (id, value) => {
     let error = ""
-    if (formFields.find((field) => field.id === id)?.required && !value) {
-      error = "This field is required"
-    } else if (id === "buyer-email" && !/\S+@\S+\.\S+/.test(value)) {
+    if (id === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
       error = "Invalid email address"
     }
-    setErrors((prev) => ({ ...prev, [id]: error }))
+    if ((id === "ccontact") && value) {
+      const phoneNumber = typeof value === "object" ? value.number : value
+      if (!phoneNumber) {
+        error = "This field is required"
+      } else if (/\D/.test(phoneNumber)) {
+        error = "Only numbers allowed"
+      } else if (phoneNumber.length > 10) {
+        error = "Maximum 10 digits allowed"
+      }
+    }
+    // POC contact validation only if value is provided (since it's optional)
+    if (id === "poccontact" && value && value.number) {
+      const phoneNumber = typeof value === "object" ? value.number : value
+      if (/\D/.test(phoneNumber)) {
+        error = "Only numbers allowed"
+      } else if (phoneNumber.length > 10) {
+        error = "Maximum 10 digits allowed"
+      }
+    }
+    return error
   }
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    const newErrors = {}
-    formFields.forEach((field) => {
-      validateField(field.id, formData[field.id])
-      if (errors[field.id]) {
-        newErrors[field.id] = errors[field.id]
+  // Handle input changes
+  const handleInputChange = async (id, value) => {
+    if (id === "document") {
+      const newFiles = Array.from(value)
+      const validFiles = []
+      const invalidFiles = []
+
+      for (const file of newFiles) {
+        if (file.size > MAX_FILE_SIZE) {
+          invalidFiles.push(file.name)
+        } else {
+          validFiles.push(file)
+        }
       }
-    })
-    if (Object.keys(newErrors).length === 0) {
-      console.log("Form submitted:", formData)
-      // Handle form submission
+
+      if (invalidFiles.length > 0) {
+        setErrors((prev) => ({
+          ...prev,
+          document: `The following files exceed the 3MB limit: ${invalidFiles.join(", ")}`,
+        }))
+      } else {
+        setErrors((prev) => ({ ...prev, document: "" }))
+      }
+
+      const base64Files = await Promise.all(
+        validFiles.map(async (file) => ({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          base64: await fileToBase64(file),
+        })),
+      )
+
+      setFormData((prev) => ({ ...prev, [id]: [...(prev[id] || []), ...base64Files] }))
     } else {
-      setErrors(newErrors)
+      setFormData((prev) => ({ ...prev, [id]: value }))
+    }
+
+    if (id !== "document") {
+      const error = validateField(id, value)
+      setErrors((prev) => ({ ...prev, [id]: error }))
+    }
+  }
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    const formDataToSubmit = new FormData()
+
+    // Append all form data with the specified parameter names
+    formDataToSubmit.append("buyername", formData.buyername || "")
+    formDataToSubmit.append("email", formData.email || "")
+    formDataToSubmit.append("ccontact", `${formData.ccontact.countryCode}${formData.ccontact.number}`)
+    formDataToSubmit.append("address", formData.address || "")
+    // Optional fields - only append if they have values
+    if (formData.pocname) {
+      formDataToSubmit.append("pocname", formData.pocname)
+    }
+    if (formData.poccontact && formData.poccontact.number) {
+      formDataToSubmit.append("poccontact", `${formData.poccontact.countryCode}${formData.poccontact.number}`)
+    }
+    formDataToSubmit.append("status", formData.status || "")
+    formDataToSubmit.append("blocked", formData.blocked || false)
+    formDataToSubmit.append("country", formData.country || "")
+    formDataToSubmit.append("designation", formData.designation || "")
+    formDataToSubmit.append("industry", formData.industry || "")
+    formDataToSubmit.append("regid", 0)
+
+    // Handle document files (optional)
+    if (formData.document.length > 0) {
+      formData.document.forEach((file) => {
+        formDataToSubmit.append("document", JSON.stringify(file))
+      })
+    }
+
+
+    const result = await createBuyer(formDataToSubmit)
+
+    if (result.success) {
+      setSubmissionSuccess(result.message)
+      setSubmissionError(null)
+      redirect("/dashboard/buyers")
+    } else {
+      setSubmissionError(result.message)
+      setSubmissionSuccess(null)
     }
   }
 
   return (
-      <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
-        <div className="grid gap-4">
-          {formFields.map((field) => (
-            <div key={field.id} className="grid gap-2">
-              <Label htmlFor={field.id}>
-                {field.label} {field.required && <span className="text-red-500">*</span>}
-              </Label>
-              {field.type === "select" ? (
-                <Select onValueChange={(value) => handleInputChange(field.id, value)} required={field.required}>
-                  <SelectTrigger id={field.id}>
-                    <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {field.options.map((option) => (
-                      <SelectItem key={option} value={option.toLowerCase()}>
-                        {option}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              ) : field.type === "contact" ? (
-                <ContactInput
-                  id={field.id}
-                  value={formData[field.id] || { countryCode: "", number: "" }}
-                  onChange={handleInputChange}
-                />
-              ) : field.type === "textarea" ? (
-                <Textarea
-                  id={field.id}
-                  value={formData[field.id] || ""}
-                  onChange={(e) => handleInputChange(field.id, e.target.value)}
-                  required={field.required}
-                  maxLength={field.maxLength}
-                />
-              ) : field.type === "file" ? (
-                <>
-                  <Input
-                    id={field.id}
-                    type="file"
-                    onChange={(e) => handleInputChange(field.id, e.target.files)}
-                    required={field.required}
-                    multiple={field.multiple}
-                    accept={field.accept}
-                  />
-                  <p className="text-gray-500 text-sm mt-1">
-                    Accepted file types: {field.accept.replace(/\./g, '').replace(/,/g, ', ')}
-                  </p>
-                </>
-              ) : (
-                <Input
-                  id={field.id}
-                  type={field.type}
-                  value={formData[field.id] || ""}
-                  onChange={(e) => handleInputChange(field.id, e.target.value)}
-                  required={field.required}
-                  maxLength={field.maxLength}
-                />
-              )}
-              
-            </div>
-          ))}
+    <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
+      <div className="grid gap-4">
+        {/* Buyer Name */}
+        <div className="grid gap-2">
+          <Label htmlFor="buyer-name">
+            Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="buyer-name"
+            name="buyername"
+            type="text"
+            value={formData.buyername || ""}
+            onChange={(e) => handleInputChange("buyername", e.target.value)}
+            required
+          />
         </div>
-        <Button className="w-fit" type="submit">
-          Save Buyer
-        </Button>
-      </form>
-    )
-}
 
+        {/* Email */}
+        <div className="grid gap-2">
+          <Label htmlFor="email">
+            Email <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            value={formData.email || ""}
+            onChange={(e) => handleInputChange("email", e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Company Contact */}
+        <div className="grid gap-2">
+          <Label htmlFor="company-contact">
+            Company Contact <span className="text-red-500">*</span>
+          </Label>
+          <ContactInput
+            id="ccontact"
+            name="ccontact"
+            value={formData.ccontact}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Address */}
+        <div className="grid gap-2">
+          <Label htmlFor="address">
+            Address <span className="text-red-500">*</span>
+          </Label>
+          <Textarea
+            id="address"
+            name="address"
+            value={formData.address || ""}
+            onChange={(e) => handleInputChange("address", e.target.value)}
+            required
+            maxLength={199}
+          />
+        </div>
+
+        {/* Country */}
+        <div className="grid gap-2">
+          <Label htmlFor="country">
+            Country <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("country", value)} required name="country">
+            <SelectTrigger id="country">
+              <SelectValue placeholder="Select Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((country) => (
+                <SelectItem key={country.country} value={country.country}>
+                  {country.country}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Industry */}
+        <div className="grid gap-2">
+          <Label htmlFor="industry">
+            Industry <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("industry", value)} required name="industry">
+            <SelectTrigger id="industry">
+              <SelectValue placeholder="Select Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              {industries.map((industry) => (
+                <SelectItem key={industry.industry} value={industry.industry}>
+                  {industry.industry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Designation */}
+        <div className="grid gap-2">
+          <Label htmlFor="designation">
+            Designation <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("designation", value)} required name="designation">
+            <SelectTrigger id="designation">
+              <SelectValue placeholder="Select Designation" />
+            </SelectTrigger>
+            <SelectContent>
+              {designations.map((designation) => (
+                <SelectItem key={designation.designation} value={designation.designation}>
+                  {designation.designation}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* POC Name (Optional) */}
+        <div className="grid gap-2">
+          <Label htmlFor="poc-name">POC Name</Label>
+          <Input
+            id="poc-name"
+            name="pocname"
+            type="text"
+            value={formData.pocname || ""}
+            onChange={(e) => handleInputChange("pocname", e.target.value)}
+            maxLength={99}
+          />
+        </div>
+
+        {/* POC Contact (Optional) */}
+        <div className="grid gap-2">
+          <Label htmlFor="poc-contact">POC Contact</Label>
+          <ContactInput
+            id="poccontact"
+            name="poccontact"
+            value={formData.poccontact}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Document Upload (Optional) */}
+        <div className="grid gap-2">
+          <Label htmlFor="document">Document</Label>
+          <div className="flex flex-col gap-2">
+            <Input
+              id="document"
+              name="doc"
+              type="file"
+              onChange={(e) => handleInputChange("document", e.target.files)}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.bmp,.tiff"
+              multiple
+            />
+            <p className="text-gray-500 text-sm">
+              Accepted file types: pdf, doc, docx, xls, xlsx, jpg, jpeg, png, bmp, tiff (Max size: 3MB per file)
+            </p>
+            {errors.document && <p className="text-red-500 text-sm">{errors.document}</p>}
+            {formData.document && formData.document.length > 0 && (
+              <div className="mt-2">
+                <h4 className="text-sm font-medium mb-1">Uploaded files:</h4>
+                <ul className="list-disc pl-5">
+                  {formData.document.map((file, index) => (
+                    <li key={index} className="text-sm flex items-center justify-between">
+                      <span>{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newFiles = formData.document.filter((_, i) => i !== index)
+                          setFormData((prev) => ({ ...prev, document: newFiles }))
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Status */}
+        <div className="grid gap-2">
+          <Label htmlFor="status">
+            Status <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("status", value)} required name="status">
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Blocked */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="blocked"
+            name="blocked"
+            checked={formData.blocked || false}
+            onChange={(e) => handleInputChange("blocked", e.target.checked)}
+          />
+          <Label htmlFor="blocked">Blocked</Label>
+        </div>
+      </div>
+
+      <Button type="submit" className="w-fit">
+        Save Buyer
+      </Button>
+      {submissionError && <p className="text-red-500">{submissionError}</p>}
+      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
+    </form>
+  )
+}

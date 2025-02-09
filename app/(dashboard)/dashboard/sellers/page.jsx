@@ -1,11 +1,10 @@
-"use client";
-
-import React from "react";
+"use client"
 import Link from "next/link";
 import { PlusCircle } from "lucide-react";
 import { fonts } from "@/components/ui/font";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
+import { useEffect, useState } from "react";
 
 export default function SellerPage() {
   const columns = [
@@ -20,16 +19,33 @@ export default function SellerPage() {
     },
   ];
   
-  const data = [
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1234567890",
-      address: "123 Main St",
-      country: "USA",
-    },
-  ];
+  const [sellerdata, setSellerdata] = useState([]);
+  
+  useEffect(() => {
+    const fetchSellerData = async () => {
+      const formData = new FormData();
+      formData.append('regid', '0');
+      
+      const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/seller/`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      
+      // Transform the data to match column accessors
+      const transformedData = data.Sellers.map(seller => ({
+        id: seller.id,
+        name: seller.sname,
+        email: seller.email,
+        phone: seller.compcontact,
+        address: seller.saddress,
+        country: seller.country || '-',  // Using || '-' to show dash if null
+      }));
+  
+      setSellerdata(transformedData);
+    }
+    fetchSellerData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -48,7 +64,7 @@ export default function SellerPage() {
       </div>
 
       {/* DataTable Component */}
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={sellerdata} />
     </div>
   );
 }

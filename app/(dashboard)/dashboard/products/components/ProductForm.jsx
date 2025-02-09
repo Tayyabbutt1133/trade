@@ -1,22 +1,74 @@
 "use client"
-
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FunctionInput } from "./FunctionInput"
-import { CategorySelect } from "./CategorySelect"
 import { ImageUpload } from "./ImageUpload"
-import { formFields, existingFunctions, mainCategories, subCategories, subSubCategories, brandOptions } from "../_data"
+import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog"
+import { formFields, existingFunctions } from "../_data"
 
-export function ProductForm() {
+export function ProductForm({
+  initialBrandOptions = [],
+  initialCategoriesOption = [],
+  initialSubcategoriesOption = [],
+}) {
   const [images, setImages] = useState([])
   const [functions, setFunctions] = useState([])
-  const [mainCategory, setMainCategory] = useState("")
-  const [subCategory, setSubCategory] = useState("")
-  const [subSubCategory, setSubSubCategory] = useState("")
   const [brand, setBrand] = useState("")
+  const [selectedCategory, setSelectedCategory] = useState("")
+  const [selectedSubcategory, setSelectedSubcategory] = useState("")
+
+  // Option states
+  const [brandOptions, setBrandOptions] = useState(initialBrandOptions)
+  const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption)
+  const [subcategoriesOption, setSubcategoriesOption] = useState(initialSubcategoriesOption)
+
+  // Fetch only the needed options based on type
+  const fetchOptionForType = async (type) => {
+    let endpoint = ""
+    let setOption
+    if (type === "brand") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/brand/'
+      setOption = setBrandOptions
+    } else if (type === "category") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/categories/'
+      setOption = setCategoriesOption
+    } else if (type === "subcategory") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/'
+      setOption = setSubcategoriesOption
+    }
+
+    try {
+      const res = await fetch(endpoint)
+      const data = await res.json()
+      if (type === "brand") {
+        setOption(data.Brand || data)
+      } else if (type === "category") {
+        setOption(data.Categories || data)
+      } else if (type === "subcategory") {
+        setOption(data.SubCategories || data)
+      }
+    } catch (error) {
+      console.error(`Error fetching ${type} options:`, error)
+    }
+  }
+
+  const handleBrandChange = async (newValue) => {
+    setBrand(newValue)
+    await fetchOptionForType("brand")
+  }
+
+  const handleCategoryChange = async (newValue) => {
+    setSelectedCategory(newValue)
+    await fetchOptionForType("category")
+  }
+
+  const handleSubcategoryChange = async (newValue) => {
+    setSelectedSubcategory(newValue)
+    await fetchOptionForType("subcategory")
+  }
 
   const handleSubmit = (event) => {
     event.preventDefault()
@@ -24,17 +76,16 @@ export function ProductForm() {
       images,
       functions,
       brand,
-      mainCategory,
-      subCategory,
-      subSubCategory,
+      selectedCategory,
+      selectedSubcategory,
     })
   }
 
   return (
-    <form className="grid gap-6" onSubmit={handleSubmit}>
-      <div className="grid gap-4">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-4">
         {formFields.map((field) => (
-          <div key={field.id} className="grid gap-2">
+          <div key={field.id} className="space-y-2">
             <Label htmlFor={field.id}>{field.label}</Label>
             {field.type === "textarea" ? (
               <Textarea id={field.id} required />
@@ -43,57 +94,43 @@ export function ProductForm() {
             )}
           </div>
         ))}
-        <CategorySelect
+
+        <CategoryComboBoxWithDialog
           label="Brand"
           value={brand}
-          onChange={setBrand}
-          onClear={() => setBrand("")}
+          onChange={handleBrandChange}
           options={brandOptions}
+          type="brand"
         />
-        <CategorySelect
-          label="Main Category"
-          value={mainCategory}
-          onChange={(value) => {
-            setMainCategory(value)
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          onClear={() => {
-            setMainCategory("")
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          options={mainCategories}
+
+        <CategoryComboBoxWithDialog
+          label="Category"
+          value={selectedCategory}
+          onChange={handleCategoryChange}
+          options={categoriesOption}
+          type="category"
         />
-        <CategorySelect
+
+        <CategoryComboBoxWithDialog
           label="Subcategory"
-          value={subCategory}
-          onChange={(value) => {
-            setSubCategory(value)
-            setSubSubCategory("")
-          }}
-          onClear={() => {
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          options={mainCategory ? subCategories[mainCategory] : []}
-          disabled={!mainCategory}
+          value={selectedSubcategory}
+          onChange={handleSubcategoryChange}
+          options={subcategoriesOption}
+          type="subcategory"
         />
-        <CategorySelect
-          label="Sub-subcategory"
-          value={subSubCategory}
-          onChange={setSubSubCategory}
-          onClear={() => setSubSubCategory("")}
-          options={subCategory ? subSubCategories[subCategory] : []}
-          disabled={!subCategory}
+
+        <FunctionInput
+          functions={functions}
+          setFunctions={setFunctions}
+          existingFunctions={existingFunctions}
         />
-        <FunctionInput functions={functions} setFunctions={setFunctions} existingFunctions={existingFunctions} />
+
         <ImageUpload images={images} setImages={setImages} />
       </div>
+
       <Button className="w-fit" type="submit">
         Save Chemical Product
       </Button>
     </form>
   )
 }
-
