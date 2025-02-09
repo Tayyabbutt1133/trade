@@ -1,3 +1,4 @@
+import ModernQRPage from "../../expo-events/page";
 import { SellerForm } from "../components/SellerForm";
 
 export async function addSellerToDatabase(data) {

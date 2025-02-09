@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchMetaData } from "./fetchexpo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Mail, User, Phone, ArrowRight, Building2 } from "lucide-react";
@@ -9,24 +10,44 @@ import { EXPO } from "@/app/actions/expoevents";
 
 export default function ModernQRPage() {
   const [message, setMessage] = useState("");
+  const [countries, setCountries] = useState([]);
+  const [industries, setIndustries] = useState([]);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     phone: "",
     address: "",
+    rtype: "",
+    country: "",
+    industry: "",
   });
+
+  useEffect(() => {
+    async function loadMetaData() {
+      const { countries, industries } = await fetchMetaData();
+      setCountries(countries);
+      setIndustries(industries);
+    }
+    loadMetaData();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Simple validation: ensure all fields are filled.
-    if (!formData.name || !formData.email || !formData.phone || !formData.address) {
+    if (
+      !formData.name ||
+      !formData.email ||
+      !formData.phone ||
+      !formData.address ||
+      !formData.rtype ||
+      !formData.country ||
+      !formData.industry
+    ) {
       setMessage("Please fill in all required fields.");
       return;
     }
 
     try {
-      // Create a FormData instance from the form element.
       const expoData = new FormData(e.target);
       const response = await EXPO(expoData);
       console.log("API Response:", response);
@@ -93,6 +114,60 @@ export default function ModernQRPage() {
               placeholder="Address"
               className={`pl-10 ${fonts.montserrat} h-12`}
             />
+          </div>
+
+          {/* rtype Dropdown */}
+          <div className="relative">
+            <select
+              name="rtype"
+              value={formData.rtype}
+              onChange={(e) => setFormData({ ...formData, rtype: e.target.value })}
+              className={`pl-3 pr-10 ${fonts.montserrat} h-12 w-full border rounded-md`}
+            >
+              <option value="" disabled>
+                Select Type
+              </option>
+              <option value="buyer">Buyer</option>
+              <option value="seller">Seller</option>
+            </select>
+          </div>
+
+          {/* Country Dropdown */}
+          <div className="relative">
+            <select
+              name="country"
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              className={`pl-3 pr-10 ${fonts.montserrat} h-12 w-full border rounded-md`}
+            >
+              <option value="" disabled>
+                Select Country
+              </option>
+              {countries.map((country, index) => (
+                <option key={index} value={country}>
+                  {country}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Industry Dropdown */}
+          <div className="relative">
+            <select
+              name="industry"
+              value={formData.industry}
+              onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+              className={`pl-3 pr-10 ${fonts.montserrat} h-12 w-full border rounded-md`}
+            >
+              <option value="" disabled>
+                Select Industry
+              </option>
+              {industries.map((industry, index) => (
+                <option key={index} value={industry}>
+                  {industry}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 

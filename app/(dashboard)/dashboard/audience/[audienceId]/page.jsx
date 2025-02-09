@@ -1,7 +1,7 @@
 import { AudienceForm } from "../components/AudienceForm";
 
 const AudienceFormPage = async ({ params }) => {
-  const audienceId = params.audienceId; // assuming params is not a Promise
+  const audienceId = (await params).audienceId; // assuming params is not a Promise
   const isNewAudience = audienceId === "new";
 
   try {
