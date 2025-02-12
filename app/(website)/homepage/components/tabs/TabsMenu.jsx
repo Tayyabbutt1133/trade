@@ -12,10 +12,11 @@ export default function TabsMenu() {
         <TabsList className={fonts.montserrat}>
           <TabsTrigger value="industries" className={`${fonts.montserrat}`}>
             Industries
-          </TabsTrigger>
-          <TabsTrigger value="product-families" className={fonts.montserrat}>
+            </TabsTrigger>
+            {/* Disabling product-families */}
+          {/* <TabsTrigger value="product-families" className={fonts.montserrat}>
             Product Families
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         <TabsContent value="industries" className={`${fonts.montserrat}`}>
           <IndustriesGrid />

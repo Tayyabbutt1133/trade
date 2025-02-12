@@ -1,22 +1,73 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { fonts } from "@/components/ui/font"
-import Link from "next/link"
-import { SocialSignInButtons } from "./SocialSignInButtons"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { fonts } from "@/components/ui/font";
+import { SocialSignInButtons } from "./SocialSignInButtons";
+import { LOGIN } from "@/app/actions/signin";
+import { useRouter } from "next/navigation";
+import roleAccessStore from "@/store/role-access-permission";
 
 export function SignInForm() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Handle sign in logic here
-    console.log("Sign in:", { email, password })
-  }
+  const router = useRouter();
+  const setRole = roleAccessStore((state) => state.setRole);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Reset messages before every attempt
+    setErrorMessage("");
+    setSuccessMessage("");
+    setLoading(true);
+
+    try {
+      const loginToSubmit = new FormData(e.target);
+      const server_response = await LOGIN(loginToSubmit);
+      setLoading(false);
+
+      if (server_response.success) {
+        setSuccessMessage("Login successful!");
+
+        // Validate the response before using its properties
+        if (
+          server_response.data &&
+          server_response.data.id &&
+          server_response.data.type &&
+          typeof server_response.data.type === "string"
+        ) {
+          // Safely convert the role type to lowercase
+          const roleType = server_response.data.type.toLowerCase();
+          setRole({
+            id: server_response.data.id,
+            type: roleType,
+          });
+        } else {
+          setErrorMessage("Invalid server response: Missing user information.");
+          return;
+        }
+
+        // Redirect after a short delay for a smooth experience
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 1000);
+      } else {
+        // Display the error message provided by the server (or a fallback message)
+        setErrorMessage(server_response.message || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      setLoading(false);
+      setErrorMessage("An unexpected error occurred. Please try again later.");
+      console.error("Login error:", error);
+    }
+  };
 
   return (
     <div className={`space-y-6 ${fonts.montserrat}`}>
@@ -26,6 +77,7 @@ export function SignInForm() {
           <Input
             id="email"
             type="email"
+            name="email"
             placeholder="Enter your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -37,33 +89,49 @@ export function SignInForm() {
           <Input
             id="password"
             type="password"
+            name="password"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
           />
         </div>
-        <Link href={"/dashboard"}>
-          <Button type="submit" className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]">
-            Sign In
+        <div>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]"
+          >
+            {loading ? "Signing in..." : "Sign In"}
           </Button>
-        </Link>
+        </div>
         <div className="text-sm text-center mt-4">
-          <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">Reset password</span>
+          <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">
+            Reset password
+          </span>
         </div>
       </form>
+
+      {/* Display success or error messages */}
+      {successMessage && (
+        <div className="text-green-600 text-center mt-4">{successMessage}</div>
+      )}
+      {errorMessage && (
+        <div className="text-red-600 text-center mt-4">{errorMessage}</div>
+      )}
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+          <span className="bg-background px-2 text-muted-foreground">
+            Or continue with
+          </span>
         </div>
       </div>
 
       <SocialSignInButtons />
     </div>
-  )
+  );
 }
-

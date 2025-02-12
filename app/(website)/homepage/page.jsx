@@ -15,12 +15,12 @@ const HomePage = () => {
       <Hero />
       <TabsMenu />
       <FeaturesSection />
-      <FeaturedSuppliers />
+      <SuppliersSection />
+      {/* <FeaturedSuppliers /> */}
       <Whychem />
       <TestimonialCarousel />
       <ActivityFeed />
       <InsightsAndInnovations />
-      <SuppliersSection />
     </>
   );
 };

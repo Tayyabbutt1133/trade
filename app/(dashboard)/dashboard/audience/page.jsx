@@ -10,7 +10,6 @@ const columns = [
   { accessorKey: "recipientType", header: "Recipient Type" },
   { accessorKey: "originCountry", header: "Origin Country" },
   { accessorKey: "industry", header: "Industry" },
-  { accessorKey: "functions", header: "Functions" },
   { accessorKey: "region", header: "Region" },
   { accessorKey: "tagging", header: "Tagging" },
 ]
@@ -22,29 +21,8 @@ const data = [
     recipientType: "Buyer",
     originCountry: "United States",
     industry: "Technology",
-    functions: "IT",
     region: "North America",
     tagging: "Premium",
-  },
-  {
-    id: "2",
-    title: "European Healthcare Sellers",
-    recipientType: "Seller",
-    originCountry: "Germany",
-    industry: "Healthcare",
-    functions: "Sales",
-    region: "Europe",
-    tagging: "Verified",
-  },
-  {
-    id: "3",
-    title: "Asian Finance Executives",
-    recipientType: "Buyer",
-    originCountry: "Japan",
-    industry: "Finance",
-    functions: "Executive",
-    region: "Asia",
-    tagging: "High Volume",
   },
 ]
 

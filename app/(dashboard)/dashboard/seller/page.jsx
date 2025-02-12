@@ -5,8 +5,16 @@ import { fonts } from "@/components/ui/font";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
 import { useEffect, useState } from "react";
+import roleAccessStore from "@/store/role-access-permission";
 
 export default function SellerPage() {
+  // Retrieve the user's role object from the Zustand store.
+  const roleData = roleAccessStore((state) => state.role);
+  
+  // Extract the "type" property from the role data.
+  const userRole = roleData?.type;
+  console.log("User Role:", userRole);
+
   const columns = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "email", header: "Email" },
@@ -15,7 +23,7 @@ export default function SellerPage() {
     { accessorKey: "country", header: "Country" },
     {
       accessorKey: "Actions",
-      cell: ({ row }) => <TableActionBtn page="sellers" data={row.original} />,
+      cell: ({ row }) => <TableActionBtn page="seller" data={row.original} />,
     },
   ];
   
@@ -51,16 +59,18 @@ export default function SellerPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className={`text-3xl font-bold ml-14 ${fonts.montserrat} sm:ml-0`}>
-          Seller
+          {userRole === "admin" ? "Seller" : "Your Profile"}
         </h1>
-        <Link href="/dashboard/sellers/new">
-          <button
-            className={`flex  items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Seller
-          </button>
-        </Link>
+        {userRole === "admin" && (
+          <Link href="/dashboard/seller/new/">
+            <button
+              className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Seller
+            </button>
+          </Link>
+        )}
       </div>
 
       {/* DataTable Component */}

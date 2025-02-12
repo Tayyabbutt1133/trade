@@ -16,7 +16,7 @@ const footerLinks = {
   admin: {  // Added new admin section
     title: "Admin",
     links: [
-      { text: "Admin Panel", href: "https://admin-tradetroppers.vercel.app/" },
+      { text: "Admin Panel", href: "https://www.tradetoppers.com/dashboard/" },
     ],
   },
   suppliers: {

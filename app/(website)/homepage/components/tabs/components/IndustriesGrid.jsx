@@ -7,38 +7,6 @@ const industriesData = [
     icon: Pen
   },
   {
-    title: "Agriculture & Feed",
-    icon: Wheat
-  },
-  {
-    title: "Automotive & Transportation",
-    icon: Car
-  },
-  {
-    title: "Building & Construction",
-    icon: Hammer
-  },
-  {
-    title: "Consumer Goods",
-    icon: ShoppingBag
-  },
-  {
-    title: "Electrical & Electronics",
-    icon: Zap
-  },
-  {
-    title: "Food & Nutrition",
-    icon: Apple
-  },
-  {
-    title: "Healthcare & Pharma",
-    icon: Heart
-  },
-  {
-    title: "HI&I Care",
-    icon: Spray
-  },
-  {
     title: "Industrial",
     icon: Factory
   },
@@ -50,10 +18,6 @@ const industriesData = [
     title: "Personal Care",
     icon: Bath
   },
-  {
-    title: "Printing & Packaging",
-    icon: Package
-  }
 ]
 
 export default function IndustriesGrid() {

@@ -1,0 +1,60 @@
+"use server";
+
+export async function LOGIN(formdata) {
+  try {
+    // Log form data keys only for debugging (avoid logging sensitive info)
+    console.log("Received login form fields:", Array.from(formdata.keys()));
+
+    const response = await fetch(
+      "https://tradetoppers.esoftideas.com/esi-api/responses/registeration/",
+      {
+        method: "POST",
+        body: formdata,
+        // No need to set 'Content-Type' headers when sending FormData; the browser handles it.
+      }
+    );
+
+    if (!response.ok) {
+      let errorMessage = "Login failed. Please check your credentials.";
+
+      // Attempt to extract a detailed error message from the server response
+      try {
+        const errorData = await response.json();
+        if (errorData && errorData.error) {
+          errorMessage = errorData.error;
+        }
+      } catch (parseError) {
+        // If JSON parsing fails, try to get plain text
+        const errorText = await response.text();
+        if (errorText) {
+          errorMessage = errorText;
+        }
+      }
+
+      return { success: false, message: errorMessage };
+    }
+
+    // Parse the successful JSON response
+    const data = await response.json();
+    console.log("Server response:", data);
+
+    // Validate that we have the expected data structure
+    if (!data || typeof data !== "object") {
+      return { success: false, message: "Unexpected server response format." };
+    }
+    if (!data.id || !data.type) {
+      return {
+        success: false,
+        message: "Invalid Login Credentials",
+      };
+    }
+
+    return { success: true, data };
+  } catch (error) {
+    console.error("Error during login:", error);
+    return {
+      success: false,
+      message: "An unexpected error occurred. Please try again later.",
+    };
+  }
+}

@@ -93,20 +93,20 @@ export function CampaignForm({ initialData, onSubmit }) {
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="recipientType">Recipient Type</Label>
+        <Label htmlFor="recipientType">Audience</Label>
         <Select
           value={formData.recipientType}
           onValueChange={(value) => handleSelectChange("recipientType", value)}
           required
         >
           <SelectTrigger id="recipientType">
-            <SelectValue placeholder="Select recipient type" />
+            <SelectValue placeholder="Select Audience" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="seller">Seller</SelectItem>
-            <SelectItem value="buyers">Buyers</SelectItem>
-            <SelectItem value="potential-customers">Potential Customers</SelectItem>
+            <SelectItem value="all">Washington Sellers</SelectItem>
+            <SelectItem value="seller">California Buyers</SelectItem>
+            <SelectItem value="buyers">New York</SelectItem>
+            <SelectItem value="potential-customers">Texas</SelectItem>
           </SelectContent>
         </Select>
       </div>
