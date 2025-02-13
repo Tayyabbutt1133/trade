@@ -1,4 +1,5 @@
 "use client"
+
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,24 +9,36 @@ import { FunctionInput } from "./FunctionInput"
 import { ImageUpload } from "./ImageUpload"
 import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog"
 import { formFields, existingFunctions } from "../_data"
+import { createProduct } from "@/app/actions/createProduct"
+import { redirect } from "next/navigation"
 
 export function ProductForm({
   initialBrandOptions = [],
   initialCategoriesOption = [],
   initialSubcategoriesOption = [],
 }) {
-  const [images, setImages] = useState([])
-  const [functions, setFunctions] = useState([])
-  const [brand, setBrand] = useState("")
-  const [selectedCategory, setSelectedCategory] = useState("")
-  const [selectedSubcategory, setSelectedSubcategory] = useState("")
+  const [formData, setFormData] = useState({
+    images: [],
+    functions: [],
+    brand: "",
+    category: "",
+    subcategory: "",
+    description: "",
+    code: "",
+    formula: "",
+    chemical: "",
+    logby: ""
+  })
+  const [errors, setErrors] = useState({})
+  const [submissionError, setSubmissionError] = useState(null)
+  const [submissionSuccess, setSubmissionSuccess] = useState(null)
 
   // Option states
   const [brandOptions, setBrandOptions] = useState(initialBrandOptions)
   const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption)
   const [subcategoriesOption, setSubcategoriesOption] = useState(initialSubcategoriesOption)
 
-  // Fetch only the needed options based on type
+  // Fetch options function remains the same
   const fetchOptionForType = async (type) => {
     let endpoint = ""
     let setOption
@@ -55,30 +68,72 @@ export function ProductForm({
     }
   }
 
+  // Handle input changes
+  const handleInputChange = (id, value) => {
+    setFormData((prev) => ({ ...prev, [id]: value }))
+    // Clear any errors for this field
+    setErrors((prev) => ({ ...prev, [id]: "" }))
+  }
+
+  // Handle options changes
   const handleBrandChange = async (newValue) => {
-    setBrand(newValue)
+    handleInputChange("brand", newValue)
     await fetchOptionForType("brand")
   }
 
   const handleCategoryChange = async (newValue) => {
-    setSelectedCategory(newValue)
+    handleInputChange("category", newValue)
     await fetchOptionForType("category")
   }
 
   const handleSubcategoryChange = async (newValue) => {
-    setSelectedSubcategory(newValue)
+    handleInputChange("subcategory", newValue)
     await fetchOptionForType("subcategory")
   }
 
-  const handleSubmit = (event) => {
+  // Handle form submission
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log("Form submitted", {
-      images,
-      functions,
-      brand,
-      selectedCategory,
-      selectedSubcategory,
-    })
+
+    const formDataToSubmit = new FormData()
+
+    // Append all form data with the specified parameter names
+    formDataToSubmit.append("description", formData.description || "")
+    formDataToSubmit.append("code", formData.code || "")
+    formDataToSubmit.append("formula", formData.formula || "")
+    formDataToSubmit.append("brand", formData.brand || "")
+    formDataToSubmit.append("category", formData.category || "")
+    formDataToSubmit.append("subcategory", formData.subcategory || "")
+    formDataToSubmit.append("chemical", formData.chemical || "")
+    formDataToSubmit.append("logby", formData.logby || "")
+
+    // Handle functions array
+    if (formData.functions.length > 0) {
+      formDataToSubmit.append("functions", JSON.stringify(formData.functions))
+    }
+
+    // Handle images
+    if (formData.images.length > 0) {
+      formData.images.forEach((image, index) => {
+        formDataToSubmit.append(`images[${index}]`, image)
+      })
+    }
+
+    try {
+      const result = await createProduct(formDataToSubmit)
+
+      if (result.success) {
+        setSubmissionSuccess(result.message)
+        setSubmissionError(null)
+        redirect("/dashboard/products")
+      } else {
+        setSubmissionError(result.message)
+        setSubmissionSuccess(null)
+      }
+    } catch (error) {
+      setSubmissionError("An error occurred while saving the product")
+      setSubmissionSuccess(null)
+    }
   }
 
   return (
@@ -88,16 +143,28 @@ export function ProductForm({
           <div key={field.id} className="space-y-2">
             <Label htmlFor={field.id}>{field.label}</Label>
             {field.type === "textarea" ? (
-              <Textarea id={field.id} required />
+              <Textarea 
+                id={field.id}
+                value={formData[field.id] || ""}
+                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                required 
+              />
             ) : (
-              <Input id={field.id} type={field.type} required />
+              <Input 
+                id={field.id}
+                type={field.type}
+                value={formData[field.id] || ""}
+                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                required 
+              />
             )}
+            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
           </div>
         ))}
 
         <CategoryComboBoxWithDialog
           label="Brand"
-          value={brand}
+          value={formData.brand}
           onChange={handleBrandChange}
           options={brandOptions}
           type="brand"
@@ -105,7 +172,7 @@ export function ProductForm({
 
         <CategoryComboBoxWithDialog
           label="Category"
-          value={selectedCategory}
+          value={formData.category}
           onChange={handleCategoryChange}
           options={categoriesOption}
           type="category"
@@ -113,24 +180,30 @@ export function ProductForm({
 
         <CategoryComboBoxWithDialog
           label="Subcategory"
-          value={selectedSubcategory}
+          value={formData.subcategory}
           onChange={handleSubcategoryChange}
           options={subcategoriesOption}
           type="subcategory"
         />
 
         <FunctionInput
-          functions={functions}
-          setFunctions={setFunctions}
+          functions={formData.functions}
+          setFunctions={(newFunctions) => handleInputChange("functions", newFunctions)}
           existingFunctions={existingFunctions}
         />
 
-        <ImageUpload images={images} setImages={setImages} />
+        <ImageUpload 
+          images={formData.images}
+          setImages={(newImages) => handleInputChange("images", newImages)}
+        />
       </div>
 
       <Button className="w-fit" type="submit">
         Save Chemical Product
       </Button>
+
+      {submissionError && <p className="text-red-500">{submissionError}</p>}
+      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
   )
 }
