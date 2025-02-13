@@ -4,34 +4,18 @@ import React, { useState } from "react";
 import { PlusCircle, Search } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { fonts } from "@/components/ui/font";
+import { ADDUSER } from "@/app/actions/adduser";
 
 export default function UsersPage() {
   const columns = [
-    { accessorKey: "name", header: "Name" },
+    { accessorKey: "user", header: "User" },
     { accessorKey: "email", header: "Email" },
     { accessorKey: "role", header: "Role" },
     { accessorKey: "status", header: "Status" },
-    { accessorKey: "lastLogin", header: "Last Login" },
+    // { accessorKey: "lastLogin", header: "Last Login" },
   ];
 
-  const [userData, setUserData] = useState([
-    {
-      id: "1",
-      name: "John Doe",
-      email: "john@example.com",
-      role: "User",
-      status: "Active",
-      lastLogin: "2024-03-15",
-    },
-    {
-      id: "2",
-      name: "Jane Smith",
-      email: "jane@example.com",
-      role: "Admin",
-      status: "Active",
-      lastLogin: "2024-03-20",
-    },
-  ]);
+  const [userData, setUserData] = useState([]);
 
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -66,13 +50,17 @@ export default function UsersPage() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newUser = {
       id: (userData.length + 1).toString(),
       ...formData,
       lastLogin: "N/A",
     };
+    const formDataToSubmit = new FormData(e.target);
+    const response = await ADDUSER(formDataToSubmit);
+    console.log("Response from server :", response);
+
     setUserData((prevData) => [...prevData, newUser]);
     setOpen(false);
     resetForm();
@@ -101,7 +89,7 @@ export default function UsersPage() {
 
       {/* Add User Modal */}
       {open && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white rounded-lg p-6 w-[425px]">
             <h2 className="text-lg font-semibold mb-4">Add New User</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,9 +98,9 @@ export default function UsersPage() {
                   Name
                 </label>
                 <input
-                  id="name"
-                  name="name"
-                  value={formData.name}
+                  id="user"
+                  name="user"
+                  value={formData.user}
                   onChange={handleInputChange}
                   required
                   className="w-full p-2 border rounded"

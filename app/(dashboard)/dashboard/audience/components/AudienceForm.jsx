@@ -18,8 +18,10 @@ import { CREATEAUDIENCE } from "@/app/actions/createAudience";
 // Static options for fields that aren't dynamic
 const recipientTypes = ["Seller", "Buyer", "Both"];
 const taggings = ["Premium", "New", "Verified", "Partner", "High Volume"];
+const statusOptions = ["Active", "Inactive"];
 
-export function AudienceForm({ countries = [], industries = [], regions = [] }) {
+export function AudienceForm({ countries = [], industries = [], regions = [], designation = [] }) {
+  // We still keep local state for analytics and to update the form values for our custom selects.
   const [formData, setFormData] = useState({});
   const [analytics, setAnalytics] = useState({
     totalAudience: 0,
@@ -30,18 +32,18 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Define your dynamic form fields.
+  // Define your dynamic form fields with names that match your API keys.
   const dynamicFormFields = [
     {
       id: "title",
       label: "Title",
-      name: "Title",
+      name: "title", // API key: title
       type: "text",
       required: true,
     },
     {
       id: "recipient-type",
-      name: "rtype",
+      name: "atype", // API expects "atype"
       label: "Recipient",
       type: "select",
       options: recipientTypes,
@@ -49,7 +51,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     },
     {
       id: "origin-country",
-      name: "country",
+      name: "country", // API expects "country"
       type: "select",
       label: "Country",
       options: countries,
@@ -57,8 +59,17 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
       optionKey: "country",
     },
     {
+      id: "designation",
+      name: "designation", // API expects "designation"
+      type: "select",
+      label: "Designation",
+      options: designation,
+      required: true,
+      optionKey: "designation",
+    },
+    {
       id: "industry",
-      name: "industry",
+      name: "industry", // API expects "industry"
       label: "Industry",
       type: "select",
       options: industries,
@@ -67,7 +78,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     },
     {
       id: "region",
-      name: "region",
+      name: "region", // API expects "region"
       label: "Region",
       type: "select",
       options: regions,
@@ -77,21 +88,23 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     {
       id: "tagging",
       label: "Tag",
-      name: "tag",
+      name: "tag", // API expects "tag"
       type: "select",
       options: taggings,
       required: false,
     },
+    {
+      id: "status",
+      name: "status", // API expects "status"
+      label: "Status",
+      type: "select",
+      required: true,
+      options: statusOptions,
+    },
   ];
 
-  /**
-   * updateAnalytics
-   * Builds the payload using the current formData (using null for any missing value)
-   * and calls the DEMO API. The API returns the count based on the filters passed,
-   * and we update the analytics accordingly.
-   */
+  // Update analytics when certain fields change.
   const updateAnalytics = async (newData) => {
-    // Build the payload using provided values or null if not provided.
     const payload = {
       rtype: newData["recipient-type"] || null,
       country: newData["origin-country"] || null,
@@ -101,10 +114,9 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     };
 
     try {
-      // Call the DEMO API with the payload.
       const response = await DEMO(JSON.stringify(payload));
+      console.log("Response from server :", response);
       if (response.success) {
-        // Update the total audience count with the returned value.
         setAnalytics((prev) => ({
           ...prev,
           totalAudience: response.count,
@@ -117,6 +129,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     }
   };
 
+  // We update local state when a field changes.
   const handleInputChange = async (id, value) => {
     const updatedData = { ...formData, [id]: value };
     setFormData(updatedData);
@@ -126,49 +139,33 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
     }
   };
 
+  // On form submission, we rely on the browser’s FormData API.
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
-    // Reset messages before every attempt
     setErrorMessage("");
     setSuccessMessage("");
-  
-    console.log("Form submitted with data:", formData);
+
+    // Log the form submission (optional)
+    console.log("Form submitted with local state data:", formData);
     console.log("Final analytics:", analytics);
-  
+
     try {
-      // Mapping formData keys to API expected keys
-      const mappedData = {
-        rtype: formData["recipient-type"] || null,
-        country: formData["origin-country"] || null,
-        industry: formData["industry"] || null,
-        region: formData["region"] || null,
-        tag: formData["tagging"] || null,
-        title: formData["title"] || null, // Keep other fields as is
-      };
-  
-      // Create FormData and append mapped values
-      const formPayload = new FormData();
-      Object.entries(mappedData).forEach(([key, value]) => {
-        if (value !== null) {
-          formPayload.append(key, value);
-        }
-      });
-  
+      // Create a FormData object directly from the form element.
+      // Note that hidden inputs (see below) ensure custom select values are included.
+      const formPayload = new FormData(e.target);
+
       const response = await CREATEAUDIENCE(formPayload);
-  
-      if (response.ok) {
+      console.log("Response from server:", response);
+      if (response.success) {
         setSuccessMessage("Successfully submitted");
       } else {
-        setErrorMessage(response.message || "Submission failed. Please try again.");
+        setErrorMessage(response.error || "Submission failed. Please try again.");
       }
     } catch (error) {
       setErrorMessage("An unexpected error occurred. Please try again later.");
       console.error("Submission error:", error);
     }
   };
-  
-  
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
@@ -179,34 +176,43 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
               {field.label} {field.required && <span className="text-red-500">*</span>}
             </Label>
             {field.type === "select" ? (
-              <Select
-                onValueChange={(value) => handleInputChange(field.id, value)}
-                required={field.required}
-              >
-                <SelectTrigger id={field.id}>
-                  <SelectValue placeholder={`Select ${field.label}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {field.options && field.options.length > 0 ? (
-                    field.options.map((option) => {
-                      const display = field.optionKey ? option[field.optionKey] : option;
-                      return (
-                        <SelectItem key={display} value={display}>
-                          {display}
-                        </SelectItem>
-                      );
-                    })
-                  ) : (
-                    <SelectItem disabled>No options available</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
+              <>
+                <Select
+                  onValueChange={(value) => handleInputChange(field.id, value)}
+                  required={field.required}
+                >
+                  <SelectTrigger id={field.id}>
+                    <SelectValue placeholder={`Select ${field.label}`} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options && field.options.length > 0 ? (
+                      field.options.map((option) => {
+                        const display = field.optionKey ? option[field.optionKey] : option;
+                        return (
+                          <SelectItem key={display} value={display}>
+                            {display}
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem disabled>No options available</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                {/* Hidden input to ensure the selected value is included in FormData */}
+                <input
+                  type="hidden"
+                  name={field.name}
+                  value={formData[field.id] || ""}
+                />
+              </>
             ) : (
               <Input
-                  id={field.id}
-                  name={field.name}
+                id={field.id}
+                name={field.name}
                 type={field.type}
                 required={field.required}
+                // You may omit the value prop here so the browser handles it natively.
                 onChange={(e) => handleInputChange(field.id, e.target.value)}
               />
             )}
@@ -232,7 +238,6 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
         Create Audience
       </Button>
 
-      
       {/* Display success or error messages */}
       {successMessage && (
         <div className="text-green-600 text-center mt-4">{successMessage}</div>
@@ -240,8 +245,6 @@ export function AudienceForm({ countries = [], industries = [], regions = [] }) 
       {errorMessage && (
         <div className="text-red-600 text-center mt-4">{errorMessage}</div>
       )}
-
-
     </form>
   );
 }
