@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,162 +9,40 @@ import { Textarea } from "@/components/ui/textarea"
 import { ContactInput } from "../../../../../components/ContactInput"
 import { fonts } from "@/components/ui/font"
 import { createSeller } from "@/app/actions/createSeller"
+import { redirect } from "next/navigation"
 
 // Static options for the status field.
-const statusOptions = ["Active", "Inactive", "Block"]
+const statusOptions = ["Active", "Inactive"]
 
-// with dynamic data passed as props.
-const baseFormFields = [
-  {
-    id: "seller-name",
-    name: "sellername",
-    label: "Name",
-    type: "text",
-    required: true,
-  },
-  {
-    id: "seller-email",
-    name: "email",
-    label: "Email",
-    type: "email",
-    required: true,
-  },
-  {
-    id: "seller-company-contact",
-    name: "ccontact",
-    label: "Company Contact",
-    type: "contact",
-    required: true,
-    maxLength: 10,
-  },
-  {
-    id: "seller-address",
-    name: "address",
-    label: "Address",
-    type: "textarea",
-    required: true,
-    maxLength: 199,
-  },
-  {
-    id: "seller-country",
-    name: "country",
-    label: "Country",
-    type: "select",
-    required: true,
-    options: [], // dynamic data will be injected here
-    optionKey: "country", // use each country's "country" property
-  },
-  {
-    id: "seller-industry",
-    name: "industry",
-    label: "Industry",
-    type: "select",
-    required: true,
-    options: [],
-    optionKey: "industry", // use each industry's "industry" property
-  },
-  {
-    id: "seller-designation",
-    name: "designation",
-    label: "Designation",
-    type: "select",
-    required: true,
-    options: [],
-    optionKey: "designation", // use each designation's "designation" property
-  },
-  {
-    id: "poc-name",
-    name: "pocname",
-    label: "POC Name",
-    type: "text",
-    required: true,
-    maxLength: 99,
-  },
-  {
-    id: "poc-contact",
-    name: "poccontact",
-    label: "POC Contact",
-    type: "contact",
-    required: true,
-    maxLength: 10,
-  },
-  {
-    id: "document",
-    name: "doc",
-    label: "Document",
-    type: "file",
-    required: true,
-    multiple: true,
-    accept: ".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.bmp,.tiff",
-  },
-  {
-    id: "status",
-    name: "status",
-    label: "Status",
-    type: "select",
-    required: true,
-    options: statusOptions,
-  },
-  // Checkbox field for blocked
-  {
-    id: "blocked",
-    name: "blocked",
-    label: "Blocked",
-    type: "checkbox",
-    required: true,
-  },
-]
+// Add this near the top of the file, with other constants
+const MAX_FILE_SIZE = 3 * 1024 * 1024 // 3MB in bytes
+
+// Function to convert file to base64
+const fileToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = (error) => reject(error)
+  })
+}
 
 export function SellerForm({ countries = [], industries = [], designations = [] }) {
-
   const [formData, setFormData] = useState({
     "seller-company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
+    document: [],
   })
   const [errors, setErrors] = useState({})
   const [submissionError, setSubmissionError] = useState(null)
   const [submissionSuccess, setSubmissionSuccess] = useState(null)
 
-  // // Log dynamic data for debugging
-  // useEffect(() => {
-  //   console.log("Countries Data:", countries);
-  //   console.log("Industries Data:", industries);
-  //   console.log("Designations Data:", designations);
-  // }, [countries, industries, designations]);
-
-  // Merge dynamic data into our base fields for select inputs.
-  const formFields = baseFormFields.map((field) => {
-    if (field.id === "seller-country") {
-      return { ...field, options: countries }
-    } else if (field.id === "seller-industry") {
-      return { ...field, options: industries }
-    } else if (field.id === "seller-designation") {
-      return { ...field, options: designations }
-    }
-    return field
-  })
-
   // Validation function for each field.
   const validateField = (id, value) => {
     let error = ""
-    const fieldDef = formFields.find((field) => field.id === id)
-    if (fieldDef?.required) {
-      // For checkbox: require a boolean (true/false)
-      if (fieldDef.type === "checkbox") {
-        if (value !== true && value !== false) {
-          error = "This field is required"
-        }
-      }
-      // For file inputs, you might want additional validation.
-      else if (!value) {
-        error = "This field is required"
-      }
-    }
-    // Email validation
     if (id === "seller-email" && value && !/\S+@\S+\.\S+/.test(value)) {
       error = "Invalid email address"
     }
-    // For contact fields, ensure only digits and up to 10 characters.
     if ((id === "seller-company-contact" || id === "poc-contact") && value) {
       const phoneNumber = typeof value === "object" ? value.number : value
       if (!phoneNumber) {
@@ -180,10 +57,48 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
   }
 
   // Handle input changes; for checkboxes, use the checked value.
-  const handleInputChange = (id, value) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
-    const error = validateField(id, value)
-    setErrors((prev) => ({ ...prev, [id]: error }))
+  const handleInputChange = async (id, value) => {
+    if (id === "document") {
+      const newFiles = Array.from(value)
+      const validFiles = []
+      const invalidFiles = []
+
+      for (const file of newFiles) {
+        if (file.size > MAX_FILE_SIZE) {
+          invalidFiles.push(file.name)
+        } else {
+          validFiles.push(file)
+        }
+      }
+
+      if (invalidFiles.length > 0) {
+        setErrors((prev) => ({
+          ...prev,
+          document: `The following files exceed the 3MB limit: ${invalidFiles.join(", ")}`,
+        }))
+      } else {
+        setErrors((prev) => ({ ...prev, document: "" }))
+      }
+
+      const base64Files = await Promise.all(
+        validFiles.map(async (file) => ({
+          name: file.name,
+          type: file.type,
+          size: file.size,
+          base64: await fileToBase64(file),
+        })),
+      )
+
+      setFormData((prev) => ({ ...prev, [id]: [...(prev[id] || []), ...base64Files] }))
+    } else {
+      setFormData((prev) => ({ ...prev, [id]: value }))
+    }
+
+    // Only validate non-document fields here
+    if (id !== "document") {
+      const error = validateField(id, value)
+      setErrors((prev) => ({ ...prev, [id]: error }))
+    }
   }
 
   // Handle form submission.
@@ -191,15 +106,33 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     e.preventDefault()
 
     // Create a new FormData object
-    const formDataToSubmit = new FormData(e.target)
+    const formDataToSubmit = new FormData()
 
-    // Manually append contact-related data to FormData
-    formDataToSubmit.set(
-      "compcontact",
-      `${formData["seller-company-contact"].countryCode}${formData["seller-company-contact"].number}`,
-    )
-    formDataToSubmit.set("poccontact", `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`)
+    // Append all form data to FormData
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "document") {
+        // Append each file's data under the same key
+        value.forEach((file) => {
+          formDataToSubmit.append("document", JSON.stringify(file))
+        })
+      } else if (key === "seller-company-contact") {
+        formDataToSubmit.set("ccontact", `${value.countryCode}${value.number}`)
+      } 
+      else if(key === "poc-contact"){
+        formDataToSubmit.set("poccontact", `${value.countryCode}${value.number}`)
+      }
+        else if (typeof value === "object" && !Array.isArray(value)) {
+        // For nested objects like contact information
+        formDataToSubmit.append(key, JSON.stringify(value))
+      } 
+      else {
+        formDataToSubmit.append(key, value)
+      }
+    })
+    
+    formDataToSubmit.append("regid", 0)
 
+    console.log(formData)
     // Call the server action with the FormData
     const result = await createSeller(formDataToSubmit)
 
@@ -207,8 +140,9 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
       setSubmissionSuccess(result.message)
       setSubmissionError(null)
       // Optionally, reset form or redirect
+      redirect("/dashboard/sellers")
     } else {
-      setSubmissionError("Failed to add seller. Please try again.")
+      setSubmissionError(result.message)
       setSubmissionSuccess(null)
     }
   }
@@ -216,85 +150,222 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
   return (
     <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
       <div className="grid gap-4">
-        {formFields.map((field) => (
-          <div key={field.id} className="grid gap-2">
-            <Label htmlFor={field.id}>
-              {field.label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            {field.type === "select" ? (
-              <Select
-                onValueChange={(value) => handleInputChange(field.id, value)}
-                required={field.required}
-                name={field.name} // Add name attribute
-              >
-                <SelectTrigger id={field.id}>
-                  <SelectValue placeholder={`Select ${field.label}`} />
-                </SelectTrigger>
-                <SelectContent>
-                  {field.options && field.options.length > 0 ? (
-                    field.options.map((option) => {
-                      const display = field.optionKey ? option[field.optionKey] : option
-                      return (
-                        <SelectItem key={display} value={display}>
-                          {display}
-                        </SelectItem>
-                      )
-                    })
-                  ) : (
-                    <SelectItem disabled>No options available</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            ) : field.type === "checkbox" ? (
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id={field.id}
-                  name={field.name} // Add name attribute
-                  checked={formData[field.id] || false}
-                  onChange={(e) => handleInputChange(field.id, e.target.checked)}
-                />
-                <span>{field.label}</span>
+        {/* Seller Name */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-name">
+            Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="seller-name"
+            name="sellername"
+            type="text"
+            value={formData["sellername"] || ""}
+            onChange={(e) => handleInputChange("sellername", e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Seller Email */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-email">
+            Email <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="seller-email"
+            name="email"
+            type="email"
+            value={formData["email"] || ""}
+            onChange={(e) => handleInputChange("email", e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Company Contact */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-company-contact">
+            Company Contact <span className="text-red-500">*</span>
+          </Label>
+          <ContactInput
+            id="seller-company-contact"
+            name="seller-company-contact"
+            value={formData["seller-company-contact"]}
+            onChange={handleInputChange}
+          />
+        </div>
+
+        {/* Address */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-address">
+            Address <span className="text-red-500">*</span>
+          </Label>
+          <Textarea
+            id="seller-address"
+            name="address"
+            value={formData["address"] || ""}
+            onChange={(e) => handleInputChange("address", e.target.value)}
+            required
+            maxLength={199}
+          />
+        </div>
+
+        {/* Country */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-country">
+            Country <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("country", value)} required name="country">
+            <SelectTrigger id="seller-country">
+              <SelectValue placeholder="Select Country" />
+            </SelectTrigger>
+            <SelectContent>
+              {countries.map((country) => (
+                <SelectItem key={country.country} value={country.country}>
+                  {country.country}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Industry */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-industry">
+            Industry <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("industry", value)} required name="industry">
+            <SelectTrigger id="seller-industry">
+              <SelectValue placeholder="Select Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              {industries.map((industry) => (
+                <SelectItem key={industry.industry} value={industry.industry}>
+                  {industry.industry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Designation */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-designation">
+            Designation <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("designation", value)} required name="designation">
+            <SelectTrigger id="seller-designation">
+              <SelectValue placeholder="Select Designation" />
+            </SelectTrigger>
+            <SelectContent>
+              {designations.map((designation) => (
+                <SelectItem key={designation.designation} value={designation.designation}>
+                  {designation.designation}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* POC Name */}
+        <div className="grid gap-2">
+          <Label htmlFor="poc-name">
+            POC Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="poc-name"
+            name="pocname"
+            type="text"
+            value={formData["pocname"] || ""}
+            onChange={(e) => handleInputChange("pocname", e.target.value)}
+            required
+            maxLength={99}
+          />
+        </div>
+
+        {/* POC Contact */}
+        <div className="grid gap-2">
+          <Label htmlFor="poc-contact">
+            POC Contact <span className="text-red-500">*</span>
+          </Label>
+          <ContactInput id="poc-contact" value={formData["poc-contact"]} onChange={handleInputChange} />
+        </div>
+
+        {/* Document */}
+        <div className="grid gap-2">
+          <Label htmlFor="document">
+            Document <span className="text-red-500">*</span>
+          </Label>
+          <div className="flex flex-col gap-2">
+            <Input
+              id="document"
+              name="doc"
+              type="file"
+              onChange={(e) => handleInputChange("document", e.target.files)}
+              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.bmp,.tiff"
+              multiple
+            />
+            <p className="text-gray-500 text-sm">
+              Accepted file types: pdf, doc, docx, xls, xlsx, jpg, jpeg, png, bmp, tiff (Max size: 3MB per file)
+            </p>
+            {errors.document && <p className="text-red-500 text-sm">{errors.document}</p>}
+            {formData.document && formData.document.length > 0 && (
+              <div className="mt-2">
+                <h4 className="text-sm font-medium mb-1">Uploaded files:</h4>
+                <ul className="list-disc pl-5">
+                  {formData.document.map((file, index) => (
+                    <li key={index} className="text-sm flex items-center justify-between">
+                      <span>{file.name}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const newFiles = formData.document.filter((_, i) => i !== index)
+                          setFormData((prev) => ({ ...prev, document: newFiles }))
+                        }}
+                      >
+                        Remove
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ) : field.type === "textarea" ? (
-              <Textarea
-                id={field.id}
-                name={field.name} // Add name attribute
-                value={formData[field.id] || ""}
-                onChange={(e) => handleInputChange(field.id, e.target.value)}
-                required={field.required}
-                maxLength={field.maxLength}
-              />
-            ) : field.type === "file" ? (
-              <>
-                <Input
-                  id={field.id}
-                  name={field.name} // Add name attribute
-                  type="file"
-                  onChange={(e) => handleInputChange(field.id, e.target.files)}
-                  required={field.required}
-                  multiple={field.multiple}
-                  accept={field.accept}
-                />
-                <p className="text-gray-500 text-sm mt-1">
-                  Accepted file types: {field.accept.replace(/\./g, "").replace(/,/g, ", ")}
-                </p>
-              </>
-            ) : field.type === "contact" ? (
-              <ContactInput id={field.id} value={formData[field.id]} onChange={handleInputChange} />
-            ) : (
-              <Input
-                id={field.id}
-                name={field.name} // Add name attribute
-                type={field.type}
-                value={formData[field.id] || ""}
-                onChange={(e) => handleInputChange(field.id, e.target.value)}
-                required={field.required}
-              />
             )}
-            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
           </div>
-        ))}
+        </div>
+
+        {/* Status */}
+        <div className="grid gap-2">
+          <Label htmlFor="status">
+            Status <span className="text-red-500">*</span>
+          </Label>
+          <Select onValueChange={(value) => handleInputChange("status", value)} required name="status">
+            <SelectTrigger id="status">
+              <SelectValue placeholder="Select Status" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {status}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Blocked */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="blocked"
+            name="blocked"
+            checked={formData["blocked"] || false}
+            onChange={(e) => handleInputChange("blocked", e.target.checked)}
+            required
+          />
+          <Label htmlFor="blocked">
+            Blocked <span className="text-red-500">*</span>
+          </Label>
+        </div>
       </div>
       <Button type="submit" className="w-fit">
         Save Seller

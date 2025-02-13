@@ -6,94 +6,204 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { FunctionInput } from "./FunctionInput"
-import { CategorySelect } from "./CategorySelect"
 import { ImageUpload } from "./ImageUpload"
-import { formFields, existingFunctions, mainCategories, subCategories, subSubCategories, brandOptions } from "../_data"
+import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog"
+import { formFields, existingFunctions } from "../_data"
+import { createProduct } from "@/app/actions/createProduct"
+import { redirect } from "next/navigation"
 
-export function ProductForm() {
-  const [images, setImages] = useState([])
-  const [functions, setFunctions] = useState([])
-  const [mainCategory, setMainCategory] = useState("")
-  const [subCategory, setSubCategory] = useState("")
-  const [subSubCategory, setSubSubCategory] = useState("")
-  const [brand, setBrand] = useState("")
+export function ProductForm({
+  initialBrandOptions = [],
+  initialCategoriesOption = [],
+  initialSubcategoriesOption = [],
+}) {
+  const [formData, setFormData] = useState({
+    images: [],
+    functions: [],
+    brand: "",
+    category: "",
+    subcategory: "",
+    description: "",
+    code: "",
+    formula: "",
+    chemical: "",
+    logby: ""
+  })
+  const [errors, setErrors] = useState({})
+  const [submissionError, setSubmissionError] = useState(null)
+  const [submissionSuccess, setSubmissionSuccess] = useState(null)
 
-  const handleSubmit = (event) => {
+  // Option states
+  const [brandOptions, setBrandOptions] = useState(initialBrandOptions)
+  const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption)
+  const [subcategoriesOption, setSubcategoriesOption] = useState(initialSubcategoriesOption)
+
+  // Fetch options function remains the same
+  const fetchOptionForType = async (type) => {
+    let endpoint = ""
+    let setOption
+    if (type === "brand") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/brand/'
+      setOption = setBrandOptions
+    } else if (type === "category") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/categories/'
+      setOption = setCategoriesOption
+    } else if (type === "subcategory") {
+      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/'
+      setOption = setSubcategoriesOption
+    }
+
+    try {
+      const res = await fetch(endpoint)
+      const data = await res.json()
+      if (type === "brand") {
+        setOption(data.Brand || data)
+      } else if (type === "category") {
+        setOption(data.Categories || data)
+      } else if (type === "subcategory") {
+        setOption(data.SubCategories || data)
+      }
+    } catch (error) {
+      console.error(`Error fetching ${type} options:`, error)
+    }
+  }
+
+  // Handle input changes
+  const handleInputChange = (id, value) => {
+    setFormData((prev) => ({ ...prev, [id]: value }))
+    // Clear any errors for this field
+    setErrors((prev) => ({ ...prev, [id]: "" }))
+  }
+
+  // Handle options changes
+  const handleBrandChange = async (newValue) => {
+    handleInputChange("brand", newValue)
+    await fetchOptionForType("brand")
+  }
+
+  const handleCategoryChange = async (newValue) => {
+    handleInputChange("category", newValue)
+    await fetchOptionForType("category")
+  }
+
+  const handleSubcategoryChange = async (newValue) => {
+    handleInputChange("subcategory", newValue)
+    await fetchOptionForType("subcategory")
+  }
+
+  // Handle form submission
+  const handleSubmit = async (event) => {
     event.preventDefault()
-    console.log("Form submitted", {
-      images,
-      functions,
-      brand,
-      mainCategory,
-      subCategory,
-      subSubCategory,
-    })
+
+    const formDataToSubmit = new FormData()
+
+    // Append all form data with the specified parameter names
+    formDataToSubmit.append("description", formData.description || "")
+    formDataToSubmit.append("code", formData.code || "")
+    formDataToSubmit.append("formula", formData.formula || "")
+    formDataToSubmit.append("brand", formData.brand || "")
+    formDataToSubmit.append("category", formData.category || "")
+    formDataToSubmit.append("subcategory", formData.subcategory || "")
+    formDataToSubmit.append("chemical", formData.chemical || "")
+    formDataToSubmit.append("logby", formData.logby || "")
+
+    // Handle functions array
+    if (formData.functions.length > 0) {
+      formDataToSubmit.append("functions", JSON.stringify(formData.functions))
+    }
+
+    // Handle images
+    if (formData.images.length > 0) {
+      formData.images.forEach((image, index) => {
+        formDataToSubmit.append(`images[${index}]`, image)
+      })
+    }
+
+    try {
+      const result = await createProduct(formDataToSubmit)
+
+      if (result.success) {
+        setSubmissionSuccess(result.message)
+        setSubmissionError(null)
+        redirect("/dashboard/products")
+      } else {
+        setSubmissionError(result.message)
+        setSubmissionSuccess(null)
+      }
+    } catch (error) {
+      setSubmissionError("An error occurred while saving the product")
+      setSubmissionSuccess(null)
+    }
   }
 
   return (
-    <form className="grid gap-6" onSubmit={handleSubmit}>
-      <div className="grid gap-4">
+    <form onSubmit={handleSubmit} className="space-y-8">
+      <div className="space-y-4">
         {formFields.map((field) => (
-          <div key={field.id} className="grid gap-2">
+          <div key={field.id} className="space-y-2">
             <Label htmlFor={field.id}>{field.label}</Label>
             {field.type === "textarea" ? (
-              <Textarea id={field.id} required />
+              <Textarea 
+                id={field.id}
+                value={formData[field.id] || ""}
+                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                required 
+              />
             ) : (
-              <Input id={field.id} type={field.type} required />
+              <Input 
+                id={field.id}
+                type={field.type}
+                value={formData[field.id] || ""}
+                onChange={(e) => handleInputChange(field.id, e.target.value)}
+                required 
+              />
             )}
+            {errors[field.id] && <p className="text-red-500 text-sm">{errors[field.id]}</p>}
           </div>
         ))}
-        <CategorySelect
+
+        <CategoryComboBoxWithDialog
           label="Brand"
-          value={brand}
-          onChange={setBrand}
-          onClear={() => setBrand("")}
+          value={formData.brand}
+          onChange={handleBrandChange}
           options={brandOptions}
+          type="brand"
         />
-        <CategorySelect
-          label="Main Category"
-          value={mainCategory}
-          onChange={(value) => {
-            setMainCategory(value)
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          onClear={() => {
-            setMainCategory("")
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          options={mainCategories}
+
+        <CategoryComboBoxWithDialog
+          label="Category"
+          value={formData.category}
+          onChange={handleCategoryChange}
+          options={categoriesOption}
+          type="category"
         />
-        <CategorySelect
+
+        <CategoryComboBoxWithDialog
           label="Subcategory"
-          value={subCategory}
-          onChange={(value) => {
-            setSubCategory(value)
-            setSubSubCategory("")
-          }}
-          onClear={() => {
-            setSubCategory("")
-            setSubSubCategory("")
-          }}
-          options={mainCategory ? subCategories[mainCategory] : []}
-          disabled={!mainCategory}
+          value={formData.subcategory}
+          onChange={handleSubcategoryChange}
+          options={subcategoriesOption}
+          type="subcategory"
         />
-        {/* <CategorySelect
-          label="Sub-subcategory"
-          value={subSubCategory}
-          onChange={setSubSubCategory}
-          onClear={() => setSubSubCategory("")}
-          options={subCategory ? subSubCategories[subCategory] : []}
-          disabled={!subCategory}
-        /> */}
-        <FunctionInput functions={functions} setFunctions={setFunctions} existingFunctions={existingFunctions} />
-        <ImageUpload images={images} setImages={setImages} />
+
+        <FunctionInput
+          functions={formData.functions}
+          setFunctions={(newFunctions) => handleInputChange("functions", newFunctions)}
+          existingFunctions={existingFunctions}
+        />
+
+        <ImageUpload 
+          images={formData.images}
+          setImages={(newImages) => handleInputChange("images", newImages)}
+        />
       </div>
+
       <Button className="w-fit" type="submit">
         Save Chemical Product
       </Button>
+
+      {submissionError && <p className="text-red-500">{submissionError}</p>}
+      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
   )
 }
-

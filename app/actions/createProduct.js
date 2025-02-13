@@ -3,7 +3,7 @@
 export const createSeller = async (formData) => {
 
   try {
-    const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/buyer/", 
+    const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/products/", 
       {
         method: "POST",
         body: formData,
