@@ -96,9 +96,9 @@ const Sidebar = ({ items, isCollapsed, onToggleCollapse }) => {
     >
       <div className="flex items-center justify-between p-4 border-b border-white/10">
         <Link href="/dashboard">
-          {!isCollapsed && (
-            <h2 className="text-xl font-bold text-white">Panel</h2>
-          )}
+          {/* {!isCollapsed && (
+            // <h2 className="text-xl font-bold text-white">Panel</h2>
+          )} */}
         </Link>
         <Button
           variant="ghost"
@@ -157,7 +157,7 @@ const MobileSidebar = ({ items }) => {
         >
           <div className="flex items-center justify-between p-4 border-b border-white/10">
             <Link href="/dashboard">
-              <h2 className="text-xl font-bold text-white">Panel</h2>
+              {/* <h2 className="text-xl font-bold text-white">Panel</h2> */}
             </Link>
             <Button
               variant="ghost"
@@ -237,7 +237,7 @@ const DashboardLayout = ({ children }) => {
         {/* Mobile Header (visible on small screens) */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-teal-700">
           <MobileSidebar items={sidebarItems} />
-          <h2 className="text-xl font-bold text-white">Panel</h2>
+          {/* <h2 className="text-xl font-bold text-white">Panel</h2> */}
           {/* Placeholder for alignment */}
           <div className="w-8" />
         </div>
