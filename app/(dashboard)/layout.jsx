@@ -38,7 +38,7 @@ const buyerSidebarItems = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { name: "Buyer", href: "/dashboard/buyer", icon: User },
   { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart },
-  { name: "Inquiry", href: "/dashboard/inquiry", icon: MessageSquare },
+  { name: "Inquiry", href: "/dashboard/inquiries", icon: MessageSquare },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 

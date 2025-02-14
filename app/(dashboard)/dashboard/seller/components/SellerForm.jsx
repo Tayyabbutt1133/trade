@@ -140,7 +140,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
       setSubmissionSuccess(result.message)
       setSubmissionError(null)
       // Optionally, reset form or redirect
-      redirect("/dashboard/sellers")
+      redirect("/dashboard/seller")
     } else {
       setSubmissionError(result.message)
       setSubmissionSuccess(null)
