@@ -90,7 +90,7 @@ export default function ExpoEvents() {
             Business Information
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             {/* Full Name */}
             <div className="relative">
               <User className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
@@ -155,7 +155,7 @@ export default function ExpoEvents() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1  gap-6">
             {/* rtype Dropdown */}
             <div className="relative">
               <select
