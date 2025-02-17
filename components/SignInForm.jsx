@@ -31,6 +31,7 @@ export function SignInForm() {
     try {
       const loginToSubmit = new FormData(e.target);
       const server_response = await LOGIN(loginToSubmit);
+      console.log(server_response);
       setLoading(false);
 
       if (server_response.success) {
@@ -131,7 +132,7 @@ export function SignInForm() {
         </div>
       </div>
 
-      <SocialSignInButtons />
+      {/* <SocialSignInButtons /> */}
     </div>
   );
 }

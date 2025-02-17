@@ -55,13 +55,17 @@ export function SignUpForm() {
 
     try {
       const result = await Register(formDataToSubmit);
+      // console.log(result);
       if (result.success) {
         setSuccessMessage("Registration successful! Redirecting...");
+        
+        // Setting id and user type on global state file-->zustand
         setRole({
           id: result.data?.id || "", 
-          type: formData.role.toLowerCase(),
+          type: result.data?.type || "",
+          registerstatus: result.data?.body || ""
         });
-
+        console.log(setRole);
         setTimeout(() => {
           router.push(`/dashboard/${formData.role.toLowerCase()}/new`);
         }, 1000);
@@ -159,7 +163,7 @@ export function SignUpForm() {
         </div>
       </div>
 
-      <SocialSignInButtons />
+      {/* <SocialSignInButtons /> */}
     </div>
   );
 }
