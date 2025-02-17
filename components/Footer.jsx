@@ -13,12 +13,6 @@ const footerLinks = {
       { text: "Periodical", href: "#" },
     ],
   },
-  admin: {  // Added new admin section
-    title: "Admin",
-    links: [
-      { text: "Admin Panel", href: "https://www.tradetoppers.com/dashboard/" },
-    ],
-  },
   suppliers: {
     title: "For Suppliers",
     links: [
@@ -69,8 +63,8 @@ export default function Footer() {
       <footer
         className={`bg-white ${fonts.montserrat} border-t border-gray-200`}
       >
-        <div className="max-w-7xl mx-auto py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
+        <div className="py-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8">
             {Object.values(footerLinks).map((section) => (
               <div key={section.title}>
                 <h2 className="font-semibold text-gray-900 mb-4">

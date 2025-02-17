@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { PlusCircle, Search } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { fonts } from "@/components/ui/font";
@@ -12,11 +12,9 @@ export default function UsersPage() {
     { accessorKey: "email", header: "Email" },
     { accessorKey: "role", header: "Role" },
     { accessorKey: "status", header: "Status" },
-    // { accessorKey: "lastLogin", header: "Last Login" },
   ];
 
   const [userData, setUserData] = useState([]);
-
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
@@ -25,6 +23,24 @@ export default function UsersPage() {
     role: "",
     status: "",
   });
+
+  const modalRef = useRef(null);
+
+  // Close modal when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (modalRef.current && !modalRef.current.contains(event.target)) {
+        setOpen(false);
+      }
+    }
+
+    if (open) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [open]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -79,7 +95,7 @@ export default function UsersPage() {
           Users
         </h1>
         <button
-          className={`flex  items-center px-4 py-2 bg-black text-white rounded ${fonts.montserrat}`}
+          className={`flex items-center px-4 py-2 bg-black text-white rounded ${fonts.montserrat}`}
           onClick={() => setOpen(true)}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
@@ -90,11 +106,11 @@ export default function UsersPage() {
       {/* Add User Modal */}
       {open && (
         <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white rounded-lg p-6 w-[425px]">
+          <div ref={modalRef} className="bg-white rounded-lg p-6 w-[425px]">
             <h2 className="text-lg font-semibold mb-4">Add New User</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className="block font-medium">
+                <label htmlFor="name" className={`block ${fonts.montserrat} font-medium`}>
                   Name
                 </label>
                 <input
@@ -107,7 +123,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label htmlFor="email" className="block font-medium">
+                <label htmlFor="email" className={`block ${fonts.montserrat} font-medium`}>
                   Email
                 </label>
                 <input
@@ -121,7 +137,7 @@ export default function UsersPage() {
                 />
               </div>
               <div>
-                <label htmlFor="role" className="block font-medium">
+                <label htmlFor="role" className={`block ${fonts.montserrat} font-medium`}>
                   Role
                 </label>
                 <select
@@ -133,13 +149,13 @@ export default function UsersPage() {
                   className="w-full p-2 border rounded"
                 >
                   <option value="">Select user role</option>
-                  <option value="User">User</option>
                   <option value="Admin">Admin</option>
                   <option value="Moderator">Moderator</option>
+                  <option value="Marketer">Marketer</option>
                 </select>
               </div>
               <div>
-                <label htmlFor="status" className="block font-medium">
+                <label htmlFor="status" className={`block ${fonts.montserrat} font-medium`}>
                   Status
                 </label>
                 <select
@@ -158,14 +174,14 @@ export default function UsersPage() {
               </div>
               <button
                 type="submit"
-                className="w-full bg-black text-white py-2 rounded"
+                className={`w-full ${fonts.montserrat} bg-black text-white py-2 rounded`}
               >
                 Add User
               </button>
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="w-full mt-2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400"
+                className={`w-full ${fonts.montserrat} mt-2 bg-gray-300 text-black py-2 rounded hover:bg-gray-400`}
               >
                 Cancel
               </button>
