@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,14 +14,23 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEMO } from "@/app/actions/demographics";
 import { CREATEAUDIENCE } from "@/app/actions/createAudience";
+import { useParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 // Static options for fields that aren't dynamic
 const recipientTypes = ["Seller", "Buyer", "Both"];
 const taggings = ["Premium", "New", "Verified", "Partner", "High Volume"];
 const statusOptions = ["Active", "Inactive"];
 
-export function AudienceForm({ countries = [], industries = [], regions = [], designation = [] }) {
-  // We still keep local state for analytics and to update the form values for our custom selects.
+export function AudienceForm({
+  countries = [],
+  industries = [],
+  regions = [],
+  designation = [],
+  sellers = [],
+  buyers = [],
+}) {
+  // Local state for form data and analytics
   const [formData, setFormData] = useState({});
   const [analytics, setAnalytics] = useState({
     totalAudience: 0,
@@ -31,19 +40,27 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const router = useRouter();
 
-  // Define your dynamic form fields with names that match your API keys.
+  // It is getting audienceID, either new or already created audienceID
+  const params = useParams();
+  useEffect(() => {
+    console.log("Audience id:", params);
+  }, [params]);
+
+
+  // Define dynamic form fields
   const dynamicFormFields = [
     {
       id: "title",
       label: "Title",
-      name: "title", // API key: title
+      name: "title",
       type: "text",
       required: true,
     },
     {
       id: "recipient-type",
-      name: "atype", // API expects "atype"
+      name: "atype",
       label: "Recipient",
       type: "select",
       options: recipientTypes,
@@ -51,7 +68,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     },
     {
       id: "origin-country",
-      name: "country", // API expects "country"
+      name: "country",
       type: "select",
       label: "Country",
       options: countries,
@@ -60,7 +77,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     },
     {
       id: "designation",
-      name: "designation", // API expects "designation"
+      name: "designation",
       type: "select",
       label: "Designation",
       options: designation,
@@ -69,7 +86,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     },
     {
       id: "industry",
-      name: "industry", // API expects "industry"
+      name: "industry",
       label: "Industry",
       type: "select",
       options: industries,
@@ -78,7 +95,7 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     },
     {
       id: "region",
-      name: "region", // API expects "region"
+      name: "region",
       label: "Region",
       type: "select",
       options: regions,
@@ -88,14 +105,14 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     {
       id: "tagging",
       label: "Tag",
-      name: "tag", // API expects "tag"
+      name: "tag",
       type: "select",
       options: taggings,
       required: false,
     },
     {
       id: "status",
-      name: "status", // API expects "status"
+      name: "status",
       label: "Status",
       type: "select",
       required: true,
@@ -103,7 +120,33 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     },
   ];
 
-  // Update analytics when certain fields change.
+  const getTaggingOptions = () => {
+    const recipient = formData["recipient-type"];
+
+    if (recipient === "Seller") {
+      return buyers
+        .filter((b) => b.bname?.trim())
+        .map((b) => ({ id: b.id, name: b.bname }));
+    } else if (recipient === "Buyer") {
+      return sellers
+        .filter((s) => s.sname?.trim())
+        .map((s) => ({ id: s.id, name: s.sname }));
+    } else if (recipient === "Both") {
+      const buyerOptions = buyers
+        .filter((b) => b.bname?.trim())
+        .map((b) => ({ id: `buyer-${b.id}`, name: b.bname }));
+      const sellerOptions = sellers
+        .filter((s) => s.sname?.trim())
+        .map((s) => ({ id: `seller-${s.id}`, name: s.sname }));
+      return [...buyerOptions, ...sellerOptions];
+    } else {
+      return taggings.map((tag, index) => ({
+        id: `tag-${index}`,
+        name: tag,
+      }));
+    }
+  };
+
   const updateAnalytics = async (newData) => {
     const payload = {
       rtype: newData["recipient-type"] || null,
@@ -129,37 +172,48 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
     }
   };
 
-  // We update local state when a field changes.
   const handleInputChange = async (id, value) => {
     const updatedData = { ...formData, [id]: value };
     setFormData(updatedData);
 
-    if (["recipient-type", "origin-country", "industry", "region", "tagging"].includes(id)) {
+    if (
+      [
+        "recipient-type",
+        "origin-country",
+        "industry",
+        "region",
+        "tagging",
+      ].includes(id)
+    ) {
       await updateAnalytics(updatedData);
     }
   };
 
-  // On form submission, we rely on the browser’s FormData API.
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
 
-    // Log the form submission (optional)
-    console.log("Form submitted with local state data:", formData);
-    console.log("Final analytics:", analytics);
-
     try {
-      // Create a FormData object directly from the form element.
-      // Note that hidden inputs (see below) ensure custom select values are included.
-      const formPayload = new FormData(e.target);
-
-      const response = await CREATEAUDIENCE(formPayload);
-      console.log("Response from server:", response);
+      // creating form by getting values
+      const formData = new FormData(e.target);
+      
+      if (params?.audienceId == "new") {
+        formData.append("mode", formData.mode || "New"); 
+      }
+      const response = await CREATEAUDIENCE(formData);
+      // console.log("Form data:");
+      // for (let [key, value] of formData.entries()) {
+      //   console.log(key, value);
+      // }
       if (response.success) {
         setSuccessMessage("Successfully submitted");
+        router.push("/dashboard/audience")
       } else {
-        setErrorMessage(response.error || "Submission failed. Please try again.");
+        setErrorMessage(
+          response.error || "Submission failed. Please try again."
+        );
       }
     } catch (error) {
       setErrorMessage("An unexpected error occurred. Please try again later.");
@@ -170,61 +224,75 @@ export function AudienceForm({ countries = [], industries = [], regions = [], de
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
       <div className="grid gap-4">
-        {dynamicFormFields.map((field) => (
-          <div key={field.id} className="grid gap-2">
-            <Label htmlFor={field.id}>
-              {field.label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            {field.type === "select" ? (
-              <>
-                <Select
-                  onValueChange={(value) => handleInputChange(field.id, value)}
-                  required={field.required}
-                >
-                  <SelectTrigger id={field.id}>
-                    <SelectValue placeholder={`Select ${field.label}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {field.options && field.options.length > 0 ? (
-                      field.options.map((option) => {
-                        const display = field.optionKey ? option[field.optionKey] : option;
-                        return (
-                          <SelectItem key={display} value={display}>
-                            {display}
-                          </SelectItem>
-                        );
-                      })
-                    ) : (
-                      <SelectItem disabled>No options available</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {/* Hidden input to ensure the selected value is included in FormData */}
-                <input
-                  type="hidden"
+        {dynamicFormFields.map((field) => {
+          const options =
+            field.id === "tagging" ? getTaggingOptions() : field.options;
+
+          return (
+            <div key={field.id} className="grid gap-2">
+              <Label htmlFor={field.id}>
+                {field.label}{" "}
+                {field.required && <span className="text-red-500">*</span>}
+              </Label>
+              {field.type === "select" ? (
+                <>
+                  <Select
+                    onValueChange={(value) =>
+                      handleInputChange(field.id, value)
+                    }
+                    required={field.required}
+                  >
+                    <SelectTrigger id={field.id}>
+                      <SelectValue placeholder={`Select ${field.label}`} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {options && options.length > 0 ? (
+                        options.map((option, index) => {
+                          const display = field.optionKey
+                            ? option[field.optionKey]
+                            : option.name || option;
+                          const key = option.id || display || index;
+                          return (
+                            <SelectItem key={key} value={display}>
+                              {display}
+                            </SelectItem>
+                          );
+                        })
+                      ) : (
+                        <SelectItem disabled>No options available</SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <input
+                    type="hidden"
+                    name={field.name}
+                    value={formData[field.id] || ""}
+                  />
+                </>
+              ) : (
+                <Input
+                  id={field.id}
                   name={field.name}
-                  value={formData[field.id] || ""}
+                  type={field.type}
+                  required={field.required}
+                  onChange={(e) => handleInputChange(field.id, e.target.value)}
                 />
-              </>
-            ) : (
-              <Input
-                id={field.id}
-                name={field.name}
-                type={field.type}
-                required={field.required}
-                // You may omit the value prop here so the browser handles it natively.
-                onChange={(e) => handleInputChange(field.id, e.target.value)}
-              />
-            )}
-          </div>
-        ))}
+              )}
+            </div>
+          );
+        })}
       </div>
+
+      {/* Hidden input for mode when creating new audience */}
+      {params?.id === "new" && <input type="hidden" name="mode" value="New" />}
 
       {/* Analytics Display */}
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Audience</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Audience
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">

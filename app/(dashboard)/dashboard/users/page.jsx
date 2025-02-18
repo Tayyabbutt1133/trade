@@ -5,26 +5,59 @@ import { PlusCircle, Search } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { fonts } from "@/components/ui/font";
 import { ADDUSER } from "@/app/actions/adduser";
-
+import Link from "next/link";
 export default function UsersPage() {
   const columns = [
     { accessorKey: "user", header: "User" },
     { accessorKey: "email", header: "Email" },
     { accessorKey: "role", header: "Role" },
     { accessorKey: "status", header: "Status" },
+    // {
+    //   header: "Actions",
+    //   cell: ({ row }) => (
+    //     <Link href={`/dashboard/audience/${row.original.id}`}>
+    //       <Button className="bg-green-700 text-white" size="sm" variant="outline">Edit</Button>
+    //     </Link>
+    //   ),
+    // },
   ];
 
   const [userData, setUserData] = useState([]);
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
-    name: "",
+    user: "",
     email: "",
     role: "",
     status: "",
   });
+  const [isMounted, setIsMounted] = useState(false);  // To prevent SSR mismatch
 
   const modalRef = useRef(null);
+
+  // Fetch users from backend when component mounts
+
+  async function fetchUsers() {
+    try {
+      const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/users/"); // Adjust to your actual API route
+      if (!response.ok) throw new Error("Failed to fetch users");
+
+      const data = await response.json();
+      const userdata = data.Users || [];
+      setUserData(userdata);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  }
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    setIsMounted(true);
+  },[])
+
 
   // Close modal when clicking outside
   useEffect(() => {
@@ -57,34 +90,36 @@ export default function UsersPage() {
     }));
   };
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      email: "",
-      role: "",
-      status: "",
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newUser = {
-      id: (userData.length + 1).toString(),
-      ...formData,
-      lastLogin: "N/A",
-    };
     const formDataToSubmit = new FormData(e.target);
-    const response = await ADDUSER(formDataToSubmit);
-    console.log("Response from server :", response);
-
-    setUserData((prevData) => [...prevData, newUser]);
-    setOpen(false);
-    resetForm();
+  
+    try {
+      const response = await ADDUSER(formDataToSubmit);
+      console.log("Response from server:", response);
+  
+      if (response.ok) {
+        // Add new user directly to state instead of refetching
+        const newUser = { 
+          user: formData.user,
+          email: formData.email,
+          role: formData.role,
+          status: formData.status
+        };
+        setUserData(prevData => [...prevData, newUser]); // Add to the existing user data
+        setOpen(false);
+      } else {
+        throw new Error("Failed to add user");
+      }
+    } catch (error) {
+      console.error("Error adding user:", error);
+    }
   };
+  
 
   const filteredUsers = userData.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.user.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -105,12 +140,12 @@ export default function UsersPage() {
 
       {/* Add User Modal */}
       {open && (
-        <div className="fixed inset-0  bg-opacity-50 flex justify-center items-center z-50">
+        <div className="fixed inset-0 bg-opacity-50 flex justify-center items-center z-50">
           <div ref={modalRef} className="bg-white rounded-lg p-6 w-[425px]">
             <h2 className="text-lg font-semibold mb-4">Add New User</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label htmlFor="name" className={`block ${fonts.montserrat} font-medium`}>
+                <label htmlFor="user" className={`block ${fonts.montserrat} font-medium`}>
                   Name
                 </label>
                 <input

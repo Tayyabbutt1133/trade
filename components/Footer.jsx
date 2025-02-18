@@ -28,7 +28,7 @@ const footerLinks = {
     links: [
       { text: "About us", href: "#" },
       { text: "Careers", href: "#" },
-      { text: "Contact Us", href: "#" },
+      { text: "Contact Us", href: "/contact-us" },
       { text: "Events", href: "#" },
       { text: "News", href: "#" },
     ],

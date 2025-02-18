@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
 import { PlusCircle } from "lucide-react"
@@ -7,26 +8,45 @@ import Link from "next/link"
 
 const columns = [
   { accessorKey: "title", header: "Title" },
-  { accessorKey: "recipientType", header: "Recipient Type" },
-  { accessorKey: "originCountry", header: "Origin Country" },
+  { accessorKey: "atype", header: "Recipient Type" },
+  { accessorKey: "country", header: "Country" },
   { accessorKey: "industry", header: "Industry" },
   { accessorKey: "region", header: "Region" },
-  { accessorKey: "tagging", header: "Tagging" },
-]
-
-const data = [
+  { accessorKey: "status", header: "Status" },
   {
-    id: "1",
-    title: "Tech Buyers in North America",
-    recipientType: "Buyer",
-    originCountry: "United States",
-    industry: "Technology",
-    region: "North America",
-    tagging: "Premium",
+    header: "Actions",
+    cell: ({ row }) => (
+      <Link href={`/dashboard/audience/${row.original.id}`}>
+        <Button className="bg-green-700 text-white" size="sm" variant="outline">Edit</Button>
+      </Link>
+    ),
   },
-]
+];
 
 export default function AudiencePage() {
+  const [audiences, setAudiences] = useState([])
+
+    const fetchAudienceData = async () => {
+      try {
+        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/audience/`, {
+          method: "POST",
+        });
+        const data = await res.json();
+        const audience = data.Audience || [];
+        console.log("Audience data in table:", data);
+        setAudiences(audience);
+      } catch (error) {
+        console.error('Error fetching buyer data:', error);
+      }
+    }
+
+  
+  useEffect(() => {
+    fetchAudienceData();
+  },[])
+
+
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -38,8 +58,7 @@ export default function AudiencePage() {
           </Button>
         </Link>
       </div>
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={audiences} />
     </div>
   )
 }
-

@@ -3,6 +3,7 @@ import ProductCard from "./ProductCard";
 import ProductCategoryCard from "./ProductCategoryCard";
 import Link from "next/link";
 
+
 export default function ProductsGrid({ products, category, totalProducts }) {
   return (
     <div className={fonts.montserrat}>
@@ -26,20 +27,20 @@ export default function ProductsGrid({ products, category, totalProducts }) {
 
         {/* Small screens: Show 1 product + category card */}
         <div className="hidden sm:block md:hidden">
-          <ProductCard product={products[0]} />
+          <ProductCard category={category} product={products[0]} />
         </div>
 
         {/* Medium screens: Show 5 products +a category card */}
         <div className="hidden md:contents lg:hidden">
           {products.slice(0, 5).map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard category={category} key={product.id} product={product} />
           ))}
         </div>
 
         {/* Large screens: Show 9 products + category card */}
         <div className="hidden lg:contents">
           {products.slice(0, 9).map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard category={category} key={product.id} product={product} />
           ))}
         </div>
 

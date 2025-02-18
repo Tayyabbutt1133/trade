@@ -2,10 +2,13 @@ import { fonts } from "@/components/ui/font";
 import Image from "next/image";
 import { Zap } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, category }) {
+  console.log("Category name in server:", category);
   return (
     <div className={`flex flex-col justify-between h-full bg-white rounded-lg shadow-md ${fonts.montserrat}`}>
+      <Link href={`/product/${category}`}>
       <div className="relative">
         <section className="h-32 bg-sky-100 relative">
           <Image
@@ -69,7 +72,8 @@ export default function ProductCard({ product }) {
             View Product
           </Button>
         </div>
-      </div>
+        </div>
+        </Link>
     </div>
   );
 }
