@@ -39,7 +39,7 @@ export function Menubar() {
           {isMenuOpen && <SideMenu onclose={() => setIsMenuOpen(false)} />}
 
           {/* Handling Mega Menu State*/}
-          {["industries", "products"].map((menuId) => (
+          {["industries"].map((menuId) => (
             <button
               key={menuId}
               className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
