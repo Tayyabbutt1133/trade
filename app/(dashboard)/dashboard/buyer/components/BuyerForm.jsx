@@ -147,7 +147,7 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
     if (result.success) {
       setSubmissionSuccess(result.message)
       setSubmissionError(null)
-      redirect("/dashboard/buyers")
+      redirect("/dashboard/buyer")
     } else {
       setSubmissionError(result.message)
       setSubmissionSuccess(null)
