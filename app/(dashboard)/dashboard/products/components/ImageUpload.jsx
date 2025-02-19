@@ -1,39 +1,84 @@
-"use client"
-import { useRef, useCallback } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { X } from "lucide-react"
+"use client";
+import { useRef, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { X } from "lucide-react";
 
 export function ImageUpload({ images, setImages }) {
-  const fileInputRef = useRef(null)
+  const fileInputRef = useRef(null);
+
+  // Function to convert file to base64
+  const fileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = (error) => reject(error);
+    });
+  };
 
   const handleImageUpload = useCallback(
-    (event) => {
-      const files = event.target.files
+    async (event) => {
+      const files = event.target.files;
       if (files) {
-        const newImages = Array.from(files)
-          .slice(0, 5 - images.length)
-          .map((file) => ({
-            id: Math.random().toString(36).substr(2, 9),
-            file,
-            preview: URL.createObjectURL(file),
-          }))
-        setImages((prevImages) => [...prevImages, ...newImages].slice(0, 5))
+        try {
+          const newImagesPromises = Array.from(files)
+            .slice(0, 5 - images.length)
+            .map(async (file) => {
+              const base64Data = await fileToBase64(file);
+              return {
+                id: Math.random().toString(36).slice(2, 11),
+                file,
+                preview: URL.createObjectURL(file),
+                base64: base64Data,
+                name: file.name,
+                type: file.type,
+                size: file.size,
+              };
+            });
+
+          const newImages = await Promise.all(newImagesPromises);
+          setImages((prevImages) => [...prevImages, ...newImages].slice(0, 5));
+        } catch (error) {
+          console.error("Error converting images to base64:", error);
+        }
       }
       if (fileInputRef.current) {
-        fileInputRef.current.value = ""
+        fileInputRef.current.value = "";
       }
     },
-    [images.length, setImages],
-  )
+    [images.length, setImages]
+  );
 
   const removeImage = useCallback(
     (id) => {
-      setImages((prevImages) => prevImages.filter((img) => img.id !== id))
+      setImages((prevImages) => {
+        const updatedImages = prevImages.filter((img) => img.id !== id);
+        // Revoke object URL to prevent memory leaks
+        const removedImage = prevImages.find((img) => img.id === id);
+        if (removedImage?.preview) {
+          URL.revokeObjectURL(removedImage.preview);
+        }
+        return updatedImages;
+      });
     },
-    [setImages],
-  )
+    [setImages]
+  );
+
+  // Cleanup function to revoke object URLs when component unmounts
+  const cleanup = () => {
+    images.forEach((image) => {
+      if (image.preview) {
+        URL.revokeObjectURL(image.preview);
+      }
+    });
+  };
+
+  // Call cleanup when component unmounts
+  useCallback(() => {
+    return () => cleanup();
+  }, [images]);
 
   return (
     <div className="grid gap-2">
@@ -53,12 +98,17 @@ export function ImageUpload({ images, setImages }) {
               className="absolute -top-2 -right-2 rounded-full w-6 h-6"
               onClick={() => removeImage(image.id)}
             >
-              <X className="w-4 w-4" />
+              <X className="w-4 h-4" />
             </Button>
           </div>
         ))}
         {images.length < 5 && (
-          <Button type="button" variant="outline" className="w-24 h-24" onClick={() => fileInputRef.current?.click()}>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-24 h-24"
+            onClick={() => fileInputRef.current?.click()}
+          >
             +
           </Button>
         )}
@@ -72,7 +122,9 @@ export function ImageUpload({ images, setImages }) {
         onChange={handleImageUpload}
         ref={fileInputRef}
       />
+      <p className="text-sm text-gray-500">
+        Supported formats: JPG, PNG, GIF (max 5 images)
+      </p>
     </div>
-  )
+  );
 }
-

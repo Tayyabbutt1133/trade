@@ -8,12 +8,6 @@ import { useEffect, useState } from "react";
 import roleAccessStore from "@/store/role-access-permission";
 
 export default function SellerPage() {
-  // Retrieve the user's role object from the Zustand store.
-  const roleData = roleAccessStore((state) => state.role);
-  
-  // Extract the "type" property from the role data.
-  const userRole = roleData?.type;
-  console.log("User Role:", userRole);
 
   const columns = [
     { accessorKey: "name", header: "Name" },
@@ -59,9 +53,9 @@ export default function SellerPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className={`text-3xl font-bold ml-14 ${fonts.montserrat} sm:ml-0`}>
-          {userRole === "admin" ? "Seller" : "Your Profile"}
+          Seller
         </h1>
-        {userRole === "admin" && (
+        
           <Link href="/dashboard/seller/new/">
             <button
               className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
@@ -70,7 +64,7 @@ export default function SellerPage() {
               Add Seller
             </button>
           </Link>
-        )}
+        
       </div>
 
       {/* DataTable Component */}

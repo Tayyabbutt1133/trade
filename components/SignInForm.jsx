@@ -56,9 +56,7 @@ export function SignInForm() {
         }
 
         // Redirect after a short delay for a smooth experience
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1000);
+        router.push("/dashboard");
       } else {
         // Display the error message provided by the server (or a fallback message)
         setErrorMessage(server_response.message || "Login failed. Please try again.");

@@ -5,8 +5,14 @@ import { fonts } from "@/components/ui/font";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import roleAccessStore from "@/store/role-access-permission";
 
 export default function BuyersPage() {
+
+  const { role } = roleAccessStore();
+
+  console.log('Role:', role);
+
   const columns = [
     { accessorKey: "name", header: "Name" },
     { accessorKey: "email", header: "Email" },
@@ -58,7 +64,7 @@ export default function BuyersPage() {
         <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
           Buyers
         </h1>
-        <Link href="/dashboard/buyers/new">
+        <Link href="/dashboard/buyer/new">
           <button
             className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
           >
