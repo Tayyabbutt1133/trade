@@ -21,10 +21,10 @@ import {
   Armchair,
   BookUser,
   AlertCircle,
+  UserRoundCheck,
 } from "lucide-react";
 import { fonts } from "@/components/ui/font";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import roleAccessStore from "@/store/role-access-permission";
 import withAuthCheck from "@/lib/withAuthCheck";
 
 // ===================== Sidebar Items =====================
@@ -57,6 +57,11 @@ const ADMIN_ITEMS = [
   { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
+  {
+    name: "Pending User",
+    href: "/dashboard/pending-reg",
+    icon: UserRoundCheck,
+  },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 
@@ -64,12 +69,11 @@ const ADMIN_ITEMS = [
 const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
   const Icon = item.icon;
 
-
   // Check if navigation should be disabled
   const isPendingRegistration =
     userData &&
     (userData.type === "Seller" || userData.type === "Buyer") &&
-    userData.body === "Pending Registeration" || "Pending";
+    (userData.body === "Pending Registeration" || userData.body === "Pending");
 
   const isDisabled =
     isPendingRegistration &&
@@ -129,9 +133,7 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
       >
         <Icon className={cn("h-5 w-5", isCollapsed ? "mr-0" : "mr-3")} />
         {!isCollapsed && (
-          <span className={`font-medium ${fonts.montserrat}`}>
-            {item.name}
-          </span>
+          <span className={`font-medium ${fonts.montserrat}`}>{item.name}</span>
         )}
       </span>
     </Link>
@@ -324,10 +326,7 @@ const DashboardLayout = ({ children }) => {
       <div className="flex flex-col flex-1">
         {/* Mobile Header (visible on small screens) */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-teal-700">
-          <MobileSidebar
-            items={sidebarItems}
-            userData={userData}
-          />
+          <MobileSidebar items={sidebarItems} userData={userData} />
           {/* Placeholder for alignment */}
           <div className="w-8" />
         </div>

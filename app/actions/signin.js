@@ -10,21 +10,18 @@ export async function LOGIN(formdata) {
       {
         method: "POST",
         body: formdata,
-        // No need to set 'Content-Type' headers when sending FormData; the browser handles it.
       }
     );
 
     if (!response.ok) {
       let errorMessage = "Login failed. Please check your credentials.";
 
-      // Attempt to extract a detailed error message from the server response
       try {
         const errorData = await response.json();
         if (errorData && errorData.error) {
           errorMessage = errorData.error;
         }
       } catch (parseError) {
-        // If JSON parsing fails, try to get plain text
         const errorText = await response.text();
         if (errorText) {
           errorMessage = errorText;
@@ -35,38 +32,71 @@ export async function LOGIN(formdata) {
     }
 
     // Parse the successful JSON response
-    const data = await response.json();
-    // Set the cookie with the user ID from the response
-    if (data && data.id) {
-      cookieStore.set("userId", data.id, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7, // 1 week
-      });
-      cookieStore.set("userType", data.type, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7, // 1 week
-      });
-      cookieStore.set("userBody", data.body, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7, // 1 week
-      });
-    }
-
-    // Validate that we have the expected data structure
-    if (!data || typeof data !== "object") {
+    const responseData = await response.json();
+    
+    // Handle both response formats
+    let userData;
+    
+    // Check if response contains the Registeration array format
+    if (responseData && responseData.Registeration && Array.isArray(responseData.Registeration) && responseData.Registeration.length > 0) {
+      // Use the first item from the Registeration array
+      userData = responseData.Registeration[0];
+      // Convert id to string if it's a number with decimal
+      if (typeof userData.id === 'number') {
+        userData.id = String(Math.floor(userData.id));
+      }
+    } else if (responseData && responseData.id) {
+      // Direct format
+      userData = responseData;
+    } else {
       return { success: false, message: "Unexpected server response format." };
     }
-    if (!data.id || !data.type) {
+
+    // Validate that we have the expected data after normalization
+    if (!userData.id || !userData.type) {
       return {
         success: false,
         message: "Invalid Login Credentials",
       };
     }
 
-    return { success: true, data };
+    // Set cookies with user data
+    cookieStore.set("userId", userData.id, {
+      path: "/",
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+    
+    cookieStore.set("userType", userData.type, {
+      path: "/",
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+    
+    cookieStore.set("userBody", userData.body, {
+      path: "/",
+      httpOnly: true,
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+    });
+    
+    // If there's additional data in the admin response, you might want to store it
+    // if (userData.status) {
+    //   cookieStore.set("userStatus", userData.status, {
+    //     path: "/",
+    //     httpOnly: true,
+    //     maxAge: 60 * 60 * 24 * 7,
+    //   });
+    // }
+    
+    // if (userData.email) {
+    //   cookieStore.set("userEmail", userData.email, {
+    //     path: "/",
+    //     httpOnly: true,
+    //     maxAge: 60 * 60 * 24 * 7,
+    //   });
+    // }
+
+    return { success: true, data: userData };
   } catch (error) {
     console.error("Error during login:", error);
     return {
