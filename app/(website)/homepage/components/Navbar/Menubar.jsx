@@ -13,15 +13,16 @@ import Link from "next/link";
 import Suppliers from "./Suppliers";
 
 export function Menubar() {
-  const [activeMegaMenu, setActiveMegaMenu] = useState();
+  const [activeMegaMenu, setActiveMegaMenu] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleSideMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const handleMegaMenuToggle = (menuId) => {
-    setActiveMegaMenu(activeMegaMenu === menuId ? null : menuId);
+  // Toggle MegaMenu open/close
+  const handleMegaMenuToggle = () => {
+    setActiveMegaMenu(activeMegaMenu ? null : "tradeCategories");
   };
 
   return (
@@ -34,24 +35,23 @@ export function Menubar() {
             onClick={handleSideMenu}
             size={20}
           />
-          {/* checking open/close state of menu and passing it to side menu,
-          so that it can close side menu*/}
+          {/* Checking open/close state of menu and passing it to SideMenu */}
           {isMenuOpen && <SideMenu onclose={() => setIsMenuOpen(false)} />}
 
-          {/* Handling Mega Menu State*/}
-          {["industries"].map((menuId) => (
-            <button
-              key={menuId}
-              className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
-              onClick={() => handleMegaMenuToggle(menuId)}
-            >
-              <p className={`text-[13px] font-semibold ${fonts.montserrat}`}>
-                {menuData.megaMenu[menuId].title}
-              </p>
-              <IoChevronDown className="h-4 w-4 opacity-50" />
-            </button>
-          ))}
+          {/* Single button for Trade Categories */}
+          {/* handling mega menu toggle here */}
 
+          <button
+            className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
+            onClick={handleMegaMenuToggle}
+          >
+            <p className={`text-[13px] font-semibold ${fonts.montserrat}`}>
+              Trade Categories
+            </p>
+            <IoChevronDown className="h-4 w-4 opacity-50" />
+          </button>
+
+          {/* Some extra categories data showing in menu bar */}
           <div className="flex items-center gap-1 ml-4">
             {menuData.sidebar.slice(2).map((item) => (
               <Link
@@ -64,26 +64,24 @@ export function Menubar() {
                 </p>
               </Link>
             ))}
-            <button
+            {/* <button
               className="text-white p-2 focus:outline-none"
               onClick={() => {}}
             >
               <HiDotsHorizontal className="h-5 w-5" />
               <span className="sr-only">More options</span>
-            </button>
+            </button> */}
           </div>
         </div>
 
         {/* TradeTropper for suppliers */}
-        <Suppliers/>
+        {/* <Suppliers /> */}
       </nav>
 
+      {/* MegaMenu is opened if activeMegaMenu is truthy */}
       {activeMegaMenu && (
         <div className="absolute left-0 right-0 bg-white z-50">
-          <MegaMenu
-            data={menuData.megaMenu[activeMegaMenu]}
-            onClose={() => setActiveMegaMenu(null)}
-          />
+          <MegaMenu onClose={() => setActiveMegaMenu(null)} />
         </div>
       )}
     </>

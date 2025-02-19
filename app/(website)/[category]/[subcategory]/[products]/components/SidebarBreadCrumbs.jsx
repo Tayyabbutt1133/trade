@@ -9,7 +9,12 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 
-export default function SidebarBreadcrumbs({ category, subcategory, products }) {
+export default function SidebarBreadcrumbs({ productresults }) {
+
+
+  
+
+
   return (
     <Breadcrumb className={`${fonts.montserrat}  mb-4 list-none flex flex-row flex-wrap items-center gap-2`}>
       <BreadcrumbItem>

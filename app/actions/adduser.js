@@ -2,7 +2,7 @@
 
 
 export async function ADDUSER(data) {
-    // console.log("Data recieved at server side :", data);
+    console.log("Data recieved at server side :", data);
     try {
 
         const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/users/",

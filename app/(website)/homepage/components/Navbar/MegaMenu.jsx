@@ -1,41 +1,64 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { IoChevronForward, IoClose } from 'react-icons/io5';
-import { menuData } from '@/app/menudata';
-import { fonts } from '@/components/ui/font';
-import Link from 'next/link';
+"use client";
 
-const Sidebar = ({ items, onHover, onClose }) => {
-  return (
-    <div className="w-72 my-4 bg-white border-r border-gray-200 overflow-y-auto overflow-hidden h-[400px]">
-      {items.map((item) => (
-        <Link href={`/${item.id}`} key={item.id} onClick={onClose}>
-          <div
-            onMouseEnter={() => onHover(item.id)}
-            className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors duration-200"
-          >
-            <span className="text-xl">{item.icon}</span>
-            <span className={`text-gray-800 ${fonts.montserrat} text-sm`}>
-              {item.label}
-            </span>
-          </div>
-        </Link>
-      ))}
-    </div>
-  );
-};
+import React, { useState, useEffect, useRef } from "react";
+import { IoClose } from "react-icons/io5";
+import Link from "next/link";
+import { fonts } from "@/components/ui/font";
+
+// 1. Slugify function
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, "-")       // Replace spaces with -
+    .replace(/[()]/g, "")       // Remove parentheses if you don't want them
+    .replace(/[^a-z0-9-]/g, "") // Remove other special characters
+    .replace(/-+/g, "-")        // Remove consecutive dashes
+    .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
+}
 
 const MegaMenu = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [selectedSidebarId, setSelectedSidebarId] = useState(menuData.sidebar[0].id);
-  const [menuContent, setMenuContent] = useState(menuData.megaMenu[selectedSidebarId]);
+  const [categories, setCategories] = useState({});
   const menuRef = useRef(null);
 
+  // Fetch and group API data by category
   useEffect(() => {
-    setMenuContent(menuData.megaMenu[selectedSidebarId]);
-  }, [selectedSidebarId]);
+    const fetchData = async () => {
+      try {
+        const res = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/menu/"
+        );
+        const json = await res.json();
+        const records = json.Records || [];
 
+        // Group subcategories under each category
+        const grouped = {};
+        records.forEach((record) => {
+          const cat = record.category;
+          const sub = record.subcategory;
+          if (!grouped[cat]) {
+            grouped[cat] = new Set();
+          }
+          grouped[cat].add(sub);
+        });
+
+        // Convert each set to an array
+        const groupedArr = {};
+        Object.keys(grouped).forEach((cat) => {
+          groupedArr[cat] = Array.from(grouped[cat]);
+        });
+
+        setCategories(groupedArr);
+      } catch (error) {
+        console.error("Error fetching mega menu data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Trigger entrance animation
   useEffect(() => {
-    // Trigger entrance animation
     setIsVisible(true);
 
     const handleClickOutside = (event) => {
@@ -43,10 +66,12 @@ const MegaMenu = ({ onClose }) => {
         handleClose();
       }
     };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onClose]);
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const handleClose = () => {
     setIsVisible(false);
@@ -56,94 +81,89 @@ const MegaMenu = ({ onClose }) => {
     }, 300);
   };
 
-  const handleLinkClick = (e) => {
-    handleClose();
-  };
-
   return (
     <>
       {/* Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out ${
-          isVisible ? 'opacity-40' : 'opacity-0'
+          isVisible ? "opacity-40" : "opacity-0"
         }`}
         onClick={handleClose}
       />
 
-      {/* MegaMenu */}
-      <div 
-        ref={menuRef} 
+      {/* MegaMenu Container */}
+      <div
+        ref={menuRef}
         className={`fixed top-[64px] left-0 right-0 bg-white shadow-lg z-50 transform transition-all duration-300 ease-in-out ${
-          isVisible 
-            ? 'translate-y-0 opacity-100' 
-            : '-translate-y-4 opacity-0'
+          isVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
         }`}
       >
-        <div className="container mx-auto flex">
-          <Sidebar
-            items={menuData.sidebar}
-            onHover={(id) => setSelectedSidebarId(id)}
-            onClose={handleClose}
-          />
-          
-          <div className="flex-1 overflow-hidden">
-            <div className="p-6 h-[400px] overflow-y-auto">
-              <div className="flex justify-between items-center mb-8 bg-white">
-                <h2 className={`text-2xl text-gray-800 ${fonts.montserrat} font-semibold`}>
-                  {menuContent.title}
-                </h2>
-                <button
-                  onClick={handleClose}
-                  className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+        <div className="container mx-auto p-6">
+          {/* Close Button */}
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={handleClose}
+              className="text-gray-500 hover:text-gray-700 transition-colors duration-200"
+            >
+              <IoClose size={24} />
+            </button>
+          </div>
+
+          {/* Categories & Subcategories in 4-column grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {Object.keys(categories).map((category, index) => {
+              // 2. Slugify the category
+              const categorySlug = slugify(category);
+
+              return (
+                <div
+                  key={index}
+                  className="transform transition-all duration-300 ease-in-out"
+                  style={{
+                    transitionDelay: `${index * 50}ms`,
+                    opacity: isVisible ? 1 : 0,
+                    transform: isVisible
+                      ? "translateY(0)"
+                      : "translateY(10px)",
+                  }}
                 >
-                  <IoClose size={24} />
-                </button>
-              </div>
-              
-              <div className="grid grid-cols-3 gap-y-8 pb-6">
-                {menuContent.categories.map((category, index) => (
-                  <div 
-                    key={index} 
-                    className="space-y-4 transform transition-all duration-300 ease-in-out"
-                    style={{
-                      transitionDelay: `${index * 50}ms`,
-                      opacity: isVisible ? 1 : 0,
-                      transform: isVisible 
-                        ? 'translateY(0)' 
-                        : 'translateY(10px)'
-                    }}
+                  {/* Category heading (clickable) */}
+                  <Link
+                    href={`/${categorySlug}`}
+                    onClick={handleClose}
+                    className={`text-lg font-medium text-gray-800 hover:text-blue-600 transition-colors duration-200 ${fonts.montserrat}`}
                   >
-                    <Link
-                      href={`/${selectedSidebarId}/${category.title}`}
-                      onClick={handleLinkClick}
-                    >
-                      <h3 className={`text-[15px] ${fonts.montserrat} font-medium hover:text-blue-600 transition-colors duration-200`}>
-                        {category.title}
-                      </h3>
-                    </Link>
-                    <ul className="space-y-3">
-                      {category.items.map((item, itemIndex) => (
-                        <li 
-                          key={itemIndex}
+                    {category}
+                  </Link>
+
+                  {/* Subcategories */}
+                  <ul className="mt-2 space-y-2 ml-2">
+                    {categories[category].map((sub, subIndex) => {
+                      // 3. Slugify the subcategory
+                      const subSlug = slugify(sub);
+                      return (
+                        <li
+                          key={subIndex}
                           style={{
-                            transitionDelay: `${(index * 50) + (itemIndex * 30)}ms`
+                            transitionDelay: `${
+                              index * 50 + subIndex * 30
+                            }ms`,
                           }}
                         >
                           <Link
-                            href={`/${selectedSidebarId}/${category.title}/${item}`}
-                            onClick={handleLinkClick}
+                            href={`/${categorySlug}/${subSlug}`}
+                            className={`text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 ${fonts.montserrat}`}
+                            onClick={handleClose}
                           >
-                            <span className={`text-[13px] text-gray-500 hover:text-gray-800 transition-colors duration-200 ${fonts.montserrat}`}>
-                              {item}
-                            </span>
+                            {sub}
                           </Link>
                         </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
-              </div>
-            </div>
+                      );
+                    })}
+                  </ul>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

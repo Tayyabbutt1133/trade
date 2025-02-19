@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { DataTable } from "@/components/data-table"
-import { Button } from "@/components/ui/button"
-import { PlusCircle } from "lucide-react"
-import Link from "next/link"
+import { useEffect, useState } from "react";
+import { DataTable } from "@/components/data-table";
+import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
+import Link from "next/link";
 
 const columns = [
   { accessorKey: "title", header: "Title" },
@@ -17,35 +17,46 @@ const columns = [
     header: "Actions",
     cell: ({ row }) => (
       <Link href={`/dashboard/audience/${row.original.id}`}>
-        <Button className="bg-green-700 text-white" size="sm" variant="outline">Edit</Button>
+        <Button className="bg-green-700 text-white" size="sm" variant="outline">
+          Edit
+        </Button>
       </Link>
     ),
   },
 ];
 
 export default function AudiencePage() {
-  const [audiences, setAudiences] = useState([])
+  const [audiences, setAudiences] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-    const fetchAudienceData = async () => {
-      try {
-        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/audience/`, {
+  const fetchAudienceData = async () => {
+    try {
+      const res = await fetch(
+        `https://tradetoppers.esoftideas.com/esi-api/responses/audience/`,
+        {
           method: "POST",
-        });
-        const data = await res.json();
-        const audience = data.Audience || [];
-        console.log("Audience data in table:", data);
-        setAudiences(audience);
-      } catch (error) {
-        console.error('Error fetching buyer data:', error);
-      }
-    }
+        }
+      );
+      const data = await res.json();
+      console.log(data);
 
-  
+      // Check if the body has "No Record"
+      if (data.Audience && data.Audience[0]?.body === "No Record") {
+        setAudiences([]); // No data to display
+      } else {
+        setAudiences(data.Audience); // Set the fetched data
+      }
+    } catch (error) {
+      console.error("Error fetching audience data:", error);
+      setAudiences([]); // Clear audiences on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAudienceData();
-  },[])
-
-
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -58,7 +69,9 @@ export default function AudiencePage() {
           </Button>
         </Link>
       </div>
+      
+      {/* Show the DataTable (empty if no data) */}
       <DataTable columns={columns} data={audiences} />
     </div>
-  )
+  );
 }
