@@ -1,27 +1,62 @@
+"use client";
+
 import React, { useState, useEffect, useRef } from 'react';
 import { IoClose } from "react-icons/io5";
 import { MdChevronRight, MdArrowBack } from "react-icons/md";
 import { fonts } from "@/components/ui/font";
-import { menuData } from '@/app/menudata';
 import Link from 'next/link';
+
+// 1. Slugify function
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .replace(/\s+/g, "-")       // Replace spaces with -
+    .replace(/[()]/g, "")       // Remove parentheses
+    .replace(/[^a-z0-9-]/g, "") // Remove special characters
+    .replace(/-+/g, "-")        // Remove consecutive dashes
+    .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
+}
 
 export default function SideMenu({ onclose }) {
   const [isVisible, setIsVisible] = useState(false);
   const menuRef = useRef(null);
   
-  const [navigationPath, setNavigationPath] = useState([{
-    level: 'main',
-  }]);
+  // navigationPath controls the current level in the nested menu.
+  // Initial level is 'main'.
+  const [navigationPath, setNavigationPath] = useState([{ level: 'main' }]);
 
+  // categoriesData will store our API data.
+  // The API is assumed to return an object inside "Records" where
+  // keys are main categories and values are arrays of subcategory objects.
+  const [categoriesData, setCategoriesData] = useState({});
+
+  // Fetch API data on mount
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/menu/");
+        const json = await res.json();
+        const records = json.Records || [];
+        if (records.length > 0) {
+          // We assume the first element contains our categories data
+          setCategoriesData(records[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching side menu data:", error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Handle click outside and trigger entrance animation
+  useEffect(() => {
+    setIsVisible(true);
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         handleClose();
       }
     };
-
-    setIsVisible(true);
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -35,23 +70,22 @@ export default function SideMenu({ onclose }) {
     }, 300);
   };
 
+  // getCurrentView returns the items to render based on the current navigation level.
   const getCurrentView = () => {
     const currentNav = navigationPath[navigationPath.length - 1];
-    
+
     if (currentNav.level === 'main') {
-      return menuData.sidebar;
+      // For main level, return an array of objects representing main categories.
+      // Each object: { id, label } where both are the main category name.
+      return Object.keys(categoriesData).map(cat => ({ id: cat, label: cat }));
     }
-    
+
     if (currentNav.level === 'category') {
-      return menuData.megaMenu[currentNav.id].categories;
+      // For category level, currentNav.id is the main category name.
+      // Return the array of subcategory objects.
+      return categoriesData[currentNav.id] || [];
     }
-    
-    if (currentNav.level === 'subcategory') {
-      const category = menuData.megaMenu[currentNav.categoryId].categories
-        .find(cat => cat.title === currentNav.title);
-      return category.items;
-    }
-    
+
     return [];
   };
 
@@ -65,15 +99,6 @@ export default function SideMenu({ onclose }) {
           level: 'category',
           id: item.id,
           title: item.label
-        }
-      ]);
-    } else if (currentLevel === 'category') {
-      setNavigationPath([
-        ...navigationPath,
-        {
-          level: 'subcategory',
-          categoryId: navigationPath[navigationPath.length - 1].id,
-          title: item.title
         }
       ]);
     }
@@ -100,42 +125,25 @@ export default function SideMenu({ onclose }) {
                 className="flex items-center justify-between w-full py-3 px-4 text-left hover:bg-gray-50 rounded-lg transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <span className="text-xl">{item.icon}</span>
                   <span className={`${fonts.montserrat} text-black font-medium`}>{item.label}</span>
                 </div>
                 <MdChevronRight size={20} className="text-gray-400" />
               </button>
             );
           } else if (currentLevel === 'category') {
-            return (
-              <button
-                key={item.title}
-                onClick={() => handleNavigation(item)}
-                className="flex items-center justify-between w-full py-3 px-4 text-left hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <span className={`${fonts.montserrat} text-black font-medium`}>{item.title}</span>
-                <MdChevronRight size={20} className="text-gray-400" />
-              </button>
-            );
-          } else {
-            // Get the mainId and categoryId from navigation path
-            const mainId = navigationPath[1].id;
-            const categoryTitle = navigationPath[2].title;
-            
-            // Create URL-safe version of the subcategory
-            const subcategorySlug = item.toLowerCase().replace(/\s+/g, '-');
-            
+            // When at category level, we show a Link without an arrow.
             return (
               <Link
-                key={item}
-                href={`/${mainId}/${categoryTitle.toLowerCase()}/${subcategorySlug}`}
+                key={item.subcategory}
+                href={`/${slugify(navigationPath[1].id)}/${slugify(item.subcategory)}`}
                 className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
                 onClick={handleClose}
               >
-                <span className={`${fonts.montserrat} font-medium text-black`}>{item}</span>
+                <span className={`${fonts.montserrat} text-black font-medium`}>{item.subcategory}</span>
               </Link>
             );
           }
+          return null;
         })}
       </div>
     );
@@ -144,17 +152,13 @@ export default function SideMenu({ onclose }) {
   return (
     <>
       <div 
-        className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out ${
-          isVisible ? 'opacity-50' : 'opacity-0'
-        }`}
+        className={`fixed inset-0 bg-black transition-opacity duration-300 ease-in-out ${isVisible ? 'opacity-50' : 'opacity-0'}`}
         onClick={handleClose}
       />
       
       <div 
         ref={menuRef}
-        className={`fixed z-20 inset-y-0 left-0 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
-          isVisible ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed z-20 inset-y-0 left-0 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${isVisible ? 'translate-x-0' : '-translate-x-full'}`}
       >
         <div className="flex items-center justify-between p-4 border-b">
           <div className="flex items-center gap-4">
@@ -175,11 +179,16 @@ export default function SideMenu({ onclose }) {
           </button>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 max-h-[80vh] overflow-y-auto">
+          {/* Conditional Heading */}
           <div className="mb-4">
-            <h2 className={`text-lg ${fonts.montserrat} font-medium`}>
-              {navigationPath[navigationPath.length - 1].title}
-            </h2>
+            {navigationPath[navigationPath.length - 1].level === 'main' ? (
+              <h1 className={`${fonts.montserrat} text-black text-xl font-bold`}>Categories</h1>
+            ) : (
+              <h1 className={`${fonts.montserrat} text-black text-xl font-bold`}>
+                {navigationPath[navigationPath.length - 1].title}
+              </h1>
+            )}
           </div>
           {renderContent()}
         </div>

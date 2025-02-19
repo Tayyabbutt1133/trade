@@ -10,18 +10,19 @@ function slugify(str) {
   return str
     .toLowerCase()
     .replace(/\s+/g, "-")       // Replace spaces with -
-    .replace(/[()]/g, "")       // Remove parentheses if you don't want them
-    .replace(/[^a-z0-9-]/g, "") // Remove other special characters
+    .replace(/[()]/g, "")       // Remove parentheses
+    .replace(/[^a-z0-9-]/g, "") // Remove special characters
     .replace(/-+/g, "-")        // Remove consecutive dashes
     .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
 }
 
 const MegaMenu = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
+  // We'll store the fetched data as an object with keys as main categories
   const [categories, setCategories] = useState({});
   const menuRef = useRef(null);
 
-  // Fetch and group API data by category
+  // Fetch API data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -30,25 +31,10 @@ const MegaMenu = ({ onClose }) => {
         );
         const json = await res.json();
         const records = json.Records || [];
-
-        // Group subcategories under each category
-        const grouped = {};
-        records.forEach((record) => {
-          const cat = record.category;
-          const sub = record.subcategory;
-          if (!grouped[cat]) {
-            grouped[cat] = new Set();
-          }
-          grouped[cat].add(sub);
-        });
-
-        // Convert each set to an array
-        const groupedArr = {};
-        Object.keys(grouped).forEach((cat) => {
-          groupedArr[cat] = Array.from(grouped[cat]);
-        });
-
-        setCategories(groupedArr);
+        if (records.length > 0) {
+          // The API response contains an object of categories in the first element.
+          setCategories(records[0]);
+        }
       } catch (error) {
         console.error("Error fetching mega menu data:", error);
       }
@@ -57,7 +43,7 @@ const MegaMenu = ({ onClose }) => {
     fetchData();
   }, []);
 
-  // Trigger entrance animation
+  // Trigger entrance animation and handle click outside
   useEffect(() => {
     setIsVisible(true);
 
@@ -98,7 +84,8 @@ const MegaMenu = ({ onClose }) => {
           isVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
         }`}
       >
-        <div className="container mx-auto p-6">
+        {/* Added max-h and overflow-y-auto so the menu scrolls if it's too tall */}
+        <div className="container mx-auto p-6 max-h-[80vh] overflow-y-auto">
           {/* Close Button */}
           <div className="flex justify-end mb-4">
             <button
@@ -109,11 +96,13 @@ const MegaMenu = ({ onClose }) => {
             </button>
           </div>
 
-          {/* Categories & Subcategories in 4-column grid */}
+          {/* Main Categories & Their Subcategories */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-            {Object.keys(categories).map((category, index) => {
-              // 2. Slugify the category
-              const categorySlug = slugify(category);
+            {Object.keys(categories).map((mainCat, index) => {
+              // Slugify the main category name
+              const categorySlug = slugify(mainCat);
+              // Get the array of subcategory objects
+              const subcategories = categories[mainCat];
 
               return (
                 <div
@@ -127,27 +116,25 @@ const MegaMenu = ({ onClose }) => {
                       : "translateY(10px)",
                   }}
                 >
-                  {/* Category heading (clickable) */}
+                  {/* Main Category heading (clickable) */}
                   <Link
                     href={`/${categorySlug}`}
                     onClick={handleClose}
                     className={`text-lg font-medium text-gray-800 hover:text-blue-600 transition-colors duration-200 ${fonts.montserrat}`}
                   >
-                    {category}
+                    {mainCat.trim()}
                   </Link>
 
-                  {/* Subcategories */}
+                  {/* Map over subcategories */}
                   <ul className="mt-2 space-y-2 ml-2">
-                    {categories[category].map((sub, subIndex) => {
-                      // 3. Slugify the subcategory
-                      const subSlug = slugify(sub);
+                    {subcategories.map((item, subIndex) => {
+                      // Slugify subcategory name
+                      const subSlug = slugify(item.subcategory);
                       return (
                         <li
                           key={subIndex}
                           style={{
-                            transitionDelay: `${
-                              index * 50 + subIndex * 30
-                            }ms`,
+                            transitionDelay: `${index * 50 + subIndex * 30}ms`,
                           }}
                         >
                           <Link
@@ -155,7 +142,7 @@ const MegaMenu = ({ onClose }) => {
                             className={`text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 ${fonts.montserrat}`}
                             onClick={handleClose}
                           >
-                            {sub}
+                            {item.subcategory}
                           </Link>
                         </li>
                       );
