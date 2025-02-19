@@ -1,10 +1,10 @@
 "use server";
 
-export async function LOGIN(formdata) {
-  try {
-    // Log form data keys only for debugging (avoid logging sensitive info)
-    console.log("Received login form fields:", Array.from(formdata.keys()));
+import { cookies } from "next/headers";
 
+export async function LOGIN(formdata) {
+  const cookieStore = await cookies()
+  try {
     const response = await fetch(
       "https://tradetoppers.esoftideas.com/esi-api/responses/registeration/",
       {
@@ -36,7 +36,25 @@ export async function LOGIN(formdata) {
 
     // Parse the successful JSON response
     const data = await response.json();
-    console.log("Server response:", data);
+    console.log(data.id);
+    // Set the cookie with the user ID from the response
+    if (data && data.id) {
+      cookieStore.set("userId", data.id, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+      });
+      cookieStore.set("userType", data.type, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+      });
+      cookieStore.set("userBody", data.body, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+      });
+    }
 
     // Validate that we have the expected data structure
     if (!data || typeof data !== "object") {
