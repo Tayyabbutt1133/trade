@@ -36,7 +36,6 @@ export async function LOGIN(formdata) {
 
     // Parse the successful JSON response
     const data = await response.json();
-    console.log(data.id);
     // Set the cookie with the user ID from the response
     if (data && data.id) {
       cookieStore.set("userId", data.id, {
