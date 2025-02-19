@@ -9,6 +9,7 @@ import Link from "next/link";
 const columns = [
   { accessorKey: "title", header: "Title" },
   { accessorKey: "atype", header: "Recipient Type" },
+  { accessorKey: "designation", header: "Designation" },
   { accessorKey: "country", header: "Country" },
   { accessorKey: "industry", header: "Industry" },
   { accessorKey: "region", header: "Region" },
@@ -29,7 +30,7 @@ export default function AudiencePage() {
   const [audiences, setAudiences] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchAudienceData = async () => {
+const fetchAudienceData = async () => {
     try {
       const res = await fetch(
         `https://tradetoppers.esoftideas.com/esi-api/responses/audience/`,

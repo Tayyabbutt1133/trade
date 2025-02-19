@@ -39,6 +39,7 @@ export function AudienceForm({
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [audiences, setAudiences] = useState([]);
   const router = useRouter();
 
   const params = useParams();
@@ -153,6 +154,36 @@ export function AudienceForm({
       console.error("Submission error:", error);
     }
   };
+
+
+  const fetchAudienceData = async () => {
+    try {
+      const res = await fetch(
+        `https://tradetoppers.esoftideas.com/esi-api/responses/audience/`,
+        {
+          method: "POST",
+        }
+      );
+      const data = await res.json();
+      console.log(data);
+
+      // Check if the body has "No Record"
+      if (data.Audience && data.Audience[0]?.body === "No Record") {
+        setAudiences([]); // No data to display
+      } else {
+        setAudiences(data.Audience); // Set the fetched data
+      }
+    } catch (error) {
+      console.error("Error fetching audience data:", error);
+      setAudiences([]); // Clear audiences on error
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAudienceData();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
