@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEMO } from "@/app/actions/demographics";
 import { CREATEAUDIENCE } from "@/app/actions/createAudience";
+import { GETAUDIENCE } from "@/app/actions/getaudience";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
@@ -39,25 +40,57 @@ export function AudienceForm({
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [audiences, setAudiences] = useState([]);
   const router = useRouter();
-
   const params = useParams();
+
+  // Log params for debugging
   useEffect(() => {
-    console.log("Audience id:", params);
+    console.log("Audience id:", params.audienceId);
   }, [params]);
+
+  // In edit mode, call GETAUDIENCE to fetch existing audience data
+  useEffect(() => {
+    if (params?.audienceId && params.audienceId !== "new") {
+      async function fetchAudience() {
+        try {
+          // Pass an object with the id instead of a raw id
+          const response = await GETAUDIENCE({ id: params.audienceId });
+          console.log("Response from get audience:", response);
+          if (response.success && response.audience) {
+            const audienceData = response.audience;
+            // Map returned keys to formData
+            setFormData({
+              "title": audienceData.title || "",
+              "recipient-type": audienceData.atype || "",
+              "origin-country": audienceData.country || "",
+              "designation": audienceData.designation || "",
+              "industry": audienceData.industry || "",
+              "region": audienceData.region || "",
+              "tagging": audienceData.tag || "",
+              "status": audienceData.status === "True" ? "Active" : "Inactive",
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching audience data:", error);
+          setErrorMessage("Failed to load audience data");
+        }
+      }
+      fetchAudience();
+    }
+  }, [params?.audienceId]);
 
   const dynamicFormFields = [
     { id: "title", label: "Title", name: "title", type: "text", required: true },
     { id: "recipient-type", name: "atype", label: "Recipient", type: "select", options: recipientTypes, required: true },
     { id: "origin-country", name: "country", type: "select", label: "Country", options: countries, required: true, optionKey: "country" },
     { id: "designation", name: "designation", type: "select", label: "Designation", options: designation, required: true, optionKey: "designation" },
-    { id: "industry", name: "industry", label: "Industry", type: "select", options: industries, required: true, optionKey: "industry" },
-    { id: "region", name: "region", label: "Region", type: "select", options: regions, required: true, optionKey: "region" },
+    { id: "industry", name: "industry", type: "select", label: "Industry", options: industries, required: true, optionKey: "industry" },
+    { id: "region", name: "region", type: "select", label: "Region", options: regions, required: true, optionKey: "region" },
     { id: "tagging", label: "Tag", name: "tag", type: "select", options: taggings, required: false },
-    { id: "status", name: "status", label: "Status", type: "select", required: true, options: statusOptions },
+    { id: "status", name: "status", type: "select", label: "Status", required: true, options: statusOptions },
   ];
 
+  // Returns dynamic options for the tagging field based on selected recipient
   const getTaggingOptions = () => {
     const recipient = formData["recipient-type"];
     if (recipient === "Seller") {
@@ -101,16 +134,7 @@ export function AudienceForm({
   const handleInputChange = async (id, value) => {
     const updatedData = { ...formData, [id]: value };
     setFormData(updatedData);
-
-    if (
-      [
-        "recipient-type",
-        "origin-country",
-        "industry",
-        "region",
-        "tagging",
-      ].includes(id)
-    ) {
+    if (["recipient-type", "origin-country", "industry", "region", "tagging"].includes(id)) {
       await updateAnalytics(updatedData);
     }
   };
@@ -122,7 +146,7 @@ export function AudienceForm({
         return `${field.label} is required.`;
       }
     }
-    return null; // Return null if all required fields are filled
+    return null;
   };
 
   const handleSubmit = async (e) => {
@@ -133,16 +157,22 @@ export function AudienceForm({
     const validationError = validateForm();
     if (validationError) {
       setErrorMessage(validationError);
-      return; // Stop form submission if validation fails
+      return;
     }
 
     try {
-      const formData = new FormData(e.target);
+      const formDataObj = new FormData(e.target);
 
-      if (params?.audienceId === "new") {
-        formData.append("mode", formData.mode || "New");
+      // Append mode and id based on whether this is a new audience or an edit.
+      if (params?.audienceId && params.audienceId !== "new") {
+        formDataObj.append("mode", "Edit");
+        formDataObj.append("id", params.audienceId);
+      } else {
+        formDataObj.append("mode", "New");
       }
-      const response = await CREATEAUDIENCE(formData);
+
+      const response = await CREATEAUDIENCE(formDataObj);
+      console.log("Response:", response);
       if (response.success) {
         setSuccessMessage("Successfully submitted");
         router.push("/dashboard/audience");
@@ -155,51 +185,28 @@ export function AudienceForm({
     }
   };
 
-
-  const fetchAudienceData = async () => {
-    try {
-      const res = await fetch(
-        `https://tradetoppers.esoftideas.com/esi-api/responses/audience/`,
-        {
-          method: "POST",
-        }
-      );
-      const data = await res.json();
-      console.log(data);
-
-      // Check if the body has "No Record"
-      if (data.Audience && data.Audience[0]?.body === "No Record") {
-        setAudiences([]); // No data to display
-      } else {
-        setAudiences(data.Audience); // Set the fetched data
-      }
-    } catch (error) {
-      console.error("Error fetching audience data:", error);
-      setAudiences([]); // Clear audiences on error
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAudienceData();
-  }, []);
-
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
       <div className="grid gap-4">
         {dynamicFormFields.map((field) => {
+          // For "tagging", disable it in edit mode
+          const isDisabled = field.id === "tagging" && params?.audienceId && params.audienceId !== "new";
           const options = field.id === "tagging" ? getTaggingOptions() : field.options;
+          const fieldValue = formData[field.id] || "";
 
           return (
             <div key={field.id} className="grid gap-2">
               <Label htmlFor={field.id}>
-                {field.label}{" "}
-                {field.required && <span className="text-red-500">*</span>}
+                {field.label} {field.required && <span className="text-red-500">*</span>}
               </Label>
               {field.type === "select" ? (
                 <>
-                  <Select onValueChange={(value) => handleInputChange(field.id, value)} required={field.required}>
+                  <Select
+                    value={fieldValue}
+                    onValueChange={(value) => handleInputChange(field.id, value)}
+                    required={field.required}
+                    disabled={isDisabled}
+                  >
                     <SelectTrigger id={field.id}>
                       <SelectValue placeholder={`Select ${field.label}`} />
                     </SelectTrigger>
@@ -219,7 +226,8 @@ export function AudienceForm({
                       )}
                     </SelectContent>
                   </Select>
-                  <input type="hidden" name={field.name} value={formData[field.id] || ""} />
+                  {/* Hidden input to ensure the value gets submitted */}
+                  <input type="hidden" name={field.name} value={fieldValue} />
                 </>
               ) : (
                 <Input
@@ -227,6 +235,7 @@ export function AudienceForm({
                   name={field.name}
                   type={field.type}
                   required={field.required}
+                  value={fieldValue}
                   onChange={(e) => handleInputChange(field.id, e.target.value)}
                 />
               )}
@@ -234,8 +243,6 @@ export function AudienceForm({
           );
         })}
       </div>
-
-      {params?.id === "new" && <input type="hidden" name="mode" value="New" />}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
@@ -251,7 +258,7 @@ export function AudienceForm({
       </div>
 
       <Button className="w-fit" type="submit">
-        Create Audience
+        {params?.audienceId && params.audienceId !== "new" ? "Update Audience" : "Create Audience"}
       </Button>
 
       {successMessage && (
