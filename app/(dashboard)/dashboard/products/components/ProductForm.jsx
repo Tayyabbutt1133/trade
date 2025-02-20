@@ -130,7 +130,7 @@ export function ProductForm({
       if (result.success) {
         setSubmissionSuccess(result.message);
         setSubmissionError(null);
-        // redirect("/dashboard/products");
+        redirect("/dashboard/products");
       } else {
         setSubmissionError(result.message);
         setSubmissionSuccess(null);
