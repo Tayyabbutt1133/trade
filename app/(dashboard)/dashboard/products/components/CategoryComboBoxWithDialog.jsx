@@ -59,14 +59,14 @@ export function SearchableCombobox({
             <CommandGroup key={`group-${placeholder}`}>
               {safeOptions.map((option) => (
                 <CommandItem
-                  key={option.value || `${option.label}-${option.id}`}
+                  key={option.id}
                   value={option.value}
                   onSelect={(currentValue) => {
                     onChange(currentValue === value ? "" : currentValue)
                     setOpen(false)
                   }}
                 >
-                  {option.label}
+                  {option.value}
                   <Check
                     className={cn(
                       "ml-auto",
@@ -152,10 +152,11 @@ export function CategoryComboBoxWithDialog({
   const transformedOptions = safeOptions.map(option => {
     return {
       value: option[type] || option.value || '',
-      label: option[type] || option.label || '',
-      id: option.id || Date.now()
+      id: option.id
     }
   })
+
+  console.log("transformned" ,transformedOptions)
 
   return (
     <div className="grid gap-2">

@@ -10,7 +10,9 @@ import { useEffect, useState } from "react";
 
 export default function ProductsPage() {
   const columns = [
+    { accessorKey: "id", header: "ID" },
     { accessorKey: "code", header: "Code" },
+    { accessorKey: "name", header: "Name" },
     { accessorKey: "description", header: "Description" },
     { accessorKey: "formula", header: "Formula" },
     { accessorKey: "brand", header: "Brand" },
@@ -31,16 +33,17 @@ export default function ProductsPage() {
       formData.append('logby', '0');
       
       try {
-        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/products/`, {
-          method: "POST",
-          body: formData
+        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/all-products/`, {
+          method: "GET",
         });
         const data = await res.json();
+
         
         // Transform the data to match column accessors
-        const transformedData = data.Products?.map(product => ({
+        const transformedData = data.Product?.map(product => ({
           id: product.id,
           code: product.code || '-',
+          name: product.product || '-',
           description: product.description || '-',
           formula: product.formula || '-',
           brand: product.brand || '-',
@@ -52,7 +55,7 @@ export default function ProductsPage() {
           functions: product.functions,
           images: product.images
         }));
-    
+
         setProductData(transformedData);
       } catch (error) {
         console.error('Error fetching product data:', error);

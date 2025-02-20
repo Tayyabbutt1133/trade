@@ -24,7 +24,7 @@ const TradeStory = () => {
           {/* Right side: Text */}
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} font-bold text-5xl text-gray-800`}
+              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Vision
             </h1>
@@ -42,7 +42,7 @@ const TradeStory = () => {
           {/* Left side: Text */}
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} font-bold text-5xl text-gray-900`}
+              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Mission
             </h1>
@@ -100,7 +100,7 @@ const TradeStory = () => {
           </div>
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} font-bold text-5xl text-gray-800`}
+              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Purpose
             </h1>
