@@ -28,7 +28,7 @@ const Navbar = () => {
         {/* Logo */}
         <div className="flex gap-3 items-center">
           <RxHamburgerMenu size={25} className="lg:hidden block text-white" onClick={handleToggle} />
-          {isMenuOpen && <SideMenu onclose={() => setisMenuOpen(false)} />}
+          {isMenuOpen &&         <SideMenu onclose={() => setisMenuOpen(false)} />}
 
           <Link href={"/"}>
             <h1 className="text-white text-[18px] lg:text-xl font-bold">TT</h1>
@@ -39,11 +39,11 @@ const Navbar = () => {
           <SearchBar />
         </div>
 
-        {/* Auth buttons + Cart */}
+{/* Auth buttons + Cart */}
         <div className="flex items-center gap-0 md:gap-2">
-          <button className="text-white sm:block transition hidden hover:scale-110">
+          {/* <button className="text-white sm:block transition hidden hover:scale-110">
             <MdShoppingCart size={25} />
-          </button>
+          </button> */}
 
           <div className="flex gap-1">
       <Link href="/signin">
