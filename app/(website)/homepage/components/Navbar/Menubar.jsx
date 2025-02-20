@@ -1,20 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoChevronDown } from "react-icons/io5";
 import { HiDotsHorizontal } from "react-icons/hi";
-
 import SideMenu from "./SideMenu/SideMenu";
 import { fonts } from "@/components/ui/font";
-import { menuData } from "@/app/menudata";
 import MegaMenu from "./MegaMenu";
 import Link from "next/link";
 import Suppliers from "./Suppliers";
 
+// Slugify function: transforms a string into a URL-friendly slug.
+function slugify(str) {
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "-")     // Replace spaces with hyphen.
+    .replace(/&/g, "and")     // Replace & with "and".
+    .replace(/[^\w-]+/g, "")   // Remove all non-word characters except hyphen.
+    .replace(/--+/g, "-")      // Replace multiple hyphens with a single hyphen.
+    .replace(/^-|-$/g, "");    // Remove leading or trailing hyphens.
+}
+
 export function Menubar() {
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [topCategories, setTopCategories] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef(null);
 
   const handleSideMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -24,6 +37,43 @@ export function Menubar() {
   const handleMegaMenuToggle = () => {
     setActiveMegaMenu(activeMegaMenu ? null : "tradeCategories");
   };
+
+  // Fetch top categories from API endpoint on mount
+  useEffect(() => {
+    async function fetchTopCategories() {
+      try {
+        const res = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/topcategories/",
+          { cache: "no-cache" }
+        );
+        const data = await res.json();
+        // Assuming data.Records is an array of objects with a "category" field.
+        const categories = data.Records.map((record) => record.category);
+        setTopCategories(categories);
+      } catch (error) {
+        console.error("Error fetching top categories", error);
+      }
+    }
+    fetchTopCategories();
+  }, []);
+
+  // Close the dropdown if clicking outside of it
+  useEffect(() => {
+    if (!showDropdown) return;
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showDropdown]);
+
+  // Derive visible and extra categories
+  const visibleCategories = topCategories.slice(0, 4);
+  const extraCategories = topCategories.slice(4);
 
   return (
     <>
@@ -35,12 +85,8 @@ export function Menubar() {
             onClick={handleSideMenu}
             size={20}
           />
-          {/* Checking open/close state of menu and passing it to SideMenu */}
+          {/* Show SideMenu if open */}
           {isMenuOpen && <SideMenu onclose={() => setIsMenuOpen(false)} />}
-
-          {/* Single button for Trade Categories */}
-          {/* handling mega menu toggle here */}
-
           <button
             className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
             onClick={handleMegaMenuToggle}
@@ -51,34 +97,53 @@ export function Menubar() {
             <IoChevronDown className="h-4 w-4 opacity-50" />
           </button>
 
-          {/* Some extra categories data showing in menu bar */}
-          <div className="flex items-center gap-1 ml-4">
-            {menuData.sidebar.slice(2).map((item) => (
+          {/* Render Top Categories */}
+          <div className="relative flex items-center gap-1 ml-4">
+            {visibleCategories.map((category, index) => (
               <Link
-                key={item.id}
-                href={`/${item.id}`}
-                className="text-white border border-none bg-[#404C4D] text-sm rounded-2xl px-3 py-1 hover:border-white"
+                key={index}
+                href={`/${slugify(category)}`}
+                className="text-white bg-[#404C4D] text-sm rounded-2xl px-3 py-1 hover:border-white"
               >
-                <p className={`text-[12px] ${fonts.montserrat}`}>
-                  {item.label}
-                </p>
+                <p className={`text-[12px] ${fonts.montserrat}`}>{category}</p>
               </Link>
             ))}
-            {/* <button
-              className="text-white p-2 focus:outline-none"
-              onClick={() => {}}
-            >
-              <HiDotsHorizontal className="h-5 w-5" />
-              <span className="sr-only">More options</span>
-            </button> */}
+            {extraCategories.length > 0 && (
+              <>
+                <button
+                  className="text-white p-2 focus:outline-none"
+                  onClick={() => setShowDropdown((prev) => !prev)}
+                >
+                  <HiDotsHorizontal className="h-6 w-6" />
+                  <span className="sr-only">More options</span>
+                </button>
+                {showDropdown && (
+                  <div
+                    ref={dropdownRef}
+                    className="absolute top-full mt-2 right-0 bg-[#404C4D] rounded-lg shadow-lg p-2 z-50"
+                  >
+                    {extraCategories.map((category, index) => (
+                      <Link
+                        key={index}
+                        href={`/${slugify(category)}`}
+                        className="block text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1"
+                        onClick={() => setShowDropdown(false)}
+                      >
+                        {category}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
-        {/* TradeTropper for suppliers */}
+        {/* Optionally include suppliers or other elements */}
         {/* <Suppliers /> */}
       </nav>
 
-      {/* MegaMenu is opened if activeMegaMenu is truthy */}
+      {/* MegaMenu */}
       {activeMegaMenu && (
         <div className="absolute left-0 right-0 bg-white z-50">
           <MegaMenu onClose={() => setActiveMegaMenu(null)} />
