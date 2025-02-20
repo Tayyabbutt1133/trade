@@ -6,14 +6,14 @@ import { MdChevronRight, MdArrowBack } from "react-icons/md";
 import { fonts } from "@/components/ui/font";
 import Link from 'next/link';
 
-// 1. Slugify function
+// 1. Slugify function (optional, if you need it elsewhere)
 function slugify(str) {
   return str
     .toLowerCase()
     .replace(/\s+/g, "-")       // Replace spaces with -
     .replace(/[()]/g, "")       // Remove parentheses
     .replace(/[^a-z0-9-]/g, "") // Remove special characters
-    .replace(/-+/g, "-")        // Remove consecutive dashes
+    .replace(/-+/g, "-")        // Replace consecutive dashes
     .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
 }
 
@@ -132,10 +132,11 @@ export default function SideMenu({ onclose }) {
             );
           } else if (currentLevel === 'category') {
             // When at category level, we show a Link without an arrow.
+            // We use encodeURIComponent to build the URL so that the original text is preserved.
             return (
               <Link
                 key={item.subcategory}
-                href={`/${slugify(navigationPath[1].id)}/${slugify(item.subcategory)}`}
+                href={`/${encodeURIComponent(navigationPath[1].id)}/${encodeURIComponent(item.subcategory)}`}
                 className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
                 onClick={handleClose}
               >

@@ -1,10 +1,9 @@
-
-import ProductCategoryHeader from './components/ProductCategoryHeader'
-import Container from '@/components/container'
-import CategoryFilters from './components/CategoryFilter'
-import ProductsGrid from './components/ProductsGrid'
-import SuppliersGrid from './components/SupplierGrid/SuppliersGrid'
-import SearchBar from '../homepage/components/Navbar/Search'
+import Container from "@/components/container";
+import ProductCategoryHeader from "../../[category]/components/ProductCategoryHeader";
+import SearchBar from "../../homepage/components/Navbar/Search";
+import CategoryFilters from "../../[category]/components/CategoryFilter";
+import ProductsGrid from "../../[category]/components/ProductsGrid";
+import SuppliersGrid from "../../[category]/components/SupplierGrid/SuppliersGrid";
 
 // Example product data
 const exampleProducts = [
@@ -13,11 +12,12 @@ const exampleProducts = [
     company: "Harcros Chemicals Inc.",
     name: "H-Quest® C 100",
     inciName: "Sodium Gluceptate",
-    functions: "Dispersant, Set Retarder, Sequestering Agent, Corrosion Inhibitor, Chelating Agent",
+    functions:
+      "Dispersant, Set Retarder, Sequestering Agent, Corrosion Inhibitor, Chelating Agent",
     chemicalName: "Sodium glucoheptonate",
     casNumber: "31138-65-5",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 2,
@@ -28,7 +28,7 @@ const exampleProducts = [
     casNumber: "31138-65-5",
     functions: "Biodegradable, Non-Corrosive",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 3,
@@ -39,7 +39,7 @@ const exampleProducts = [
     casNumber: "31138-65-5",
     functions: "Sequestering Agent, Corrosion Inhibitor",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 4,
@@ -49,7 +49,7 @@ const exampleProducts = [
     ingredientName: "Hydrogenated Soybean Oil",
     ingredientOrigin: "Natural Origin, Plant Origin, Vegetable Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 5,
@@ -59,7 +59,7 @@ const exampleProducts = [
     ingredientName: "Rapeseed Oil, Hydrogenated",
     ingredientOrigin: "Natural Origin, Plant Origin, Vegetable Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 6,
@@ -69,7 +69,7 @@ const exampleProducts = [
     ingredientName: "Rapeseed Oil, Hydrogenated",
     ingredientOrigin: "Natural Origin, Plant Origin, Vegetable Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 7,
@@ -79,7 +79,7 @@ const exampleProducts = [
     ingredientName: "Hydrogenated Sunflower Oil",
     ingredientOrigin: "Natural Origin, Plant Origin, Vegetable Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 8,
@@ -89,7 +89,7 @@ const exampleProducts = [
     functions: "Emollient, Texturizing Agent, Viscosity Modifier",
     ingredientOrigin: "Vegetable Origin, Natural Origin, Plant Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
+    backgroundImage: "/building 2.jpg",
   },
   {
     id: 9,
@@ -99,28 +99,30 @@ const exampleProducts = [
     functions: "Viscosity Modifier, Texturizing Agent",
     ingredientOrigin: "Vegetable Origin, Natural Origin, Plant Origin",
     logo: "/Anderson Logo Homepage.webp",
-    backgroundImage: "/building 2.jpg"
-  }
-]
+    backgroundImage: "/building 2.jpg",
+  },
+];
 
 const Page = async ({ params }) => {
-
-  const { category } = await params;
-  const decodedcategory = decodeURIComponent(category);
-
+  const { topmenu } = await params;
+  const decodedcategory = decodeURIComponent(topmenu);
+  console.log(decodedcategory);
+  // console.log("data in menubar:",decodedcategory);
   return (
-    <Container className='my-10 space-y-10'>
-      <ProductCategoryHeader category={decodedcategory} />
-      <SearchBar placeholder={`Search ${decodedcategory}`} />
-      <CategoryFilters />
-      <ProductsGrid 
-        products={exampleProducts}
-        category={decodedcategory}
-        totalProducts={4166}
-      />
-      <SuppliersGrid />
-    </Container>
-  )
-}
+    <>
+      <Container className="my-10 space-y-10">
+        <ProductCategoryHeader category={decodedcategory} />
+        <SearchBar placeholder={`Search ${decodedcategory}`} />
+        <CategoryFilters />
+        <ProductsGrid
+          products={exampleProducts}
+          category={decodedcategory}
+          totalProducts={4166}
+        />
+        <SuppliersGrid />
+      </Container>
+    </>
+  );
+};
 
-export default Page
+export default Page;

@@ -5,17 +5,6 @@ import { IoClose } from "react-icons/io5";
 import Link from "next/link";
 import { fonts } from "@/components/ui/font";
 
-// 1. Slugify function
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .replace(/\s+/g, "-")       // Replace spaces with -
-    .replace(/[()]/g, "")       // Remove parentheses
-    .replace(/[^a-z0-9-]/g, "") // Remove special characters
-    .replace(/-+/g, "-")        // Remove consecutive dashes
-    .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
-}
-
 const MegaMenu = ({ onClose }) => {
   const [isVisible, setIsVisible] = useState(false);
   // We'll store the fetched data as an object with keys as main categories
@@ -84,7 +73,7 @@ const MegaMenu = ({ onClose }) => {
           isVisible ? "translate-y-0 opacity-100" : "-translate-y-4 opacity-0"
         }`}
       >
-        {/* Added max-h and overflow-y-auto so the menu scrolls if it's too tall */}
+        {/* Container with scroll if content is too tall */}
         <div className="container mx-auto p-6 max-h-[80vh] overflow-y-auto">
           {/* Close Button */}
           <div className="flex justify-end mb-4">
@@ -99,8 +88,8 @@ const MegaMenu = ({ onClose }) => {
           {/* Main Categories & Their Subcategories */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {Object.keys(categories).map((mainCat, index) => {
-              // Slugify the main category name
-              const categorySlug = slugify(mainCat);
+              // Use the original main category string for display and URL encoding.
+              const categoryUrl = encodeURIComponent(mainCat.trim());
               // Get the array of subcategory objects
               const subcategories = categories[mainCat];
 
@@ -118,7 +107,7 @@ const MegaMenu = ({ onClose }) => {
                 >
                   {/* Main Category heading (clickable) */}
                   <Link
-                    href={`/${categorySlug}`}
+                    href={`/${categoryUrl}`}
                     onClick={handleClose}
                     className={`text-lg font-medium text-gray-800 hover:text-blue-600 transition-colors duration-200 ${fonts.montserrat}`}
                   >
@@ -128,8 +117,8 @@ const MegaMenu = ({ onClose }) => {
                   {/* Map over subcategories */}
                   <ul className="mt-2 space-y-2 ml-2">
                     {subcategories.map((item, subIndex) => {
-                      // Slugify subcategory name
-                      const subSlug = slugify(item.subcategory);
+                      // Use the original subcategory text for display and URL encoding.
+                      const subUrl = encodeURIComponent(item.subcategory.trim());
                       return (
                         <li
                           key={subIndex}
@@ -138,7 +127,7 @@ const MegaMenu = ({ onClose }) => {
                           }}
                         >
                           <Link
-                            href={`/${categorySlug}/${subSlug}`}
+                            href={`/${categoryUrl}/${subUrl}`}
                             className={`text-sm text-gray-600 hover:text-gray-900 transition-colors duration-200 ${fonts.montserrat}`}
                             onClick={handleClose}
                           >

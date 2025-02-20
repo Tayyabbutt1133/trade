@@ -10,16 +10,16 @@ import MegaMenu from "./MegaMenu";
 import Link from "next/link";
 import Suppliers from "./Suppliers";
 
-// Slugify function: transforms a string into a URL-friendly slug.
+// (Optional) Slugify function if needed for other purposes.
 function slugify(str) {
   return str
     .toLowerCase()
     .trim()
-    .replace(/\s+/g, "-")     // Replace spaces with hyphen.
-    .replace(/&/g, "and")     // Replace & with "and".
-    .replace(/[^\w-]+/g, "")   // Remove all non-word characters except hyphen.
-    .replace(/--+/g, "-")      // Replace multiple hyphens with a single hyphen.
-    .replace(/^-|-$/g, "");    // Remove leading or trailing hyphens.
+    .replace(/\s+/g, "-")     
+    .replace(/&/g, "and")     
+    .replace(/[^\w-]+/g, "")   
+    .replace(/--+/g, "-")      
+    .replace(/^-|-$/g, "");
 }
 
 export function Menubar() {
@@ -102,7 +102,7 @@ export function Menubar() {
             {visibleCategories.map((category, index) => (
               <Link
                 key={index}
-                href={`/${slugify(category)}`}
+                href={`/topmenu/${encodeURIComponent(category)}`}
                 className="text-white bg-[#404C4D] text-sm rounded-2xl px-3 py-1 hover:border-white"
               >
                 <p className={`text-[12px] ${fonts.montserrat}`}>{category}</p>
@@ -125,7 +125,7 @@ export function Menubar() {
                     {extraCategories.map((category, index) => (
                       <Link
                         key={index}
-                        href={`/${slugify(category)}`}
+                        href={`/topmenu/${encodeURIComponent(category)}`}
                         className="block text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1"
                         onClick={() => setShowDropdown(false)}
                       >

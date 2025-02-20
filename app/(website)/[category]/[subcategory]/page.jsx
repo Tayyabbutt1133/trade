@@ -104,15 +104,16 @@ const exampleProducts = [
   ]
 
 const Page = async ({ params }) => {
-  const {subcategory} = await params
+  const { subcategory } = await params
+  const encodedsubcategory = decodeURIComponent(subcategory);
   return (
     <Container className='my-10  space-y-10'>
-      <ProductCategoryHeader category={subcategory} />
-      <SearchBar placeholder={`Search ${subcategory}`} />
+      <ProductCategoryHeader category={encodedsubcategory} />
+      <SearchBar placeholder={`Search ${encodedsubcategory}`} />
       <CategoryFilters />
       <ProductsGrid 
         products={exampleProducts}
-        category={subcategory}
+        category={encodedsubcategory}
         totalProducts={4166}
       />
       <SuppliersGrid />
