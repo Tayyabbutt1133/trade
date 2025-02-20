@@ -1,5 +1,4 @@
 import { ProfileForm } from "../components/ProfileForm";
-import { SellerHeader } from "./sellerheader";
 
 export async function addSellerToDatabase(data) {
   // Create a FormData object
@@ -56,8 +55,7 @@ const SellerDetailClient = async ({ params }) => {
 
     return (
       <div className="container mx-auto py-10">
-        {/* Use the client header component that determines the title */}
-        {/* <SellerHeader sellerId={sellerId} /> */}
+
         <h1 className="sm:text-3xl text-2xl font-bold ml-14 sm:ml-0 capitalize mb-6">your profile</h1>
         <ProfileForm
           countries={countries}

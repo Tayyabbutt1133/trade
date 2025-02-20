@@ -72,7 +72,7 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
   // Check if navigation should be disabled
   const isPendingRegistration =
     userData &&
-    (userData.type === "Seller" || userData.type === "Buyer") &&
+    (userData.type === "Seller" || userData.type === "buyer" ) &&
     (userData.body === "Pending Registeration" || userData.body === "Pending");
 
   const isDisabled =
@@ -280,8 +280,8 @@ const DashboardLayout = ({ children }) => {
   // Check if registration is pending
   const isPendingRegistration =
     userData &&
-    (userData.type === "Seller" || userData.type === "Buyer") &&
-    userData.body === "Pending Registeration";
+    (userData.type === "Seller" || userData.type === "buyer") &&
+    (userData.body === "Pending Registeration" || userData.body === "Pending");
 
   // Redirect if trying to access restricted pages
   useEffect(() => {
