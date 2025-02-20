@@ -4,13 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEMO } from "@/app/actions/demographics";
 import { CREATEAUDIENCE } from "@/app/actions/createAudience";
@@ -44,9 +38,9 @@ export function AudienceForm({
   const params = useParams();
 
   // Log params for debugging
-  useEffect(() => {
-    console.log("Audience id:", params.audienceId);
-  }, [params]);
+  // useEffect(() => {
+  //   console.log("Audience id:", params.audienceId);
+  // }, [params]);
 
   // In edit mode, call GETAUDIENCE to fetch existing audience data
   useEffect(() => {
@@ -244,6 +238,7 @@ export function AudienceForm({
         })}
       </div>
 
+      {/* Total demographic audiences */}
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -261,6 +256,7 @@ export function AudienceForm({
         {params?.audienceId && params.audienceId !== "new" ? "Update Audience" : "Create Audience"}
       </Button>
 
+      {/* Message show on either success or failed api response */}
       {successMessage && (
         <div className="text-green-600 text-center mt-4">{successMessage}</div>
       )}
