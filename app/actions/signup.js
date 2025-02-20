@@ -11,7 +11,6 @@ export async function Register(data) {
     })
 
     const result = await response.json()
-    console.log("Registration result:", result)
 
     if (!response.ok || (result.Registeration && result.Registeration[0].body === "Email already registered")) {
       const errorMessage = result.Registeration?.[0]?.body || "Registration failed. Please try again."
