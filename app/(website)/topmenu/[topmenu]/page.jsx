@@ -113,7 +113,7 @@ const Page = async ({ params }) => {
       <Container className="my-10 space-y-10">
         <ProductCategoryHeader category={decodedcategory} />
         <SearchBar placeholder={`Search ${decodedcategory}`} />
-        <CategoryFilters />
+        <CategoryFilters decodedcategory={decodedcategory} />
         <ProductsGrid
           products={exampleProducts}
           category={decodedcategory}
