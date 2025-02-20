@@ -13,7 +13,7 @@ export default function ProductCategoryHeader({ category }) {
         </div>
 
         <p className="text-gray-800 text-sm font-medium max-w-3xl">
-          Knowde has a wide range of products essential for the agriculture and
+          Tradetoppers has a wide range of products essential for the agriculture and
           feed industries including adjuvents, fertilizers, crop protection,
           feed ingredients, and more.
         </p>
