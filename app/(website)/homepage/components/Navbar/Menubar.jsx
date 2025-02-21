@@ -126,7 +126,7 @@ export function Menubar() {
                       <Link
                         key={index}
                         href={`/topmenu/${encodeURIComponent(category)}`}
-                        className="block text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1"
+                        className={`block ${fonts.montserrat} text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1`}
                         onClick={() => setShowDropdown(false)}
                       >
                         {category}
