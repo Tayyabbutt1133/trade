@@ -30,6 +30,7 @@ export function SignInForm() {
 
     try {
       const loginToSubmit = new FormData(e.target);
+      // calling server side login function
       const server_response = await LOGIN(loginToSubmit);
       setLoading(false);
 
@@ -45,6 +46,7 @@ export function SignInForm() {
         ) {
           // Safely convert the role type to lowercase
           const roleType = server_response.data.type.toLowerCase();
+          console.log(roleType);
           setRole({
             id: server_response.data.id,
             type: roleType,

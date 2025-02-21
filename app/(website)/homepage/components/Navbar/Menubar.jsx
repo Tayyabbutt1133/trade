@@ -72,8 +72,8 @@ export function Menubar() {
   }, [showDropdown]);
 
   // Derive visible and extra categories
-  const visibleCategories = topCategories.slice(0, 4);
-  const extraCategories = topCategories.slice(4);
+  const visibleCategories = topCategories.slice(0, 7);
+  const extraCategories = topCategories.slice(7);
 
   return (
     <>
@@ -87,7 +87,9 @@ export function Menubar() {
           />
           {/* Show SideMenu if open */}
           {isMenuOpen && <SideMenu onclose={() => setIsMenuOpen(false)} />}
-          <button
+         
+          {/* Mega menu handling */}
+          {/* <button
             className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
             onClick={handleMegaMenuToggle}
           >
@@ -95,7 +97,7 @@ export function Menubar() {
               Trade Categories
             </p>
             <IoChevronDown className="h-4 w-4 opacity-50" />
-          </button>
+          </button> */}
 
           {/* Render Top Categories */}
           <div className="relative flex items-center gap-1 ml-4">
@@ -126,7 +128,7 @@ export function Menubar() {
                       <Link
                         key={index}
                         href={`/topmenu/${encodeURIComponent(category)}`}
-                        className="block text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1"
+                        className={`block ${fonts.montserrat} text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1`}
                         onClick={() => setShowDropdown(false)}
                       >
                         {category}
