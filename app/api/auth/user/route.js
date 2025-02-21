@@ -19,3 +19,14 @@ export async function GET() {
     userData,
   });
 }
+
+export async function DELETE(){
+  const cookieStore = await cookies();
+  cookieStore.delete("userId");
+  cookieStore.delete("userType");
+  cookieStore.delete("userBody");
+  
+  return Response.json({
+    success: true,
+  });
+}

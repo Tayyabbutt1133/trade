@@ -55,7 +55,10 @@ export function SignInForm() {
         }
 
         // Redirect after a short delay for a smooth experience
-        router.push("/dashboard");
+        // router.refresh();
+        // router.push("/")
+
+        window.location.href = "/";
       } else {
         // Display the error message provided by the server (or a fallback message)
         setErrorMessage(server_response.message || "Login failed. Please try again.");
