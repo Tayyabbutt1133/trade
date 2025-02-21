@@ -72,8 +72,8 @@ export function Menubar() {
   }, [showDropdown]);
 
   // Derive visible and extra categories
-  const visibleCategories = topCategories.slice(0, 5);
-  const extraCategories = topCategories.slice(3);
+  const visibleCategories = topCategories.slice(0, 4);
+  const extraCategories = topCategories.slice(4);
 
   return (
     <>
