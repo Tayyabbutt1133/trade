@@ -13,7 +13,6 @@ export async function GET() {
   // Optional: You could fetch additional user data here based on the ID
   // const userData = await fetchUserData(userId);
   const userData = { id: userId.value, type: userType.value, body: userBody.value };
-
   return Response.json({
     authenticated: true,
     userData,

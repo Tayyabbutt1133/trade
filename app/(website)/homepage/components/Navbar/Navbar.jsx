@@ -73,7 +73,8 @@ const Navbar = () => {
             <MdShoppingCart size={25} />
           </button> */}
 
-          <div className="flex gap-1">
+          {/* signup/signin buttons */}
+          <div className="flex gap-4">
             <Link href={userData?.id ? "/dashboard" : "/signin"}>
               <button
                 className={`
@@ -82,7 +83,7 @@ const Navbar = () => {
             } py-2 rounded-md transition-all
             ${
               pathname === "/signin"
-                ? "bg-green-600 hover:bg-green-700"
+                ? "bg-green-600"
                 : "bg-transparent hover:bg-[#081023CC]"
             } 
             hover:scale-105
@@ -102,14 +103,18 @@ const Navbar = () => {
                     : null
                 }
                 className={`
-                  text-sm text-white ${fonts.montserrat} px-5 py-2 rounded-md transition-all capitalize
-                ${
-                  pathname === "/signup"
-                  ? "bg-green-600 hover:bg-green-700"
-                  : "bg-transparent hover:bg-[#081023CC]"
-                }
-                  hover:scale-105
-                `}
+      text-sm text-white ${
+        fonts.montserrat
+      } px-5 py-2 rounded-md transition-all capitalize
+      ${
+        pathname === "/signin"
+          ? "bg-transparent"
+          : pathname === "/signup"
+          ? "bg-green-600"
+          : "bg-[#081023CC]"
+      }
+      hover:scale-105 hover:bg-[#081023CC]
+    `}
               >
                 {userData?.id ? "sign out" : "Sign up"}
               </button>
