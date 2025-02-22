@@ -132,7 +132,7 @@ export function SignUpForm() {
           registerstatus: result.data?.status || "",
         })
 
-        router.push(`/dashboard/profile/new`)
+        router.push(`/`)
       } else {
         setErrors({ server: result.error || "An unknown error occurred" })
       }

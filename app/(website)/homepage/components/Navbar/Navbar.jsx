@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { MdShoppingCart } from "react-icons/md";
+import React, { useEffect } from "react";
+
 import { useState } from "react";
 import { Menubar } from "./Menubar";
 import { RxHamburgerMenu } from "react-icons/rx";
@@ -16,10 +16,29 @@ import {
 import { IoChevronDown } from "react-icons/io5";
 import Link from "next/link";
 import SearchBar from "./Search";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const Navbar = () => {
   const [isMenuOpen, setisMenuOpen] = useState(false);
+  const [userData, setUserData] = useState(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch("/api/auth/user");
+        const data = await response.json();
+
+        if (data.userData) {
+          setUserData(data.userData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const handleToggle = () => {
     setisMenuOpen(!isMenuOpen);
@@ -54,41 +73,48 @@ const Navbar = () => {
             <MdShoppingCart size={25} />
           </button> */}
 
-<div className="flex gap-1">
-  <Link href="/signin">
-    <button
-      className={`
-        text-sm px-5 text-white ${fonts.montserrat} py-2 rounded-md transition-all
-        ${
-          pathname === "/signin"
-            ? "bg-green-600 hover:bg-green-700"
-            : "bg-transparent hover:bg-[#081023CC]"
-        }
-        hover:scale-105
-      `}
-    >
-      Sign in
-    </button>
-  </Link>
-  <Link href="/signup">
-    <button
-      className={`
-        text-sm text-white ${fonts.montserrat} px-5 py-2 rounded-md transition-all
-        ${
-          pathname === "/signup"
-            ? "bg-green-600 hover:bg-green-700"
-            : pathname === "/signin"
-              ? "bg-transparent hover:bg-[#081023CC]"
-              : "bg-[#081023CC] hover:bg-[#081023CC]"
-        }
-        hover:scale-105
-      `}
-    >
-      Sign up
-    </button>
-  </Link>
-</div>
-
+          <div className="flex gap-1">
+            <Link href={userData?.id ? "/dashboard" : "/signin"}>
+              <button
+                className={`
+            text-sm px-5 text-white ${
+              fonts.montserrat
+            } py-2 rounded-md transition-all
+            ${
+              pathname === "/signin"
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-transparent hover:bg-[#081023CC]"
+            } 
+            hover:scale-105
+          `}
+              >
+                {userData?.id ? "Dashboard" : "Sign in"}
+              </button>
+            </Link>
+            <Link href={userData?.id ? "" : "/signup"}>
+              <button
+                onClick={
+                  userData?.id
+                    ? async () => {
+                        await fetch("/api/auth/user", { method: "DELETE" });
+                        window.location.href = window.location.pathname;
+                      }
+                    : null
+                }
+                className={`
+                  text-sm text-white ${fonts.montserrat} px-5 py-2 rounded-md transition-all capitalize
+                ${
+                  pathname === "/signup"
+                  ? "bg-green-600 hover:bg-green-700"
+                  : "bg-transparent hover:bg-[#081023CC]"
+                }
+                  hover:scale-105
+                `}
+              >
+                {userData?.id ? "sign out" : "Sign up"}
+              </button>
+            </Link>
+          </div>
         </div>
       </div>
       {/* Menu bar */}
