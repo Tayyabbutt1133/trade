@@ -6,31 +6,29 @@ import { MdChevronRight, MdArrowBack } from "react-icons/md";
 import { fonts } from "@/components/ui/font";
 import Link from 'next/link';
 
-// 1. Slugify function (optional, if you need it elsewhere)
+// Helper to create URL-friendly strings.
 function slugify(str) {
   return str
     .toLowerCase()
-    .replace(/\s+/g, "-")       // Replace spaces with -
-    .replace(/[()]/g, "")       // Remove parentheses
-    .replace(/[^a-z0-9-]/g, "") // Remove special characters
-    .replace(/-+/g, "-")        // Replace consecutive dashes
-    .replace(/^-|-$/g, "");     // Remove leading/trailing dashes
+    .replace(/\s+/g, "-")
+    .replace(/[()]/g, "")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 export default function SideMenu({ onclose }) {
   const [isVisible, setIsVisible] = useState(false);
   const menuRef = useRef(null);
-  
-  // navigationPath controls the current level in the nested menu.
-  // Initial level is 'main'.
+
+  // navigationPath tracks our current nested level.
+  // The initial level is 'main' (index 0). Then index 1 is a main category,
+  // and index 2 is a subcategory.
   const [navigationPath, setNavigationPath] = useState([{ level: 'main' }]);
 
-  // categoriesData will store our API data.
-  // The API is assumed to return an object inside "Records" where
-  // keys are main categories and values are arrays of subcategory objects.
+  // API data – expects the first element of Records to hold the categories.
   const [categoriesData, setCategoriesData] = useState({});
 
-  // Fetch API data on mount
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -38,7 +36,6 @@ export default function SideMenu({ onclose }) {
         const json = await res.json();
         const records = json.Records || [];
         if (records.length > 0) {
-          // We assume the first element contains our categories data
           setCategoriesData(records[0]);
         }
       } catch (error) {
@@ -49,7 +46,7 @@ export default function SideMenu({ onclose }) {
     fetchData();
   }, []);
 
-  // Handle click outside and trigger entrance animation
+  // Trigger sidebar entrance and detect outside clicks.
   useEffect(() => {
     setIsVisible(true);
     const handleClickOutside = (event) => {
@@ -58,11 +55,10 @@ export default function SideMenu({ onclose }) {
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Smoothly close the sidebar.
   const handleClose = () => {
     setIsVisible(false);
     setTimeout(() => {
@@ -70,84 +66,167 @@ export default function SideMenu({ onclose }) {
     }, 300);
   };
 
-  // getCurrentView returns the items to render based on the current navigation level.
-  const getCurrentView = () => {
-    const currentNav = navigationPath[navigationPath.length - 1];
-
-    if (currentNav.level === 'main') {
-      // For main level, return an array of objects representing main categories.
-      // Each object: { id, label } where both are the main category name.
-      return Object.keys(categoriesData).map(cat => ({ id: cat, label: cat }));
-    }
-
-    if (currentNav.level === 'category') {
-      // For category level, currentNav.id is the main category name.
-      // Return the array of subcategory objects.
-      return categoriesData[currentNav.id] || [];
-    }
-
-    return [];
-  };
-
+  // Only clicking on the arrow button pushes a new nested level.
   const handleNavigation = (item) => {
     const currentLevel = navigationPath[navigationPath.length - 1].level;
-
     if (currentLevel === 'main') {
-      setNavigationPath([
-        ...navigationPath,
-        {
-          level: 'category',
-          id: item.id,
-          title: item.label
-        }
-      ]);
+      setNavigationPath([...navigationPath, { level: 'category', id: item.id, title: item.label }]);
+    } else if (currentLevel === 'category') {
+      setNavigationPath([...navigationPath, { level: 'subcategory', id: item.id, title: item.label }]);
     }
   };
 
+  // Go back one level.
   const handleBack = () => {
     if (navigationPath.length > 1) {
       setNavigationPath(navigationPath.slice(0, -1));
     }
   };
 
-  const renderContent = () => {
-    const currentView = getCurrentView();
-    const currentLevel = navigationPath[navigationPath.length - 1].level;
+  // Returns the list of items for a given page index.
+  // Index 0: main view; 1: category view; 2: subcategory view.
+  const getViewAtIndex = (index) => {
+    if (index === 0) {
+      return Object.keys(categoriesData).map(cat => ({ id: cat, label: cat }));
+    }
+    if (index === 1) {
+      // navigationPath[1].id is the main category selected.
+      const mainCategory = navigationPath[1]?.id;
+      const mainData = categoriesData[mainCategory];
+      if (Array.isArray(mainData) && mainData.length > 0 && typeof mainData[0] === 'object') {
+        return Object.keys(mainData[0]).map(key => ({ id: key, label: key }));
+      }
+      return [];
+    }
+    if (index === 2) {
+      const mainCategory = navigationPath[1]?.id;
+      const subCategory = navigationPath[2]?.id;
+      const mainData = categoriesData[mainCategory];
+      if (Array.isArray(mainData) && mainData.length > 0 && typeof mainData[0] === 'object') {
+        const subItems = mainData[0][subCategory] || [];
+        return subItems.map(item => ({ id: slugify(item), label: item }));
+      }
+      return [];
+    }
+    return [];
+  };
 
-    return (
-      <div className="space-y-1">
-        {currentView.map((item, index) => {
-          if (currentLevel === 'main') {
-            return (
-              <button
-                key={item.id}
-                onClick={() => handleNavigation(item)}
-                className="flex items-center justify-between w-full py-3 px-4 text-left hover:bg-gray-50 rounded-lg transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className={`${fonts.montserrat} text-black font-medium`}>{item.label}</span>
-                </div>
+  // Renders the page for a given level.
+  const renderPage = (pageIndex) => {
+    const items = getViewAtIndex(pageIndex);
+    // Determine level type.
+    const level = pageIndex === 0 ? 'main' : pageIndex === 1 ? 'category' : 'subcategory';
+
+    if (level === 'main') {
+      return (
+        <div className="space-y-1">
+          {items.map(item => (
+            <div key={item.id} className="flex items-center justify-between w-full py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors">
+              {/* Clicking the label links to the main category page and closes sidebar */}
+              <Link href={`/${encodeURIComponent(item.id)}`} onClick={handleClose}>
+                <span className={`${fonts.montserrat} text-black font-medium`}>{item.label}</span>
+              </Link>
+              {/* Only arrow click pushes into nested view */}
+              <button onClick={() => handleNavigation(item)} className="p-2">
                 <MdChevronRight size={20} className="text-gray-400" />
               </button>
-            );
-          } else if (currentLevel === 'category') {
-            // When at category level, we show a Link without an arrow.
-            // We use encodeURIComponent to build the URL so that the original text is preserved.
-            return (
-              <Link
-                key={item.subcategory}
-                href={`/${encodeURIComponent(navigationPath[1].id)}/${encodeURIComponent(item.subcategory)}`}
-                className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
-                onClick={handleClose}
-              >
-                <span className={`${fonts.montserrat} text-black font-medium`}>{item.subcategory}</span>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (level === 'category') {
+      const mainCategory = navigationPath[1]?.id;
+      return (
+        <div className="space-y-1">
+          {items.map(item => (
+            <div key={item.id} className="flex items-center justify-between w-full py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors">
+              <Link href={`/${encodeURIComponent(mainCategory)}/${encodeURIComponent(item.id)}`} onClick={handleClose}>
+                <span className={`${fonts.montserrat} text-black font-medium`}>{item.label}</span>
               </Link>
-            );
-          }
-          return null;
-        })}
+              <button onClick={() => handleNavigation(item)} className="p-2">
+                <MdChevronRight size={20} className="text-gray-400" />
+              </button>
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (level === 'subcategory') {
+      const mainCategory = navigationPath[1]?.id;
+      const category = navigationPath[2]?.id;
+      return (
+        <div className="space-y-1">
+          {items.map(item => (
+            <Link
+              key={item.id}
+              href={`/${encodeURIComponent(mainCategory)}/${encodeURIComponent(category)}/${encodeURIComponent(item.label)}`}
+              className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
+              onClick={handleClose}
+            >
+              <span className={`${fonts.montserrat} text-black font-medium`}>{item.label}</span>
+            </Link>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Render all pages in a sliding container.
+  const renderPages = () => {
+    const pages = [];
+    for (let i = 0; i < navigationPath.length; i++) {
+      pages.push(
+        <div key={i} className="w-full flex-shrink-0">
+          {renderPage(i)}
+        </div>
+      );
+    }
+    return (
+      <div className="relative overflow-hidden">
+        <div
+          className="flex transition-transform duration-300 ease-in-out"
+          style={{ transform: `translateX(-${(navigationPath.length - 1) * 100}%)` }}
+        >
+          {pages}
+        </div>
       </div>
     );
+  };
+
+  // Breadcrumb header with clickable links for each level.
+  const renderBreadcrumbs = () => {
+    const crumbs = [];
+    // Root breadcrumb
+    crumbs.push(
+      <span key="all" className={`${fonts.montserrat}`}>
+        <Link href="/">Categories</Link>
+      </span>
+    );
+    // Second layer : subcategory
+    if (navigationPath.length > 1) {
+      crumbs.push(<span key="sep1" className="mx-1">/</span>);
+      crumbs.push(
+        <span className={`${fonts.montserrat}`} key="main">
+          <Link href={`/${encodeURIComponent(navigationPath[1].id)}`}>
+            {navigationPath[1].title}
+          </Link>
+        </span>
+      );
+    }
+    // Third layer : product category
+    if (navigationPath.length > 2) {
+      crumbs.push(<span key="sep2" className="mx-1">/</span>);
+      crumbs.push(
+        <span key="sub" className={`${fonts.montserrat}`}>
+          <Link href={`/${encodeURIComponent(navigationPath[1].id)}/${encodeURIComponent(navigationPath[2].id)}`}>
+            {navigationPath[2].title}
+          </Link>
+        </span>
+      );
+    }
+    return <nav className="text-sm font-medium text-gray-500">{crumbs}</nav>;
   };
 
   return (
@@ -181,17 +260,10 @@ export default function SideMenu({ onclose }) {
         </div>
 
         <div className="p-6 max-h-[80vh] overflow-y-auto">
-          {/* Conditional Heading */}
           <div className="mb-4">
-            {navigationPath[navigationPath.length - 1].level === 'main' ? (
-              <h1 className={`${fonts.montserrat} text-black text-xl font-bold`}>Categories</h1>
-            ) : (
-              <h1 className={`${fonts.montserrat} text-black text-xl font-bold`}>
-                {navigationPath[navigationPath.length - 1].title}
-              </h1>
-            )}
+            {renderBreadcrumbs()}
           </div>
-          {renderContent()}
+          {renderPages()}
         </div>
       </div>
     </>

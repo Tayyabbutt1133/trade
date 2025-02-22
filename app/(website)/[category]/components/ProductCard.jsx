@@ -3,17 +3,17 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function ProductCard({ productdata }) {
-  if (!productdata) return null; // Ensure productdata exists
+export default function ProductCard({ products }) {
+  if (!products) return null; // Ensure productdata exists
 
   return (
     <div className={`flex flex-col justify-between h-full bg-white rounded-lg shadow-md ${fonts.montserrat}`}>
-      <Link href={`/product/${productdata.prodname}`}>
+      <Link href={`/product/${products.prodname}`}>
         <div className="relative">
           <section className="h-32 bg-sky-100 relative">
             <Image
               src={"/placeholder.svg?height=128&width=400"}
-              alt=""
+              alt="products"
               fill
               className="object-cover"
             />
@@ -22,7 +22,7 @@ export default function ProductCard({ productdata }) {
             <div className="bg-white rounded-lg p-2 shadow-sm w-16 h-16 flex items-center justify-center">
               <Image
                 src={"/placeholder.svg?height=40&width=40"}
-                alt={productdata.brand}
+                alt="products"
                 width={40}
                 height={40}
                 className="object-contain"
@@ -34,34 +34,34 @@ export default function ProductCard({ productdata }) {
         <div className="flex flex-col flex-grow p-4 pt-12 space-y-4">
           <div className="flex-grow space-y-4">
             <div>
-              <p className="text-sm text-gray-600">{productdata.brand}</p>
-              <h3 className="font-semibold text-lg">{productdata.prodname}</h3>
+              <p className="text-sm text-gray-600">{products.brand}</p>
+              <h3 className="font-semibold text-lg">{products.prodname}</h3>
             </div>
 
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-gray-600">Formula:</p>
-                <p className="text-sm">{productdata.formula}</p>
+                <p className="text-sm">{products.formula}</p>
               </div>
 
-              {productdata.category && (
+              {products.category && (
                 <div>
                   <p className="text-sm text-gray-600">Category:</p>
-                  <p className="text-sm">{productdata.category}</p>
+                  <p className="text-sm">{products.category}</p>
                 </div>
               )}
 
-              {productdata.subcategory && (
+              {products.subcategory && (
                 <div>
                   <p className="text-sm text-gray-600">Subcategory:</p>
-                  <p className="text-sm">{productdata.subcategory}</p>
+                  <p className="text-sm">{products.subcategory}</p>
                 </div>
               )}
 
-              {productdata.code && (
+              {products.code && (
                 <div>
                   <p className="text-sm text-gray-600">Code:</p>
-                  <p className="text-sm">{productdata.code}</p>
+                  <p className="text-sm">{products.code}</p>
                 </div>
               )}
             </div>

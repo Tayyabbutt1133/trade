@@ -102,21 +102,23 @@ const exampleProducts = [
 ];
 
 const Page = async ({ params }) => {
-  const { products, category, subcategory } = await params;
+  const { products } = await params;
+  const encodedproducts = decodeURIComponent(products);
+  // console.log("Decoded product category:", encodedproducts);
 
   return (
     <div className="flex min-h-screen">
       <FilterSidebar />
       <main className="flex-1 my-10 mx-2">
-        <SidebarBreadcrumbs
+        {/* <SidebarBreadcrumbs
           category={category}
           subcategory={subcategory}
           products={products}
-        />
+        /> */}
         <FilterDropdowns />
         <SidebarProductsGrid
           products={exampleProducts}
-          category={products}
+          category={encodedproducts}
           totalProducts={4166}
         />
       </main>

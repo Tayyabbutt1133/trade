@@ -5,5 +5,5 @@ const montserrat = Montserrat({subsets: ['latin'], weight: ['100', '200', '300',
 
 export const fonts = {
   roboto: roboto.className,
-  montserrat: montserrat.className,
+montserrat: montserrat.className,
 }
