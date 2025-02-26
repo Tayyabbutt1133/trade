@@ -156,8 +156,6 @@ export function CategoryComboBoxWithDialog({
     }
   })
 
-  console.log("transformned" ,transformedOptions)
-
   return (
     <div className="grid gap-2">
       <Label>{label}</Label>

@@ -71,12 +71,12 @@ const RichTextEditor = ({
       Link.configure({
         openOnClick: false,
       }),
-      Table.configure({
-        resizable: true,
-      }),
-      TableRow,
-      TableHeader,
-      TableCell,
+      // Table.configure({
+      //   resizable: true,
+      // }),
+      // TableRow,
+      // TableHeader,
+      // TableCell,
       ...extensions,
     ],
     [extensions]
@@ -227,73 +227,73 @@ const RichTextEditor = ({
     );
   };
 
-  const tableButtons = [
-    {
-      icon: <TableIcon className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
-      tooltip: "Insert table",
-    },
-    {
-      icon: <ColumnSpanIcon className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().addColumnBefore().run(),
-      isDisabled: () => !editor.can().addColumnBefore(),
-      tooltip: "Add column before",
-    },
-    {
-      icon: <ColumnSpanIcon className="h-4 w-4 rotate-180" />,
-      onClick: () => editor.chain().focus().addColumnAfter().run(),
-      isDisabled: () => !editor.can().addColumnAfter(),
-      tooltip: "Add column after",
-    },
-    {
-      icon: <RowSpanIcon className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().addRowBefore().run(),
-      isDisabled: () => !editor.can().addRowBefore(),
-      tooltip: "Add row before",
-    },
-    {
-      icon: <RowSpanIcon className="h-4 w-4 rotate-180" />,
-      onClick: () => editor.chain().focus().addRowAfter().run(),
-      isDisabled: () => !editor.can().addRowAfter(),
-      tooltip: "Add row after",
-    },
-    {
-      icon: <Trash2 className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().deleteTable().run(),
-      isDisabled: () => !editor.can().deleteTable(),
-      tooltip: "Delete table",
-    },
-    {
-      icon: <Combine className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().mergeCells().run(),
-      isDisabled: () => !editor.can().mergeCells(),
-      tooltip: "Merge cells",
-    },
-    {
-      icon: <SplitSquareHorizontal className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().splitCell().run(),
-      isDisabled: () => !editor.can().splitCell(),
-      tooltip: "Split cell",
-    },
-    {
-      icon: <Grid2X2 className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().toggleHeaderRow().run(),
-      isDisabled: () => !editor.can().toggleHeaderRow(),
-      tooltip: "Toggle header row",
-    },
-    {
-      icon: <AlignVerticalJustifyStart className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().toggleHeaderColumn().run(),
-      isDisabled: () => !editor.can().toggleHeaderColumn(),
-      tooltip: "Toggle header column",
-    },
-    {
-      icon: <AlignVerticalJustifyEnd className="h-4 w-4" />,
-      onClick: () => editor.chain().focus().toggleHeaderCell().run(),
-      isDisabled: () => !editor.can().toggleHeaderCell(),
-      tooltip: "Toggle header cell",
-    },
-  ];
+  // const tableButtons = [
+  //   {
+  //     icon: <TableIcon className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run(),
+  //     tooltip: "Insert table",
+  //   },
+  //   {
+  //     icon: <ColumnSpanIcon className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().addColumnBefore().run(),
+  //     isDisabled: () => !editor.can().addColumnBefore(),
+  //     tooltip: "Add column before",
+  //   },
+  //   {
+  //     icon: <ColumnSpanIcon className="h-4 w-4 rotate-180" />,
+  //     onClick: () => editor.chain().focus().addColumnAfter().run(),
+  //     isDisabled: () => !editor.can().addColumnAfter(),
+  //     tooltip: "Add column after",
+  //   },
+  //   {
+  //     icon: <RowSpanIcon className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().addRowBefore().run(),
+  //     isDisabled: () => !editor.can().addRowBefore(),
+  //     tooltip: "Add row before",
+  //   },
+  //   {
+  //     icon: <RowSpanIcon className="h-4 w-4 rotate-180" />,
+  //     onClick: () => editor.chain().focus().addRowAfter().run(),
+  //     isDisabled: () => !editor.can().addRowAfter(),
+  //     tooltip: "Add row after",
+  //   },
+  //   {
+  //     icon: <Trash2 className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().deleteTable().run(),
+  //     isDisabled: () => !editor.can().deleteTable(),
+  //     tooltip: "Delete table",
+  //   },
+  //   {
+  //     icon: <Combine className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().mergeCells().run(),
+  //     isDisabled: () => !editor.can().mergeCells(),
+  //     tooltip: "Merge cells",
+  //   },
+  //   {
+  //     icon: <SplitSquareHorizontal className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().splitCell().run(),
+  //     isDisabled: () => !editor.can().splitCell(),
+  //     tooltip: "Split cell",
+  //   },
+  //   {
+  //     icon: <Grid2X2 className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().toggleHeaderRow().run(),
+  //     isDisabled: () => !editor.can().toggleHeaderRow(),
+  //     tooltip: "Toggle header row",
+  //   },
+  //   {
+  //     icon: <AlignVerticalJustifyStart className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().toggleHeaderColumn().run(),
+  //     isDisabled: () => !editor.can().toggleHeaderColumn(),
+  //     tooltip: "Toggle header column",
+  //   },
+  //   {
+  //     icon: <AlignVerticalJustifyEnd className="h-4 w-4" />,
+  //     onClick: () => editor.chain().focus().toggleHeaderCell().run(),
+  //     isDisabled: () => !editor.can().toggleHeaderCell(),
+  //     tooltip: "Toggle header cell",
+  //   },
+  // ];
 
   const allButtons = [...defaultEditorButtons, ...customButtons];
 
@@ -314,7 +314,7 @@ const RichTextEditor = ({
               {button.icon}
             </Button>
           ))}
-          <TooltipProvider>
+          {/* <TooltipProvider>
             <div className="flex gap-2">
               {tableButtons.map((button, index) => (
                 <TableButton
@@ -326,7 +326,7 @@ const RichTextEditor = ({
                 />
               ))}
             </div>
-          </TooltipProvider>
+          </TooltipProvider> */}
           {!readOnly && <ImageButton icon={<ImageIcon className="h-4 w-4" />} />}
         </div>
       )}

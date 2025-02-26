@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,13 +10,17 @@ import { ImageUpload } from "./ImageUpload"
 import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog"
 import { existingFunctions } from "../_data"
 import { createProduct } from "@/app/actions/createProduct"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 export function ProductForm({
   initialBrandOptions = [],
   initialCategoriesOption = [],
-  initialSubcategoriesOption = [],
+  initialData = null,
+  productId
 }) {
+  const router = useRouter();
+  const isEditMode = productId && productId !== "new";
+  
   const [formData, setFormData] = useState({
     product: "",
     description: "",
@@ -27,19 +31,57 @@ export function ProductForm({
     subcategory: "",
     chemical: "",
     logby: "",
+    cas: "",
+    cinum: "",
     images: [],
-    functions: []
-  })
-  const [errors, setErrors] = useState({})
-  const [submissionError, setSubmissionError] = useState(null)
-  const [submissionSuccess, setSubmissionSuccess] = useState(null)
+    // functions: []
+  });
+
+  const [isLoading, setIsLoading] = useState(!initialData && isEditMode);
+  const [errors, setErrors] = useState({});
+  const [submissionError, setSubmissionError] = useState(null);
+  const [submissionSuccess, setSubmissionSuccess] = useState(null);
 
   // Option states
-  const [brandOptions, setBrandOptions] = useState(initialBrandOptions)
-  const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption)
-  const [subcategoriesOption, setSubcategoriesOption] = useState(initialSubcategoriesOption)
+  const [brandOptions, setBrandOptions] = useState(initialBrandOptions);
+  const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption);
+  const [subcategoriesOption, setSubcategoriesOption] = useState([]);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
-  // Fetch options function remains the same
+  // Load initial data when available
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        product: initialData.product || "",
+        description: initialData.description || "",
+        code: initialData.code || "",
+        formula: initialData.formula || "",
+        brand: initialData.brand || "",
+        category: initialData.category || "",
+        subcategory: initialData.subcategory || "",
+        chemical: initialData.chemical || "",
+        cas: initialData.cas || "",
+        cinum: initialData.cinum || "",
+        logby: initialData.logby || "",
+        images: initialData.images || [],
+        // functions: initialData.functions || []
+      });
+      
+      // If there's a category in the initialData, fetch related subcategories
+      if (initialData.category) {
+        const categoryObj = categoriesOption.find(cat => cat.category === initialData.category);
+        if (categoryObj && categoryObj.id) {
+          setSelectedCategoryId(categoryObj.id);
+          fetchSubcategories(categoryObj.id);
+        }
+      }
+      
+      setIsLoading(false);
+    }
+
+  }, [initialData, isEditMode, productId, categoriesOption]);
+
+  // Fetch options function updated to handle dependent subcategories
   const fetchOptionForType = async (type) => {
     let endpoint = ""
     let setOption
@@ -49,9 +91,6 @@ export function ProductForm({
     } else if (type === "category") {
       endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/categories/'
       setOption = setCategoriesOption
-    } else if (type === "subcategory") {
-      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/'
-      setOption = setSubcategoriesOption
     }
 
     try {
@@ -61,13 +100,30 @@ export function ProductForm({
         setOption(data.Brand || data)
       } else if (type === "category") {
         setOption(data.Categories || data)
-      } else if (type === "subcategory") {
-        setOption(data.SubCategories || data)
       }
     } catch (error) {
       console.error(`Error fetching ${type} options:`, error)
     }
   }
+
+  // New function to fetch subcategories based on category ID
+  const fetchSubcategories = async (categoryId) => {
+    if (!categoryId) return;
+    const categoryIdToSubmit = new FormData()
+    categoryIdToSubmit.append('catid', categoryId)
+    try {
+      const endpoint = `https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/`;
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: categoryIdToSubmit
+      });
+      const data = await res.json();
+      setSubcategoriesOption(data.SubCategories || []);
+    } catch (error) {
+      console.error('Error fetching subcategories:', error);
+      setSubcategoriesOption([]);
+    }
+  };
 
   // Handle input changes
   const handleInputChange = (id, value) => {
@@ -83,13 +139,22 @@ export function ProductForm({
   }
 
   const handleCategoryChange = async (newValue) => {
-    handleInputChange("category", newValue.category)
-    await fetchOptionForType("category")
+    handleInputChange("category", newValue.category);
+    // Clear subcategory when category changes
+    handleInputChange("subcategory", "");
+    
+    // Set the selected category ID and fetch subcategories
+    if (newValue && newValue.id) {
+      setSelectedCategoryId(newValue.id);
+      await fetchSubcategories(newValue.id);
+    } else {
+      setSelectedCategoryId(null);
+      setSubcategoriesOption([]);
+    }
   }
 
   const handleSubcategoryChange = async (newValue) => {
     handleInputChange("subcategory", newValue.subcategory)
-    await fetchOptionForType("subcategory")
   }
 
   // Handle form submission
@@ -107,15 +172,27 @@ export function ProductForm({
     formDataToSubmit.append("category", formData.category || "");
     formDataToSubmit.append("subcategory", formData.subcategory || "");
     formDataToSubmit.append("chemical", formData.chemical || "");
+    formDataToSubmit.append("cas", formData.cas || "");
+    formDataToSubmit.append("cinum", formData.cinum || "");
     formDataToSubmit.append("logby", formData.logby || "");
+    
+    
+    // Append mode based on whether this is a new product or an edit
+    if (isEditMode) {
+      formDataToSubmit.append("Mode", "Edit");
+      formDataToSubmit.append("regid", productId);
+    } else {
+      formDataToSubmit.append("Mode", "New");
+      formDataToSubmit.append("regid", "0"); // Set default regid as 0
+    }
   
     // Handle functions array if needed
-    if (formData.functions.length > 0) {
+    if (formData.functions && formData.functions.length > 0) {
       formDataToSubmit.append("functions", JSON.stringify(formData.functions));
     }
   
     // Add images array as JSON string
-    if (formData.images.length > 0) {
+    if (formData.images && formData.images.length > 0) {
       // Only send the necessary image data
       const imageData = formData.images.map(img => ({
         base64: img.base64,
@@ -130,7 +207,16 @@ export function ProductForm({
       if (result.success) {
         setSubmissionSuccess(result.message);
         setSubmissionError(null);
-        redirect("/dashboard/products");
+        
+        // Clean up session storage if needed
+        if (isEditMode) {
+          sessionStorage.removeItem(`product_${productId}`);
+        }
+        
+        // Wait a moment before redirecting so user can see success message
+        setTimeout(() => {
+          router.push("/dashboard/products");
+        }, 1000);
       } else {
         setSubmissionError(result.message);
         setSubmissionSuccess(null);
@@ -140,6 +226,10 @@ export function ProductForm({
       setSubmissionSuccess(null);
     }
   };
+
+  if (isLoading) {
+    return <div className="p-4 text-center">Loading product data...</div>;
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
@@ -169,6 +259,7 @@ export function ProductForm({
           {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
         </div>
 
+        {/* Other form fields */}
         <div className="space-y-2">
           <Label htmlFor="code">Code</Label>
           <Input 
@@ -206,6 +297,28 @@ export function ProductForm({
           />
           {errors.chemical && <p className="text-red-500 text-sm">{errors.chemical}</p>}
         </div>
+        <div className="space-y-2">
+          <Label htmlFor="cas">CAS</Label>
+          <Input 
+            id="cas"
+            name="cas"
+            type="text"
+            value={formData.cas || ""}
+            onChange={(e) => handleInputChange("cas", e.target.value)}
+          />
+          {errors.cas && <p className="text-red-500 text-sm">{errors.cas}</p>}
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="cinum">C.I. Number</Label>
+          <Input 
+            id="cinum"
+            name="cinum"
+            type="text"
+            value={formData.cinum || ""}
+            onChange={(e) => handleInputChange("cinum", e.target.value)}
+          />
+          {errors.cinum && <p className="text-red-500 text-sm">{errors.cinum}</p>}
+        </div>
 
         <div className="space-y-2">
           <Label htmlFor="logby">Logged By</Label>
@@ -241,13 +354,14 @@ export function ProductForm({
           onChange={handleSubcategoryChange}
           options={subcategoriesOption}
           type="subcategory"
+          disabled={!selectedCategoryId}
         />
 
-        <FunctionInput
+        {/* <FunctionInput
           functions={formData.functions}
           setFunctions={(newFunctions) => handleInputChange("functions", newFunctions)}
           existingFunctions={existingFunctions}
-        />
+        /> */}
 
         <ImageUpload 
           images={formData.images}
@@ -256,7 +370,7 @@ export function ProductForm({
       </div>
 
       <Button className="w-fit" type="submit">
-        Save Chemical Product
+        {isEditMode ? "Update" : "Save"} Chemical Product
       </Button>
 
       {submissionError && <p className="text-red-500">{submissionError}</p>}
