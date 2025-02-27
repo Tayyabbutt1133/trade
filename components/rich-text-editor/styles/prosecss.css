@@ -22,7 +22,7 @@
     @apply my-1;
   }
 
-  /* Table-specific styling */
+  /* Table-specific styling
   table {
     border-collapse: collapse;
     margin: 0;
@@ -78,6 +78,6 @@
   &.resize-cursor {
     cursor: ew-resize;
     cursor: col-resize;
-  }
+  } */
 
 }

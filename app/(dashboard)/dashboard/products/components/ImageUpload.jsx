@@ -1,95 +1,178 @@
-"use client";
-import { useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+"use client"
 
-export function ImageUpload({ images, setImages }) {
-  const fileInputRef = useRef(null);
+import { useRef, useCallback, useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { X } from "lucide-react"
+
+export function ImageUpload({ images = [], setImages }) {
+  const fileInputRef = useRef(null)
+  const [error, setError] = useState("")
+  const [localImages, setLocalImages] = useState(images)
 
   // Function to convert file to base64
-  const fileToBase64 = (file) => {
+  const fileToBase64 = useCallback((file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          // Remove the "data:image/xxx;base64," prefix
+          const base64Data = reader.result.replace(/^data:image\/\w+;base64,/, "");
+          resolve(base64Data);
+        } else {
+          reject(new Error("Failed to convert file to base64"));
+        }
+      };
+      reader.onerror = () => reject(new Error("Failed to read file"));
       reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = (error) => reject(error);
     });
-  };
+  }, []);
+  
+
+  // Function to validate image file
+  const validateImage = useCallback((file) => {
+    return new Promise((resolve, reject) => {
+      const validTypes = ["image/jpeg", "image/png", "image/gif"]
+
+      if (!validTypes.includes(file.type)) {
+        reject(new Error(`Invalid file type for ${file.name}. Only JPG, PNG, and GIF are supported.`))
+        return
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        reject(new Error(`File ${file.name} is too large. Maximum size is 5MB.`))
+        return
+      }
+
+      const img = new Image()
+      const objectUrl = URL.createObjectURL(file)
+
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(true)
+      }
+
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error(`File ${file.name} is not a valid image`))
+      }
+
+      img.src = objectUrl
+    })
+  }, [])
 
   const handleImageUpload = useCallback(
     async (event) => {
-      const files = event.target.files;
-      if (files) {
-        try {
-          const newImagesPromises = Array.from(files)
-            .slice(0, 5 - images.length)
-            .map(async (file) => {
-              const base64Data = await fileToBase64(file);
-              return {
-                id: Math.random().toString(36).slice(2, 11),
-                file,
-                preview: URL.createObjectURL(file),
-                base64: base64Data,
-                name: file.name,
-                type: file.type,
-                size: file.size,
-              };
-            });
+      setError("")
+      const files = event.target.files
 
-          const newImages = await Promise.all(newImagesPromises);
-          setImages((prevImages) => [...prevImages, ...newImages].slice(0, 5));
-        } catch (error) {
-          console.error("Error converting images to base64:", error);
-        }
+      if (!files || files.length === 0) {
+        setError("No files selected")
+        return
       }
+
+      const remainingSlots = 5 - localImages.length
+
+      if (remainingSlots <= 0) {
+        setError("Maximum 5 images allowed")
+        return
+      }
+
+      const filesToProcess = Array.from(files).slice(0, remainingSlots)
+
+      try {
+        const processedImages = []
+
+        for (const file of filesToProcess) {
+          try {
+            await validateImage(file)
+            const base64Data = await fileToBase64(file)
+            const preview = URL.createObjectURL(file)
+
+            processedImages.push({
+              id: Math.random().toString(36).slice(2, 11),
+              file,
+              preview,
+              base64: base64Data,
+              name: file.name,
+              type: file.type,
+              size: file.size,
+            })
+          } catch (error) {
+            console.error(`Error processing file ${file.name}:`, error)
+            setError(
+              (prevError) =>
+                prevError + (prevError ? "\n" : "") + (error instanceof Error ? error.message : String(error)),
+            )
+          }
+        }
+
+        if (processedImages.length > 0) {
+          const updatedImages = [...localImages, ...processedImages].slice(0, 5)
+          setLocalImages(updatedImages)
+          if (typeof setImages === "function") {
+            setImages(updatedImages)
+          }
+        }
+      } catch (error) {
+        console.error("Error processing images:", error)
+        setError(
+          (prevError) =>
+            prevError +
+            (prevError ? "\n" : "") +
+            (error instanceof Error ? error.message : "Error uploading images. Please try again."),
+        )
+      }
+
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     },
-    [images.length, setImages]
-  );
+    [localImages, setImages, fileToBase64, validateImage],
+  )
 
   const removeImage = useCallback(
     (id) => {
-      setImages((prevImages) => {
-        const updatedImages = prevImages.filter((img) => img.id !== id);
-        // Revoke object URL to prevent memory leaks
-        const removedImage = prevImages.find((img) => img.id === id);
-        if (removedImage?.preview) {
-          URL.revokeObjectURL(removedImage.preview);
-        }
-        return updatedImages;
-      });
-    },
-    [setImages]
-  );
-
-  // Cleanup function to revoke object URLs when component unmounts
-  const cleanup = () => {
-    images.forEach((image) => {
-      if (image.preview) {
-        URL.revokeObjectURL(image.preview);
+      const updatedImages = localImages.filter((img) => img.id !== id)
+      setLocalImages(updatedImages)
+      if (typeof setImages === "function") {
+        setImages(updatedImages)
       }
-    });
-  };
 
-  // Call cleanup when component unmounts
-  useCallback(() => {
-    return () => cleanup();
-  }, [images]);
+      const removedImage = localImages.find((img) => img.id === id)
+      if (removedImage?.preview) {
+        URL.revokeObjectURL(removedImage.preview)
+      }
+    },
+    [localImages, setImages],
+  )
+
+  useEffect(() => {
+    return () => {
+      localImages.forEach((image) => {
+        if (image?.preview) {
+          URL.revokeObjectURL(image.preview)
+        }
+      })
+    }
+  }, [localImages])
 
   return (
     <div className="grid gap-2">
       <Label htmlFor="product-images">Chemical Images (up to 5)</Label>
       <div className="flex flex-wrap gap-4">
-        {images.map((image) => (
-          <div key={image.id} className="relative">
+        {localImages.map((image) => (
+          <div key={image.id} className="relative w-24 h-24">
             <img
               src={image.preview || "/placeholder.svg"}
-              alt={`Preview ${image.id}`}
-              className="w-24 h-24 object-cover rounded-md"
+              alt={`Preview ${image.name}`}
+              className="w-full h-full object-cover rounded-md"
+              onError={(e) => {
+                e.target.src = "/placeholder.svg"
+                console.error(`Error loading preview for ${image.name}`)
+              }}
             />
             <Button
               type="button"
@@ -102,11 +185,11 @@ export function ImageUpload({ images, setImages }) {
             </Button>
           </div>
         ))}
-        {images.length < 5 && (
+        {localImages.length < 5 && (
           <Button
             type="button"
             variant="outline"
-            className="w-24 h-24"
+            className="w-24 h-24 flex items-center justify-center"
             onClick={() => fileInputRef.current?.click()}
           >
             +
@@ -116,15 +199,14 @@ export function ImageUpload({ images, setImages }) {
       <Input
         id="product-images"
         type="file"
-        accept="image/*"
+        accept="image/jpeg,image/png,image/gif"
         multiple
         className="hidden"
         onChange={handleImageUpload}
         ref={fileInputRef}
       />
-      <p className="text-sm text-gray-500">
-        Supported formats: JPG, PNG, GIF (max 5 images)
-      </p>
+      {error && <p className="text-sm text-destructive whitespace-pre-line">{error}</p>}
+      <p className="text-sm text-muted-foreground">Supported formats: JPG, PNG, GIF (max 5 images, 5MB each)</p>
     </div>
   );
 }
