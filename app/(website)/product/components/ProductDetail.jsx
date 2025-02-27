@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { FileText, Shield, FileDown, Mail, ChevronDown } from "lucide-react";
+import { FileText, Shield, FileDown, Mail } from "lucide-react";
 import QuoteCard from "./QuoteCard";
 import { fonts } from "@/components/ui/font";
 
@@ -67,9 +67,9 @@ export default function ProductDetails({ productdata }) {
               {singleproduct.description}
             </p>
 
-            {/* Product Details */}
-            <div className="space-y-4">
-              <div className="mt-4">
+            {/* Static Product Details */}
+            <div className="space-y-4 mt-4">
+              <div>
                 <h2 className={`text-lg ${fonts.montserrat} font-semibold`}>
                   Functions:
                 </h2>
@@ -100,6 +100,65 @@ export default function ProductDetails({ productdata }) {
                 </ul>
               </div>
             </div>
+          </div>
+
+          {/* Additional Product Information - Mapping all dynamic backend fields */}
+          <div className="space-y-4">
+            <h2 className={`text-lg ${fonts.montserrat} font-semibold`}>
+              Additional Product Information
+            </h2>
+            <ul className={`list-disc ${fonts.montserrat} pl-6 space-y-1`}>
+              {singleproduct.code && (
+                <li>
+                  <strong>Code:</strong> {singleproduct.code}
+                </li>
+              )}
+              {singleproduct.formula && (
+                <li>
+                  <strong>Formula:</strong> {singleproduct.formula}
+                </li>
+              )}
+              {singleproduct.brand && (
+                <li>
+                  <strong>Brand:</strong> {singleproduct.brand}
+                </li>
+              )}
+              {singleproduct.category && (
+                <li>
+                  <strong>Category:</strong> {singleproduct.category}
+                </li>
+              )}
+              {singleproduct.maincategory && (
+                <li>
+                  <strong>Main Category:</strong> {singleproduct.maincategory}
+                </li>
+              )}
+              {singleproduct.subcategory && (
+                <li>
+                  <strong>Subcategory:</strong> {singleproduct.subcategory}
+                </li>
+              )}
+              {singleproduct.chemical && (
+                <li>
+                  <strong>Chemical:</strong> {singleproduct.chemical}
+                </li>
+              )}
+              {singleproduct.cas && (
+                <li>
+                  <strong>CAS:</strong> {singleproduct.cas}
+                </li>
+              )}
+              {singleproduct.cinum && (
+                <li>
+                  <strong>CINum:</strong> {singleproduct.cinum}
+                </li>
+              )}
+              {singleproduct.status && (
+                <li>
+                  <strong>Status:</strong> {singleproduct.status}
+                </li>
+              )}
+            </ul>
           </div>
         </div>
 
