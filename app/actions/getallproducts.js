@@ -9,9 +9,10 @@ export async function GETALLPRODUCT(catid, maincatid, subcatid, productid) {
     try {
         const allproducts = new FormData();
         allproducts.append("catid", catid || "");  // Send empty string if null
-        allproducts.append("maincatid", maincatid || "");  
-        allproducts.append("subcatid", subcatid || "");  
-        allproducts.append("productid", productid || "");  
+        allproducts.append("maincatid", maincatid || "");
+        allproducts.append("subcatid", subcatid || "");
+        allproducts.append("productid", productid || "");
+        // console.log("Product data recieve at server :", allproducts);
 
         const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/products/", {
             method: "POST",

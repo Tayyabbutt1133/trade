@@ -16,7 +16,7 @@ const page = async ({ params }) => {
   // console.log("Response back from server :", fetchproduct);
   const isfetchProductArray = fetchproduct?.data?.Product || [];
 
-  console.log("Product Id:", product);
+  // console.log("Product Id:", product);
   return (
     <>
       <div className="flex flex-col md:flex-row min-h-screen">

@@ -15,7 +15,7 @@ const Page = async ({ params }) => {
   const subcatid = "";
   const productid = "";
 
-  console.log("TopCategory:", decodedcategory);
+  // console.log("TopCategory:", decodedcategory);
   const fetchProducts = await GETALLPRODUCT(
     decodedcategory,
     maincatid,
@@ -27,7 +27,7 @@ const Page = async ({ params }) => {
   const isfetchProductsArray = Array.isArray(fetchProducts?.data?.Product) ? fetchProducts.data.Product : [];
   // console.log("Top Category data:", isfetchProductsArray);
   const totalProducts = isfetchProductsArray.length;
-  console.log("Total Products :", totalProducts);
+  // console.log("Total Products :", totalProducts);
 
   return (
     <Container className="my-10 space-y-10">

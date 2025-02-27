@@ -10,7 +10,7 @@ export default function ProductDetails({ productdata }) {
   const singleproduct =
     productdata && productdata.length > 0 ? productdata[0] : null;
 
-  console.log("Single product data :", singleproduct);
+  // console.log("Single product data :", singleproduct);
 
   if (!singleproduct) {
     return <div>No product data available</div>;

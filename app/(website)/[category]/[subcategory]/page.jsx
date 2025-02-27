@@ -1,10 +1,11 @@
 
 import ProductCategoryHeader from '../components/ProductCategoryHeader'
 import Container from '@/components/container'
-import SearchBar from '../../homepage/components/Navbar/Search'
+// import SearchBar from '../../homepage/components/Navbar/Search'
 import CategoryFilters from '../components/CategoryFilter'
 import ProductsGrid from '../components/ProductsGrid'
-import SuppliersGrid from '../components/SupplierGrid/SuppliersGrid'
+// import SuppliersGrid from '../components/SupplierGrid/SuppliersGrid'
+import { GETALLPRODUCT } from '@/app/actions/getallproducts'
 
 // Example product data
 const exampleProducts = [
@@ -106,21 +107,40 @@ const exampleProducts = [
 const Page = async ({ params }) => {
   const {category} = await params
   const { subcategory } = await params
-  const encodedtopcategory = decodeURIComponent(category);
-  const encodedsubcategory = decodeURIComponent(subcategory);
-  console.log("Top Categories:", encodedtopcategory);
-  console.log("MainCategory:", encodedsubcategory);
+  const catid = decodeURIComponent(category);
+  const maincatid = decodeURIComponent(subcategory);
+  console.log("Top Categories:", catid);
+  console.log("MainCategory:", maincatid);
+
+
+
+  // now here we have topcategory and maincategory so that's why we only pass subcatid and productid is equal to empty
+
+  const subcatid = "";
+  const productid = "";
+  const fetchallproducts = await GETALLPRODUCT(catid, maincatid, subcatid, productid)
+
+    console.log("Actual response data:", fetchallproducts);
+
+
+  const isfetchProductsArray = Array.isArray(fetchallproducts?.data?.Product) ? fetchallproducts.data.Product : [];
+  // console.log("Top Category data:", isfetchProductsArray);
+  const totalProducts = isfetchProductsArray.length;
+  // console.log("Total Products :", totalProducts);
+
+
+
   return (
     <Container className='my-10  space-y-10'>
-      <ProductCategoryHeader category={encodedsubcategory} />
-      <SearchBar placeholder={`Search ${encodedsubcategory}`} />
+      <ProductCategoryHeader totalProducts={totalProducts} category={maincatid} />
+      {/* <SearchBar placeholder={`Search ${maincatid}`} /> */}
       <CategoryFilters />
       <ProductsGrid 
-        products={exampleProducts}
-        category={encodedsubcategory}
-        totalProducts={4166}
+        products={isfetchProductsArray}
+        category={maincatid}
+        totalProducts={totalProducts}
       />
-      <SuppliersGrid />
+      {/* <SuppliersGrid /> */}
     </Container>
   )
 }
