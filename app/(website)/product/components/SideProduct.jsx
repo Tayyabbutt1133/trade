@@ -17,28 +17,19 @@ import Image from "next/image";
 import chem_logo from "@/public/chemicalbg.png";
 import { fonts } from "@/components/ui/font";
 
-export default function SideProduct({
-  industry,
-  productCount = 15,
-  brandCount = 1,
-}) {
+export default function SideProduct({ productdetails }) {
+  const singleproduct =
+    productdetails && productdetails.length > 0 ? productdetails[0] : null;
+
   return (
-    <div className="overflow-x-scroll   md:min-h-screen p-4 bg-slate-100 flex flex-row md:flex-col gap-4">
+    <div className="p-4 flex flex-col gap-4 overflow-y-auto h-screen">
       {/* Logo */}
       <div className="p-4">
-        {/* <Image 
-          src={chem_logo}
-          width={25}
-          height={40}
-          alt="Central Glass" 
-          className="h-8"
-        /> */}
         <h1 className={`text-black text-2xl ${fonts.montserrat}`}>
-          {industry}
+          {singleproduct.product}
         </h1>
       </div>
 
-      
       {/* Main Storefront */}
       <div className="bg-[#37BFB1] text-white rounded-lg shadow-sm">
         <nav className="">
@@ -56,9 +47,6 @@ export default function SideProduct({
           >
             <Flask className="h-4 w-4" />
             Products
-            <span className="ml-auto text-muted-foreground text-sm">
-              {productCount}
-            </span>
           </Button>
 
           <Button
@@ -67,9 +55,6 @@ export default function SideProduct({
           >
             <Tags className="h-4 w-4" />
             Brands
-            <span className="ml-auto text-muted-foreground text-sm">
-              {brandCount}
-            </span>
           </Button>
 
           <Button
@@ -134,8 +119,6 @@ export default function SideProduct({
           </Button>
         </div>
       </div>
-
-
     </div>
   );
 }

@@ -102,9 +102,15 @@ const exampleProducts = [
 ];
 
 const Page = async ({ params }) => {
+  const { category } = await params;
+  const { subcategory } = await params;
   const { products } = await params;
-  const encodedproducts = decodeURIComponent(products);
-  // console.log("Decoded product category:", encodedproducts);
+  const encodedtopcategory = decodeURIComponent(category);
+  const encodedmaincategory = decodeURIComponent(subcategory);
+  const encodedsubcategory = decodeURIComponent(products);
+  console.log("TopCategories:", encodedtopcategory)
+  console.log("MainCategories:",encodedmaincategory)
+  console.log("Subcategory:", encodedsubcategory);
 
   return (
     <div className="flex min-h-screen">
@@ -118,7 +124,7 @@ const Page = async ({ params }) => {
         <FilterDropdowns />
         <SidebarProductsGrid
           products={exampleProducts}
-          category={encodedproducts}
+          category={encodedsubcategory}
           totalProducts={4166}
         />
       </main>

@@ -3,17 +3,26 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default function ProductCard({ products }) {
-  if (!products) return null; // Ensure productdata exists
+export default function ProductCard({ product }) {
+  // If there's no product, return null
+  if (!product) return null;
+
+  // console.log("Checking single product in ProductCard:", product);
 
   return (
-    <div className={`flex flex-col justify-between h-full bg-white rounded-lg shadow-md ${fonts.montserrat}`}>
-      <Link href={`/product/${products.prodname}`}>
+    <div
+      className={`flex flex-col justify-between h-full bg-white rounded-lg shadow-md ${fonts.montserrat}`}
+    >
+      {/* 
+         If your API uses `product` as the name (e.g. "Bismuth Black"), 
+         you might link by ID or some slug. For now, using `product.product`.
+      */}
+      <Link href={`/product/${product.id}`}>
         <div className="relative">
-          <section className="h-32 bg-sky-100 relative">
+          <section className="h-32  bg-sky-100 relative">
             <Image
-              src={"/placeholder.svg?height=128&width=400"}
-              alt="products"
+              src="/placeholder.svg?height=128&width=400"
+              alt="product"
               fill
               className="object-cover"
             />
@@ -21,8 +30,8 @@ export default function ProductCard({ products }) {
           <section className="absolute bottom-0 left-4 -mb-8">
             <div className="bg-white rounded-lg p-2 shadow-sm w-16 h-16 flex items-center justify-center">
               <Image
-                src={"/placeholder.svg?height=40&width=40"}
-                alt="products"
+                src="/placeholder.svg?height=40&width=40"
+                alt="product"
                 width={40}
                 height={40}
                 className="object-contain"
@@ -34,34 +43,35 @@ export default function ProductCard({ products }) {
         <div className="flex flex-col flex-grow p-4 pt-12 space-y-4">
           <div className="flex-grow space-y-4">
             <div>
-              <p className="text-sm text-gray-600">{products.brand}</p>
-              <h3 className="font-semibold text-lg">{products.prodname}</h3>
+              <p className="text-sm text-gray-600">{product.brand}</p>
+              {/* If your API field is `product` for the name */}
+              <h3 className="font-semibold text-lg">{product.product}</h3>
             </div>
 
             <div className="space-y-2">
               <div>
                 <p className="text-sm text-gray-600">Formula:</p>
-                <p className="text-sm">{products.formula}</p>
+                <p className="text-sm">{product.formula}</p>
               </div>
 
-              {products.category && (
+              {product.category && (
                 <div>
                   <p className="text-sm text-gray-600">Category:</p>
-                  <p className="text-sm">{products.category}</p>
+                  <p className="text-sm">{product.category}</p>
                 </div>
               )}
 
-              {products.subcategory && (
+              {product.subcategory && (
                 <div>
                   <p className="text-sm text-gray-600">Subcategory:</p>
-                  <p className="text-sm">{products.subcategory}</p>
+                  <p className="text-sm">{product.subcategory}</p>
                 </div>
               )}
 
-              {products.code && (
+              {product.code && (
                 <div>
                   <p className="text-sm text-gray-600">Code:</p>
-                  <p className="text-sm">{products.code}</p>
+                  <p className="text-sm">{product.code}</p>
                 </div>
               )}
             </div>

@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function QuoteCard() {
   return (
-    <Card className="w-[400px] h-fit lg:block hidden">
+    <Card className="w-full sm:max-w-[300px] md:max-w-[350px] lg:max-w-[400px] h-fit">
       <CardHeader className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <CardTitle>Get a Quote</CardTitle>
@@ -99,4 +99,3 @@ export default function QuoteCard() {
     </Card>
   )
 }
-

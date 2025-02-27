@@ -104,8 +104,12 @@ const exampleProducts = [
   ]
 
 const Page = async ({ params }) => {
+  const {category} = await params
   const { subcategory } = await params
+  const encodedtopcategory = decodeURIComponent(category);
   const encodedsubcategory = decodeURIComponent(subcategory);
+  console.log("Top Categories:", encodedtopcategory);
+  console.log("MainCategory:", encodedsubcategory);
   return (
     <Container className='my-10  space-y-10'>
       <ProductCategoryHeader category={encodedsubcategory} />
