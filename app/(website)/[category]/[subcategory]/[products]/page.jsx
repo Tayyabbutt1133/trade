@@ -13,13 +13,14 @@ const Page = async ({ params }) => {
   const catid = decodeURIComponent(category);
   const maincatid = decodeURIComponent(subcategory);
   const subcatid = decodeURIComponent(products);
+  const logby = "0";
   console.log("TopCategories:", catid)
   console.log("MainCategories:",maincatid)
   console.log("Subcategory:", subcatid);
 
 
     const productid = "";
-    const fetchallproducts = await GETALLPRODUCT(catid, maincatid, subcatid, productid)
+    const fetchallproducts = await GETALLPRODUCT(catid, maincatid, subcatid, productid, logby)
   
       console.log("Actual response data:", fetchallproducts);
   
@@ -35,7 +36,6 @@ const Page = async ({ params }) => {
     <div className="flex min-h-screen">
       <FilterSidebar />
       <main className="flex-1 my-10 mx-2">
-      
         <FilterDropdowns />
         <SidebarProductsGrid
           products={isfetchProductsArray}

@@ -14,13 +14,15 @@ const Page = async ({ params }) => {
   const maincatid = "";
   const subcatid = "";
   const productid = "";
+  const logby = "0";
 
   // console.log("TopCategory:", decodedcategory);
   const fetchProducts = await GETALLPRODUCT(
     decodedcategory,
     maincatid,
     subcatid,
-    productid
+    productid,
+    logby
   );
   // console.log("Actual response data:", fetchProducts);
   // This will make a check that if we have product, is it array then only we need to fetch because that is how out mechanism is set further

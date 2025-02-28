@@ -11,8 +11,9 @@ const page = async ({ params }) => {
   const catid = "";
   const maincatid = "";
   const subcatid = "";
+  const logby = "0";
 
-  const fetchproduct = await GETPRODUCT(product, catid, maincatid, subcatid);
+  const fetchproduct = await GETPRODUCT(product, catid, maincatid, subcatid, logby);
   // console.log("Response back from server :", fetchproduct);
   const isfetchProductArray = fetchproduct?.data?.Product || [];
 
