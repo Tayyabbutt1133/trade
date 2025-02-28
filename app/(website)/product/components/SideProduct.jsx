@@ -4,7 +4,6 @@ import {
   Store,
   FlaskRoundIcon as Flask,
   Tags,
-  Search,
   ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -13,9 +12,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import Image from "next/image";
-import chem_logo from "@/public/chemicalbg.png";
-import { fonts } from "@/components/ui/font";
+import Link from "next/link";
 
 export default function SideProduct({ productdetails }) {
   const singleproduct =
@@ -23,27 +20,25 @@ export default function SideProduct({ productdetails }) {
 
   return (
     <div className="p-4 flex flex-col gap-4 overflow-y-auto h-screen">
-      {/* Logo */}
-      <div className="p-4">
-        <h1 className={`text-black text-2xl ${fonts.montserrat}`}>
-          {singleproduct.product}
-        </h1>
-      </div>
-
       {/* Main Storefront */}
       <div className="bg-[#37BFB1] text-white rounded-lg shadow-sm">
-        <nav className="">
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 font-medium rounded-none"
-          >
-            <Store className="h-4 w-4" />
-            Storefront
-          </Button>
+        <nav>
+          <Link href="/" passHref>
+            <Button
+              asChild
+              variant="ghost"
+              className="w-full justify-start gap-3 font-medium rounded-none transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
+            >
+              <div>
+                <Store className="h-4 w-4" />
+                Storefront
+              </div>
+            </Button>
+          </Link>
 
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 font-medium rounded-none"
+            className="w-full justify-start gap-3 font-medium rounded-none transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
           >
             <Flask className="h-4 w-4" />
             Products
@@ -51,18 +46,10 @@ export default function SideProduct({ productdetails }) {
 
           <Button
             variant="ghost"
-            className="w-full justify-start gap-3 font-medium rounded-none"
+            className="w-full justify-start gap-3 font-medium rounded-none transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
           >
             <Tags className="h-4 w-4" />
             Brands
-          </Button>
-
-          <Button
-            variant="ghost"
-            className="w-full justify-start gap-3 font-medium rounded-none"
-          >
-            <Search className="h-4 w-4" />
-            Search
           </Button>
         </nav>
       </div>
@@ -77,30 +64,26 @@ export default function SideProduct({ productdetails }) {
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-between font-medium"
+                className="w-full justify-between font-medium transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
               >
                 Technologies
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="pl-4">
-              {/* Add technology items here */}
-            </CollapsibleContent>
+            <CollapsibleContent className="pl-4"></CollapsibleContent>
           </Collapsible>
 
           <Collapsible>
             <CollapsibleTrigger asChild>
               <Button
                 variant="ghost"
-                className="w-full justify-between font-medium"
+                className="w-full justify-between font-medium transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
               >
                 Markets
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </CollapsibleTrigger>
-            <CollapsibleContent className="pl-4">
-              {/* Add market items here */}
-            </CollapsibleContent>
+            <CollapsibleContent className="pl-4"></CollapsibleContent>
           </Collapsible>
         </div>
       </div>
@@ -111,10 +94,16 @@ export default function SideProduct({ productdetails }) {
           QUICK ACTIONS
         </h3>
         <div className="space-y-1">
-          <Button variant="ghost" className="w-full justify-start font-medium">
+          <Button
+            variant="ghost"
+            className="w-full justify-start font-medium transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
+          >
             Request Sample
           </Button>
-          <Button variant="ghost" className="w-full justify-start font-medium">
+          <Button
+            variant="ghost"
+            className="w-full justify-start font-medium transition-transform duration-200 hover:scale-105 hover:bg-transparent hover:text-inherit"
+          >
             Request Document
           </Button>
         </div>

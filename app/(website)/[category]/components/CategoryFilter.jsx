@@ -1,9 +1,9 @@
 "use client";
 
 import { fonts } from "@/components/ui/font";
-import { TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { ChartNoAxesCombined } from "lucide-react";
 
 export default function CategoryFilters({ catid, maincatid = null }) {
   const containerRef = useRef(null);
@@ -135,7 +135,7 @@ export default function CategoryFilters({ catid, maincatid = null }) {
             ref={(el) => (buttonRefs.current[index] = el)}
             className="inline-flex items-center px-4 py-2 rounded-full border border-gray-200 bg-white hover:bg-gray-50 transition-colors text-sm whitespace-nowrap"
           >
-            <TrendingUp className="w-4 h-4 mr-2" />
+            <ChartNoAxesCombined className="w-4 h-4 mr-2" />
             {item}
           </Link>
         ))}

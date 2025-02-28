@@ -1,9 +1,7 @@
 import ProductCategoryHeader from "../components/ProductCategoryHeader";
 import Container from "@/components/container";
-// import SearchBar from '../../homepage/components/Navbar/Search'
 import CategoryFilters from "../components/CategoryFilter";
 import ProductsGrid from "../components/ProductsGrid";
-// import SuppliersGrid from '../components/SupplierGrid/SuppliersGrid'
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 
 const Page = async ({ params }) => {
@@ -29,12 +27,11 @@ const Page = async ({ params }) => {
 
   console.log("Actual response data:", fetchallproducts);
 
+  // checking if the Product that we are getting is Array or not because on that basis we are slicing no.of products
   const isfetchProductsArray = Array.isArray(fetchallproducts?.data?.Product)
     ? fetchallproducts.data.Product
     : [];
-  // console.log("Top Category data:", isfetchProductsArray);
   const totalProducts = isfetchProductsArray.length;
-  // console.log("Total Products :", totalProducts);
 
   return (
     <Container className="my-10  space-y-10">
@@ -42,14 +39,12 @@ const Page = async ({ params }) => {
         totalProducts={totalProducts}
         category={maincatid}
       />
-      {/* <SearchBar placeholder={`Search ${maincatid}`} /> */}
       <CategoryFilters catid={catid} maincatid={maincatid} />
       <ProductsGrid
         products={isfetchProductsArray}
         category={maincatid}
         totalProducts={totalProducts}
       />
-      {/* <SuppliersGrid /> */}
     </Container>
   );
 };

@@ -1,10 +1,9 @@
-
 import SidebarProductsGrid from "./components/SidebarProductsGrid";
-// import SidebarBreadcrumbs from "./components/SidebarBreadCrumbs";
 import FilterDropdowns from "./components/FilterDropdown/FilterDropdown";
 import FilterSidebar from "./components/FilterSideBar";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
-
+import Container from "@/components/container";
+import ProductCategoryHeader from "../../components/ProductCategoryHeader";
 
 const Page = async ({ params }) => {
   const { category } = await params;
@@ -14,36 +13,47 @@ const Page = async ({ params }) => {
   const maincatid = decodeURIComponent(subcategory);
   const subcatid = decodeURIComponent(products);
   const logby = "0";
-  console.log("TopCategories:", catid)
-  console.log("MainCategories:",maincatid)
+  console.log("TopCategories:", catid);
+  console.log("MainCategories:", maincatid);
   console.log("Subcategory:", subcatid);
 
+  const productid = "";
+  const fetchallproducts = await GETALLPRODUCT(
+    catid,
+    maincatid,
+    subcatid,
+    productid,
+    logby
+  );
 
-    const productid = "";
-    const fetchallproducts = await GETALLPRODUCT(catid, maincatid, subcatid, productid, logby)
-  
-      console.log("Actual response data:", fetchallproducts);
-  
-  
-    const isfetchProductsArray = Array.isArray(fetchallproducts?.data?.Product) ? fetchallproducts.data.Product : [];
-    // console.log("Top Category data:", isfetchProductsArray);
-    const totalProducts = isfetchProductsArray.length;
-    // console.log("Total Products :", totalProducts);
+  console.log("Actual response data:", fetchallproducts);
 
-
+  const isfetchProductsArray = Array.isArray(fetchallproducts?.data?.Product)
+    ? fetchallproducts.data.Product
+    : [];
+  const totalProducts = isfetchProductsArray.length;
 
   return (
-    <div className="flex min-h-screen">
-      <FilterSidebar />
-      <main className="flex-1 my-10 mx-2">
-        <FilterDropdowns />
+    <>
+      {/* REMEMBER : WHEN THE DATA WILL COMPLETE AT BACKEND, LATER ON THEN WE WILL BE USING FILTER SYSTEM */}
+      {/* <div className="flex min-h-screen"> */}
+      {/* <FilterSidebar /> */}
+      {/* <main className="flex-1 my-10 mx-2"> */}
+      {/* <FilterDropdowns /> */}
+      <Container className="my-10 space-y-10">
+        <ProductCategoryHeader
+          category={subcatid}
+          totalProducts={totalProducts}
+        />
         <SidebarProductsGrid
           products={isfetchProductsArray}
           categoryName={subcatid}
           totalProducts={totalProducts}
         />
-      </main>
-    </div>
+      </Container>
+      {/* </main> */}
+      {/* // </div> */}
+    </>
   );
 };
 
