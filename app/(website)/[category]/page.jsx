@@ -34,7 +34,7 @@ const Page = async ({ params }) => {
   return (
     <Container className="my-10 space-y-10">
       <ProductCategoryHeader category={decodedcategory} totalProducts={totalProducts} />
-      <CategoryFilters />
+      <CategoryFilters catid={decodedcategory} />
       <ProductsGrid
         products={isfetchProductsArray}
         categoryName={decodedcategory}

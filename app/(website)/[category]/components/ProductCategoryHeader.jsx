@@ -9,7 +9,7 @@ export default function ProductCategoryHeader({ category, totalProducts}) {
           <h1 className="text-3xl md:text-5xl font-semibold text-gray-900">
             {category}
           </h1>
-          <p className="text-xs text-gray-600">{`${totalProducts} Products`}</p>
+          {/* <p className="text-xs text-gray-600">{`${totalProducts} Products`}</p> */}
         </div>
 
         <p className="text-gray-800 text-sm font-medium max-w-3xl">
