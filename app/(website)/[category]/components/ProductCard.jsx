@@ -7,7 +7,8 @@ export default function ProductCard({ product }) {
   // If there's no product, return null
   if (!product) return null;
 
-  // console.log("Checking single product in ProductCard:", product);
+  console.log("Checking product Images in ProductCard:", product.image);
+
 
   return (
     <div
@@ -21,7 +22,7 @@ export default function ProductCard({ product }) {
         <div className="relative">
           <section className="h-32  bg-sky-100 relative">
             <Image
-              src="/placeholder.svg?height=128&width=400"
+              src={product.image}
               alt="product"
               fill
               className="object-cover"
@@ -30,7 +31,7 @@ export default function ProductCard({ product }) {
           <section className="absolute bottom-0 left-4 -mb-8">
             <div className="bg-white rounded-lg p-2 shadow-sm w-16 h-16 flex items-center justify-center">
               <Image
-                src="/placeholder.svg?height=40&width=40"
+                src={product.image}
                 alt="product"
                 width={40}
                 height={40}

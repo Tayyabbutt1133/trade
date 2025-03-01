@@ -6,7 +6,7 @@ const nextConfig = {
     },
   },
   images: {
-    domains: ['tradetopper.esoftideas.com'],
+    domains: ['tradetoppers.esoftideas.com', 'tradetoppers.com'],
   },
   };
   

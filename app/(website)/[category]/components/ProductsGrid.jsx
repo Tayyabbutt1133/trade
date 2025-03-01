@@ -30,7 +30,6 @@ function usePaginationRange(currentPage, totalPages) {
   return range;
 }
 
-
 function Pagination({
   currentPage,
   totalPages,
@@ -109,7 +108,11 @@ function Pagination({
   );
 }
 
-export default function ProductsGrid({ products, categoryName, totalProducts }) {
+export default function ProductsGrid({
+  products,
+  categoryName,
+  totalProducts,
+}) {
   // The total number of items
   const totalItems = totalProducts;
   // State for current page & page size

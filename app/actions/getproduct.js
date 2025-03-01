@@ -1,6 +1,6 @@
 "use server"
 
-export async function GETPRODUCT(productId, catid, maincatid, subcatid) {
+export async function GETPRODUCT(productId, catid, maincatid, subcatid, logby) {
     console.log("Product ID received at server:", productId);
 
     try {
@@ -9,6 +9,7 @@ export async function GETPRODUCT(productId, catid, maincatid, subcatid) {
         allproducts.append("maincatid", maincatid || "");
         allproducts.append("subcatid", subcatid || "");
         allproducts.append("productid", productId || "");
+        allproducts.append("logby", logby || "");
         const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/products/", {
             method: "POST",
             body: allproducts,
