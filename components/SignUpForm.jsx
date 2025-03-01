@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label"
 import { fonts } from "@/components/ui/font"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { CustomRadio } from "./CustomRadio"
-import { useRouter } from "next/navigation"
+import { redirect } from "next/navigation"
 // import { SocialSignInButtons } from "./SocialSignInButtons";
 import { Register } from "@/app/actions/signup"
-import roleAccessStore from "@/store/role-access-permission"
+
 
 export function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -32,67 +32,43 @@ export function SignUpForm() {
   const [industries, setIndustries] = useState([])
   const [apiError, setApiError] = useState(false)
 
-  const setRole = roleAccessStore((state) => state.setRole)
-  const router = useRouter()
-
   useEffect(() => {
-    // Updated fetchData function within useEffect
     const fetchData = async () => {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000)
-
       try {
-        // Country fetch
-        const countryResponse = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country/", {
-          signal: controller.signal,
-        })
-
-        clearTimeout(timeoutId)
-
+        // Country fetch - no abort controller
+        const countryResponse = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country/");
+  
         if (countryResponse.ok) {
-          const countryData = await countryResponse.json()
-          setCountries(countryData.Country || [])
+          const countryData = await countryResponse.json();
+          setCountries(countryData.Country || []);
         } else {
-          console.warn("Country API error:", countryResponse.status)
-          setApiError(true)
+          console.warn("Country API error:", countryResponse.status);
+          setApiError(true);
         }
       } catch (error) {
-        console.error("Fetch error:", error)
-        setApiError(true)
-        if (error.name === "AbortError") {
-          console.warn("Country request timed out")
-        }
+        console.error("Fetch error:", error);
+        setApiError(true);
       }
-
-      // Repeat similar pattern for industry fetch
-      const industryController = new AbortController()
-      const industryTimeout = setTimeout(() => industryController.abort(), 5000)
-
+  
       try {
-        const industryResponse = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry/", {
-          signal: industryController.signal,
-        })
-
-        clearTimeout(industryTimeout)
-
+        // Industry fetch - no abort controller
+        const industryResponse = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry/");
+  
         if (industryResponse.ok) {
-          const industryData = await industryResponse.json()
-          setIndustries(industryData.Industry || [])
+          const industryData = await industryResponse.json();
+          setIndustries(industryData.Industry || []);
         } else {
-          console.warn("Industry API error:", industryResponse.status)
-          setApiError(true)
+          console.warn("Industry API error:", industryResponse.status);
+          setApiError(true);
         }
       } catch (error) {
-        console.error("Fetch error:", error)
-        setApiError(true)
-        if (error.name === "AbortError") {
-          console.warn("Industry request timed out")
-        }
+        console.error("Fetch error:", error);
+        setApiError(true);
       }
-    }
-
-    fetchData()
-  }, [])
+    };
+  
+    fetchData();
+  }, []);
 
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
@@ -108,37 +84,37 @@ export function SignUpForm() {
     setErrors({})
     setSuccessMessage("")
     setIsSubmitting(true)
-
+    
     const formErrors = validateForm(formData)
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors)
       setIsSubmitting(false)
       return
     }
-
+    
     const formDataToSubmit = new FormData(e.target)
     formDataToSubmit.delete("confirmPassword")
-
+    
     try {
       const result = await Register(formDataToSubmit)
       console.log(result)
+      
       if (result.success) {
         setSuccessMessage("Registration successful! Redirecting...")
-
-        // Setting id and user type on global state file-->zustand
-        setRole({
-          id: result.data?.id || "",
-          type: result.data?.type || "",
-          registerstatus: result.data?.status || "",
-        })
-
-        router.push(`/`)
+        // Use a timeout to allow the success message to be shown before redirecting
+        setTimeout(() => {
+          window.location.href = '/' // Use this instead of redirect for client components
+        }, 1500)
       } else {
         setErrors({ server: result.error || "An unknown error occurred" })
+        // Clear any success message if there's an error
+        setSuccessMessage("")
       }
     } catch (error) {
       console.error("Registration error:", error)
       setErrors({ server: "Something went wrong. Please try again later." })
+      // Clear any success message if there's an error
+      setSuccessMessage("")
     } finally {
       setIsSubmitting(false)
     }

@@ -1,17 +1,13 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { Check, ChevronsUpDown, CheckCircle, XCircle } from "lucide-react"
+import { Check, ChevronsUpDown } from "lucide-react"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 
+
 const statuses = [
-  {
-    value: "pending",
-    label: "Pending",
-    className: "bg-yellow-500 text-white",
-  },
   {
     value: "approve",
     label: "Approve",
@@ -22,13 +18,36 @@ const statuses = [
     label: "Reject",
     className: "bg-red-500 text-white",
   },
+  {
+    value: "pending",
+    label: "Pending",
+    className: "bg-yellow-500 text-white",
+  }
 ]
 
 export default function PendingRegistrations() {
   const [tableData, setTableData] = useState([])
   const [loading, setLoading] = useState(true)
+  const [currentUser, setCurrentUser] = useState(null)
 
-  // Fetch data from API
+  // Fetch current user data
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch("/api/auth/user")
+        const data = await response.json()
+        if (data.authenticated) {
+          setCurrentUser(data.userData)
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+      }
+    }
+
+    fetchCurrentUser()
+  }, [])
+
+  // Fetch registration data from API
   useEffect(() => {
     const fetchRegistrations = async () => {
       try {
@@ -63,23 +82,47 @@ export default function PendingRegistrations() {
 
   // Handle status change
   const handleStatusChange = async (id, newStatus) => {
-    // In a real implementation, you would make an API call here to update the status
-    // For now, we'll just update the local state
+    if (!currentUser || !currentUser.id) {
+      return
+    }
+
     try {
-      // Mock API call
-      // const response = await fetch(`your-api-endpoint/${id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ status: newStatus })
-      // })
-      
-      // Update local state
+      // Show loading state
       setTableData(current =>
-        current.map(item => (item.id === id ? { ...item, status: newStatus } : item))
+        current.map(item => (item.id === id ? { ...item, isUpdating: true } : item))
       )
+
+      // Prepare form data for the API request
+      const formData = new FormData()
+      formData.append("regid", id)
+      formData.append("status", newStatus)
+      formData.append("logby", currentUser.id)
+
+      // Make the API call
+      const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/regapprove/", {
+        method: 'POST',
+        body: formData
+      })
       
+      const data = (await response.json()).Registeration[0]
+      console.log(data)
+      if (data && data.body === "Success") {
+        // Update local state
+        setTableData(current =>
+          current.map(item => (item.id === id ? { ...item, status: newStatus, isUpdating: false } : item))
+        )
+        
+      } else {
+        throw new Error(data.message || "Failed to update status")
+      }
     } catch (error) {
       console.error("Error updating status:", error)
+      
+      // Reset the updating state
+      setTableData(current =>
+        current.map(item => (item.id === id ? { ...item, isUpdating: false } : item))
+      )
+
     }
   }
 
@@ -96,17 +139,31 @@ export default function PendingRegistrations() {
       header: "Status",
       cell: ({ row }) => {
         const [open, setOpen] = useState(false)
-        const currentStatus = statuses.find((status) => status.value === row.original.status) || statuses[0]
+        const currentStatus = statuses.find((status) => status.value === row.original.status) || statuses[2] // Default to pending
+        const isUpdating = row.original.isUpdating
 
         return (
           <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" role="combobox" aria-expanded={open} className="w-[130px] justify-between">
-                <span
-                  className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${currentStatus.className}`}
-                >
-                  {currentStatus.label}
-                </span>
+              <Button 
+                variant="outline" 
+                role="combobox" 
+                aria-expanded={open} 
+                className="w-[130px] justify-between"
+                disabled={isUpdating}
+              >
+                {isUpdating ? (
+                  <span className="inline-flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-blue-500 mr-2"></div>
+                    Updating...
+                  </span>
+                ) : (
+                  <span
+                    className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold ${currentStatus.className}`}
+                  >
+                    {currentStatus.label}
+                  </span>
+                )}
                 <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
               </Button>
             </PopoverTrigger>
@@ -119,12 +176,8 @@ export default function PendingRegistrations() {
                       row.original.status === status.value ? "bg-gray-100" : ""
                     }`}
                     onClick={() => {
-                      if (status.value !== "pending") {
+                      if (status.value !== row.original.status) {
                         handleStatusChange(row.original.id, status.value)
-                      } else {
-                        setTableData(current =>
-                          current.map(item => (item.id === row.original.id ? { ...item, status: status.value } : item))
-                        )
                       }
                       setOpen(false)
                     }}
