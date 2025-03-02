@@ -28,6 +28,7 @@ export function ProductForm({
     formula: "",
     brand: "",
     category: "",
+    maincategory: "",
     subcategory: "",
     chemical: "",
     logby: "",
@@ -45,8 +46,15 @@ export function ProductForm({
   // Option states
   const [brandOptions, setBrandOptions] = useState(initialBrandOptions);
   const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption);
+  const [mainCategoriesOption, setMainCategoriesOption] = useState([]);
   const [subcategoriesOption, setSubcategoriesOption] = useState([]);
+  
+  // Selected category IDs for dependency chain
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+  const [selectedMainCategoryId, setSelectedMainCategoryId] = useState(null);
+
+  // User Data state
+  const [userData, setUserData] = useState({});
 
   // Load initial data when available
   useEffect(() => {
@@ -58,6 +66,7 @@ export function ProductForm({
         formula: initialData.formula || "",
         brand: initialData.brand || "",
         category: initialData.category || "",
+        maincategory: initialData.maincategory || "",
         subcategory: initialData.subcategory || "",
         chemical: initialData.chemical || "",
         cas: initialData.cas || "",
@@ -67,21 +76,47 @@ export function ProductForm({
         // functions: initialData.functions || []
       });
       
-      // If there's a category in the initialData, fetch related subcategories
+      // If there's a category in the initialData, fetch related main categories
       if (initialData.category) {
         const categoryObj = categoriesOption.find(cat => cat.category === initialData.category);
         if (categoryObj && categoryObj.id) {
           setSelectedCategoryId(categoryObj.id);
-          fetchSubcategories(categoryObj.id);
+          fetchMainCategories(categoryObj.id);
+          
+          // If there's a main category, fetch related subcategories
+          if (initialData.maincategory && categoryObj.id) {
+            const mainCategoryObj = mainCategoriesOption.find(
+              mainCat => mainCat.maincategory === initialData.maincategory
+            );
+            if (mainCategoryObj && mainCategoryObj.id) {
+              setSelectedMainCategoryId(mainCategoryObj.id);
+              fetchSubcategories(mainCategoryObj.id);
+            }
+          }
         }
       }
       
       setIsLoading(false);
     }
 
-  }, [initialData, isEditMode, productId, categoriesOption]);
+  }, [initialData, isEditMode, productId, categoriesOption, mainCategoriesOption]);
 
-  // Fetch options function updated to handle dependent subcategories
+  // Load options on initial component mount
+  useEffect(() => {
+    fetchOptionForType("brand");
+    fetchOptionForType("category");
+  }, []);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const response = await fetch("/api/auth/user");
+      const data = (await response.json()).userData;
+      setUserData(data);
+    }
+    fetchUserData();
+  }, [])
+
+  // Fetch options function
   const fetchOptionForType = async (type) => {
     let endpoint = ""
     let setOption
@@ -106,16 +141,39 @@ export function ProductForm({
     }
   }
 
-  // New function to fetch subcategories based on category ID
-  const fetchSubcategories = async (categoryId) => {
+  // Function to fetch main categories based on category ID
+  const fetchMainCategories = async (categoryId) => {
     if (!categoryId) return;
-    const categoryIdToSubmit = new FormData()
-    categoryIdToSubmit.append('catid', categoryId)
+    
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append('catid', categoryId);
+    
     try {
-      const endpoint = `https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/`;
+      const endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/maincategory/';
       const res = await fetch(endpoint, {
         method: "POST",
-        body: categoryIdToSubmit
+        body: formDataToSubmit
+      });
+      const data = await res.json();
+      setMainCategoriesOption(data.MainCategories || []);
+    } catch (error) {
+      console.error('Error fetching main categories:', error);
+      setMainCategoriesOption([]);
+    }
+  };
+
+  // Function to fetch subcategories based on main category ID
+  const fetchSubcategories = async (mainCategoryId) => {
+    if (!mainCategoryId) return;
+    
+    const formDataToSubmit = new FormData();
+    formDataToSubmit.append('catid', mainCategoryId); // API expects 'catid' but it's actually the main category ID
+    
+    try {
+      const endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/';
+      const res = await fetch(endpoint, {
+        method: "POST",
+        body: formDataToSubmit
       });
       const data = await res.json();
       setSubcategoriesOption(data.SubCategories || []);
@@ -127,36 +185,59 @@ export function ProductForm({
 
   // Handle input changes
   const handleInputChange = (id, value) => {
-    setFormData((prev) => ({ ...prev, [id]: value }))
+    setFormData((prev) => ({ ...prev, [id]: value }));
     // Clear any errors for this field
-    setErrors((prev) => ({ ...prev, [id]: "" }))
+    setErrors((prev) => ({ ...prev, [id]: "" }));
   }
 
   // Handle options changes
   const handleBrandChange = async (newValue) => {
-    handleInputChange("brand", newValue.brand)
-    await fetchOptionForType("brand")
+    handleInputChange("brand", newValue.brand);
   }
 
   const handleCategoryChange = async (newValue) => {
+    // Update category
     handleInputChange("category", newValue.category);
-    // Clear subcategory when category changes
-    handleInputChange("subcategory", "");
     
-    // Set the selected category ID and fetch subcategories
+    // Clear dependent fields
+    handleInputChange("maincategory", "");
+    handleInputChange("subcategory", "");
+    setMainCategoriesOption([]);
+    setSubcategoriesOption([]);
+    
+    // Set the selected category ID and fetch main categories
     if (newValue && newValue.id) {
-      setSelectedCategoryId(newValue.id);
-      await fetchSubcategories(newValue.id);
+      setSelectedCategoryId(newValue.category);
+      await fetchMainCategories(newValue.id);
     } else {
       setSelectedCategoryId(null);
-      setSubcategoriesOption([]);
+    }
+    
+    // Reset main category ID since we cleared the main category
+    setSelectedMainCategoryId(null);
+  }
+
+  const handleMainCategoryChange = async (newValue) => {
+    // Update main category
+    handleInputChange("maincategory", newValue.maincategory);
+    
+    // Clear subcategory
+    handleInputChange("subcategory", "");
+    setSubcategoriesOption([]);
+    
+    // Set the selected main category ID and fetch subcategories
+    if (newValue && newValue.id) {
+      setSelectedMainCategoryId(newValue.maincategory);
+      await fetchSubcategories(newValue.id);
+    } else {
+      setSelectedMainCategoryId(null);
     }
   }
 
   const handleSubcategoryChange = async (newValue) => {
-    handleInputChange("subcategory", newValue.subcategory)
+    handleInputChange("subcategory", newValue.subcategory);
   }
-
+  console.log(formData)
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -170,12 +251,34 @@ export function ProductForm({
     formDataToSubmit.append("formula", formData.formula || "");
     formDataToSubmit.append("brand", formData.brand || "");
     formDataToSubmit.append("category", formData.category || "");
+    formDataToSubmit.append("maincategory", formData.maincategory || "");
     formDataToSubmit.append("subcategory", formData.subcategory || "");
     formDataToSubmit.append("chemical", formData.chemical || "");
     formDataToSubmit.append("cas", formData.cas || "");
     formDataToSubmit.append("cinum", formData.cinum || "");
-    formDataToSubmit.append("logby", formData.logby || "");
     
+    if(userData.type !== "Seller" && userData.type !== "buyer") {
+      formDataToSubmit.append("logby", "0");
+    }else if(userData.type?.toLowerCase() === "seller" || userData.type?.toLowerCase() === "buyer"){
+      formDataToSubmit.append("logby", userData.id);
+    }
+    
+    // Append category IDs for the backend
+    if (selectedCategoryId) {
+      formDataToSubmit.append("catid", selectedCategoryId);
+    }
+    if (selectedMainCategoryId) {
+      formDataToSubmit.append("maincatid", selectedMainCategoryId);
+    }
+    if (formData.subcategory) {
+      // Find the subcategory ID
+      const subcategoryObj = subcategoriesOption.find(
+        subCat => subCat.subcategory === formData.subcategory
+      );
+      if (subcategoryObj && subcategoryObj.id) {
+        formDataToSubmit.append("subcatid", subcategoryObj.id);
+      }
+    }
     
     // Append mode based on whether this is a new product or an edit
     if (isEditMode) {
@@ -320,18 +423,6 @@ export function ProductForm({
           {errors.cinum && <p className="text-red-500 text-sm">{errors.cinum}</p>}
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="logby">Logged By</Label>
-          <Input 
-            id="logby"
-            name="logby"
-            type="text"
-            value={formData.logby || ""}
-            onChange={(e) => handleInputChange("logby", e.target.value)}
-          />
-          {errors.logby && <p className="text-red-500 text-sm">{errors.logby}</p>}
-        </div>
-
         <CategoryComboBoxWithDialog
           label="Brand"
           value={formData.brand}
@@ -340,6 +431,7 @@ export function ProductForm({
           type="brand"
         />
 
+        {/* Three-level category selection */}
         <CategoryComboBoxWithDialog
           label="Category"
           value={formData.category}
@@ -349,12 +441,21 @@ export function ProductForm({
         />
 
         <CategoryComboBoxWithDialog
+          label="Main Category"
+          value={formData.maincategory}
+          onChange={handleMainCategoryChange}
+          options={mainCategoriesOption}
+          type="maincategory"
+          disabled={!selectedCategoryId}
+        />
+
+        <CategoryComboBoxWithDialog
           label="Subcategory"
           value={formData.subcategory}
           onChange={handleSubcategoryChange}
           options={subcategoriesOption}
           type="subcategory"
-          disabled={!selectedCategoryId}
+          disabled={!selectedMainCategoryId}
         />
 
         {/* <FunctionInput

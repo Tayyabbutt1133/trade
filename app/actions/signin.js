@@ -59,7 +59,6 @@ export async function LOGIN(formdata) {
         message: "Invalid Login Credentials",
       };
     }
-
     // Set cookies with user data
     cookieStore.set("userId", userData.id, {
       path: "/",

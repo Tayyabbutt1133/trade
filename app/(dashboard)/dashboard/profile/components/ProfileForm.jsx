@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,17 @@ export function ProfileForm({
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
+
+  const [userId, setUserId] = useState(null);
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const getUserData = await fetch("/api/auth/user");
+      const userData = (await getUserData.json()).userData;
+      console.log("userData", userData);
+      setUserId(userData.id);
+    }
+    fetchUserData();
+  }, [])
 
   // Validation function for each field.
   const validateField = (id, value) => {
@@ -129,10 +140,25 @@ export function ProfileForm({
     // Create a new FormData object
     const formDataToSubmit = new FormData();
 
+    formDataToSubmit.append("logby", userId)
     // Add form data for buyer
     if (userType === "Buyer") {
+
+      const data = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/buyers/", {
+        method: "POST",
+        body: formDataToSubmit.get("logby")
+      })
+      //if data doesn't exist this means that the buyer details are new and we need to create a new buyer
+      if(!data){
+        formDataToSubmit.append("mode", "New")
+        formDataToSubmit.append("regid", "0");
+      }else{
+        formDataToSubmit.append("mode", "Edit")
+        formDataToSubmit.append("regid", data.id);
+      }
+
       // Append all form data with the specified parameter names
-      formDataToSubmit.append("buyername", formData.buyername || "");
+      formDataToSubmit.append("buyername", formData.name || "");
       formDataToSubmit.append("email", formData.email || "");
       formDataToSubmit.append(
         "ccontact",
@@ -155,7 +181,6 @@ export function ProfileForm({
       formDataToSubmit.append("designation", formData.designation || "");
       formDataToSubmit.append("industry", formData.industry || "");
 
-      formDataToSubmit.append("regid", userData.id);
 
       // Call the server action with the FormData
       const result = await createBuyer(formDataToSubmit);
@@ -172,8 +197,22 @@ export function ProfileForm({
         setSubmissionSuccess(null);
       }
     } else if (userType === "Seller") {
+      // Fetch seller data from user account
+      const data = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/seller/", {
+        method: "POST",
+        body: formDataToSubmit.get("logby")
+      })
+      //if data doesn't exist this means that the seller details are new and we need to create a new seller
+      if(!data){
+        formDataToSubmit.append("mode", "New")
+        formDataToSubmit.append("regid", "0");
+      }else{
+        formDataToSubmit.append("mode", "Edit")
+        formDataToSubmit.append("regid", data.id);
+      }
+
       // Append all form data with the specified parameter names
-      formDataToSubmit.append("sellername", formData.buyername || "");
+      formDataToSubmit.append("sellername", formData.name || "");
       formDataToSubmit.append("email", formData.email || "");
       formDataToSubmit.append(
         "ccontact",
@@ -196,7 +235,6 @@ export function ProfileForm({
       formDataToSubmit.append("designation", formData.designation || "");
       formDataToSubmit.append("industry", formData.industry || "");
 
-      formDataToSubmit.append("regid", userData.id);
 
       // Call the server action with the FormData
       const result = await createSeller(formDataToSubmit);
@@ -223,10 +261,10 @@ export function ProfileForm({
           </Label>
           <Input
             id="name"
-            name="sellername"
+            name="name"
             type="text"
-            value={formData["sellername"] || ""}
-            onChange={(e) => handleInputChange("sellername", e.target.value)}
+            value={formData["name"] || ""}
+            onChange={(e) => handleInputChange("name", e.target.value)}
             required
           />
         </div>

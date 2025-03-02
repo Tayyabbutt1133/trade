@@ -1,3 +1,5 @@
+"use client"
+
 import "./styles/prosecss.css";
 import { Button } from "@/components/ui/button";
 import {

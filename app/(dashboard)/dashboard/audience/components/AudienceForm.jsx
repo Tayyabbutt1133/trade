@@ -166,7 +166,7 @@ export function AudienceForm({
       }
 
       const response = await CREATEAUDIENCE(formDataObj);
-      console.log("Response:", response);
+
       if (response.success) {
         setSuccessMessage("Successfully submitted");
         router.push("/dashboard/audience");
