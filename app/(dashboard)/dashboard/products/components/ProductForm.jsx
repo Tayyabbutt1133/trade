@@ -207,7 +207,7 @@ export function ProductForm({
     
     // Set the selected category ID and fetch main categories
     if (newValue && newValue.id) {
-      setSelectedCategoryId(newValue.id);
+      setSelectedCategoryId(newValue.category);
       await fetchMainCategories(newValue.id);
     } else {
       setSelectedCategoryId(null);
@@ -227,7 +227,7 @@ export function ProductForm({
     
     // Set the selected main category ID and fetch subcategories
     if (newValue && newValue.id) {
-      setSelectedMainCategoryId(newValue.id);
+      setSelectedMainCategoryId(newValue.maincategory);
       await fetchSubcategories(newValue.id);
     } else {
       setSelectedMainCategoryId(null);
@@ -237,7 +237,7 @@ export function ProductForm({
   const handleSubcategoryChange = async (newValue) => {
     handleInputChange("subcategory", newValue.subcategory);
   }
-
+  console.log(formData)
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
