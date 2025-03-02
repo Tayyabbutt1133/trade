@@ -56,10 +56,7 @@ export function SignInForm() {
           return;
         }
 
-        // Redirect after a short delay for a smooth experience
-        // router.refresh();
-        // router.push("/")
-
+    
         window.location.href = "/";
       } else {
         // Display the error message provided by the server (or a fallback message)

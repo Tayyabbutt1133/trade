@@ -35,16 +35,30 @@ export default function ProductsPage() {
 
   useEffect(() => {
     const fetchProductData = async () => {
+      const userRes = await fetch("/api/auth/user")
+      const {id, type} = (await userRes.json()).userData
+
       const formData = new FormData();
       formData.append("productid", "0");
+      formData.append("maincatid", "0");
       formData.append("catid", "0");
       formData.append("subcatid", "0");
 
+      // productid: maincatid: catid: subcatid: logby: 0;
+
+      if (type === "Seller" || type === "buyer") {
+        formData.append("logby", id);
+      } else {
+        formData.append("logby", "0");
+      }
+
+
+
       try {
         const res = await fetch(
-          `https://tradetoppers.esoftideas.com/esi-api/responses/products/`,
-          {
+          `https://tradetoppers.esoftideas.com/esi-api/responses/products/`, {
             method: "POST",
+            body: formData,
           }
         );
         const data = await res.json();
@@ -92,7 +106,7 @@ export default function ProductsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
-          Products ({productData.length})
+          Products ({productData?.length})
         </h1>
         <Link href="/dashboard/products/new">
           <Button className={`flex items-center ${fonts.montserrat}`}>

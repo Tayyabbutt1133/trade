@@ -5,44 +5,44 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
+import { createEmailTemplate } from "@/app/actions/createEmailTemplate"
+import { redirect, useParams } from "next/navigation"
 
 const positionOptions = [
   { value: "left", label: "Left" },
   { value: "center", label: "Center" },
   { value: "right", label: "Right" },
 ]
+const replaceAngleBrackets = (text) => {
+  if (!text) return text
+  return text.replace(/</g, '{').replace(/>/g, '}')
 
-const formFields = [
-  { id: "title", label: "Title", type: "text", required: true },
-  { id: "subject", label: "Subject", type: "text", required: true },
-  { id: "description", label: "Description", type: "rich-text-editor", required: true },
-  { id: "header-logo", label: "Header Logo", type: "file", required: false },
-  {
-    id: "header-logo-position",
-    label: "Header Logo Position",
-    type: "select",
-    required: false,
-    options: positionOptions,
-  },
-  { id: "header-text", label: "Header Text", type: "text", required: false },
-  { id: "footer-logo", label: "Footer Logo", type: "file", required: false },
-  {
-    id: "footer-logo-position",
-    label: "Footer Logo Position",
-    type: "select",
-    required: false,
-    options: positionOptions,
-  },
-  { id: "footer-text", label: "Footer Text", type: "text", required: false },
-]
+}
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.readAsDataURL(file)
+    reader.onload = () => {
+      // Remove the data URL prefix (e.g., "data:image/png;base64,")
+      const base64String = reader.result
+      const base64WithoutPrefix = base64String.substring(base64String.indexOf(',') + 1)
+      resolve(base64WithoutPrefix)
+    }
+    reader.onerror = (error) => reject(error)
+  })
+}
 
-export function EmailForm() {
+export function EmailForm({emailId}) {
   const [formData, setFormData] = useState({})
   const [footerPositionOptions, setFooterPositionOptions] = useState(positionOptions)
+  const [submissionSuccess, setSubmissionSuccess] = useState(null)
+  const [submissionError, setSubmissionError] = useState(null)
+
+
 
   useEffect(() => {
-    if (formData["header-logo-position"]) {
-      const headerPosition = formData["header-logo-position"]
+    if (formData["headlogopos"]) {
+      const headerPosition = formData["headlogopos"]
       let newOptions = positionOptions.filter((option) => option.value !== headerPosition)
       if (headerPosition === "center") {
         newOptions = newOptions.filter((option) => option.value !== "center")
@@ -51,20 +51,22 @@ export function EmailForm() {
     } else {
       setFooterPositionOptions(positionOptions)
     }
-  }, [formData["header-logo-position"]])
+  }, [formData["headlogopos"]])
 
   const handleInputChange = (e) => {
     const { id, value } = e.target
     setFormData((prev) => ({ ...prev, [id]: value }))
   }
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const { id, files } = e.target
     if (files && files[0]) {
       const file = files[0]
       const fileType = file.type.toLowerCase()
       if (fileType === "image/jpeg" || fileType === "image/png") {
-        setFormData((prev) => ({ ...prev, [id]: file }))
+        // Convert the file to base64
+        const base64 = await convertToBase64(file)
+        setFormData((prev) => ({ ...prev, [id]: base64 }))
       } else {
         alert("Please select a JPG or PNG file.")
         e.target.value = "" // Clear the file input
@@ -72,79 +74,244 @@ export function EmailForm() {
     }
   }
 
+
   const handleSelectChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }))
-    if (id === "header-logo-position") {
-      setFormData((prev) => ({ ...prev, "footer-logo-position": "" }))
+    if (id === "headlogopos") {
+      setFormData((prev) => ({ ...prev, "footlogopos": "" }))
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    if (formData["header-logo-position"] === formData["footer-logo-position"]) {
-      alert("Header and footer logo positions cannot be the same.")
-      return
+    
+    // Validate positions
+    // if (formData["headlogopos"] === formData["footlogopos"]) {
+    //   alert("Header and footer logo positions cannot be the same.")
+    //   return
+    // }
+    // if (formData["headlogopos"] === "center" && formData["footlogopos"] === "center") {
+    //   alert("If header logo position is center, footer logo position cannot be center.")
+    //   return
+    // }
+
+    const formDataToSubmit = new FormData()
+
+    // Append all form data with the API parameter names
+    formDataToSubmit.append("title", formData.title || "")
+    formDataToSubmit.append("subject", formData.subject || "")
+    
+    const processedDescription = replaceAngleBrackets(formData.description || "")
+    formDataToSubmit.append("description", processedDescription)
+    
+    // Optional fields - only append if they have values
+    if (formData.headlogo) {
+      formDataToSubmit.append("headlogo", formData.headlogo)
     }
-    if (formData["header-logo-position"] === "center" && formData["footer-logo-position"] === "center") {
-      alert("If header logo position is center, footer logo position cannot be center.")
-      return
+    
+    if (formData.headlogopos) {
+      formDataToSubmit.append("headlogopos", formData.headlogopos)
     }
-    console.log("Email form data:", formData)
-    // Handle form submission logic here
+    
+    if (formData.headtext) {
+      formDataToSubmit.append("headtext", formData.headtext)
+    }
+    
+    if (formData.footlogo) {
+      formDataToSubmit.append("footlogo", formData.footlogo)
+    }
+    
+    if (formData.footlogopos) {
+      formDataToSubmit.append("footlogopos", formData.footlogopos)
+    }
+    
+    if (formData.foottext) {
+      formDataToSubmit.append("foottext", formData.foottext)
+    }
+    
+    // Default status to "active" if not provided
+    formDataToSubmit.append("status", formData.status || "active")
+
+    if(emailId === 'new') {
+      formDataToSubmit.append("regid", '0')
+      formDataToSubmit.append("mode", "New")
+    }else{
+      formDataToSubmit.append("regid", emailId)
+      formDataToSubmit.append("mode", "Edit")
+    }
+
+    try {
+      const result = await createEmailTemplate(formDataToSubmit)
+
+      if (result.success) {
+        setSubmissionSuccess(result.message)
+        setSubmissionError(null)
+        redirect("/dashboard/email")
+      } else {
+        setSubmissionError(result.message)
+        setSubmissionSuccess(null)
+      }
+    } catch (error) {
+      setSubmissionError("An error occurred while submitting the form.")
+      setSubmissionSuccess(null)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
+      {submissionSuccess && (
+        <div className="p-4 bg-green-100 text-green-800 rounded-md">{submissionSuccess}</div>
+      )}
+      {submissionError && (
+        <div className="p-4 bg-red-100 text-red-800 rounded-md">{submissionError}</div>
+      )}
+      
       <div className="grid gap-4">
-        {formFields.map((field) => (
-          <div key={field.id} className="grid gap-2">
-            <Label htmlFor={field.id}>
-              {field.label} {field.required && <span className="text-red-500">*</span>}
-            </Label>
-            {field.type === "rich-text-editor" ? (
-              <RichTextEditor
-                content={formData.description || ""}
-                onChange={(content) => {
-                  setFormData((prev) => ({
-                    ...prev,
-                    description: content,
-                  }))
-                }}
-                defaultButtons={true}
-                className="h-[200px]"
-              />
-            ) : field.type === "file" ? (
-              <Input
-                id={field.id}
-                type="file"
-                required={field.required}
-                onChange={handleFileChange}
-                accept=".jpg,.jpeg,.png"
-              />
-            ) : field.type === "select" ? (
-              <Select onValueChange={(value) => handleSelectChange(field.id, value)} value={formData[field.id] || ""}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select position" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(field.id === "footer-logo-position" ? footerPositionOptions : field.options)?.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Input
-                id={field.id}
-                type={field.type}
-                required={field.required}
-                onChange={handleInputChange}
-                value={formData[field.id] || ""}
-              />
-            )}
-          </div>
-        ))}
+        {/* Title Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="title">
+            Title <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="title"
+            type="text"
+            required={true}
+            onChange={handleInputChange}
+            value={formData.title || ""}
+          />
+        </div>
+
+        {/* Subject Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="subject">
+            Subject <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="subject"
+            type="text"
+            required={true}
+            onChange={handleInputChange}
+            value={formData.subject || ""}
+          />
+        </div>
+
+        {/* Description Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="description">
+            Description <span className="text-red-500">*</span>
+          </Label>
+          <RichTextEditor
+            content={formData.description || ""}
+            onChange={(content) => {
+              setFormData((prev) => ({
+                ...prev,
+                description: content,
+              }))
+            }}
+            defaultButtons={true}
+            className="h-[200px]"
+          />
+        </div>
+
+        {/* Header Logo Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="headlogo">
+            Header Logo
+          </Label>
+          <Input
+            id="headlogo"
+            type="file"
+            required={false}
+            onChange={handleFileChange}
+            accept=".jpg,.jpeg,.png"
+          />
+        </div>
+
+        {/* Header Logo Position Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="headlogopos">
+            Header Logo Position
+          </Label>
+          <Select 
+            onValueChange={(value) => handleSelectChange("headlogopos", value)} 
+            value={formData.headlogopos || ""}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select position" />
+            </SelectTrigger>
+            <SelectContent>
+              {positionOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Header Text Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="headtext">
+            Header Text
+          </Label>
+          <Input
+            id="headtext"
+            type="text"
+            required={false}
+            onChange={handleInputChange}
+            value={formData.headtext || ""}
+          />
+        </div>
+
+        {/* Footer Logo Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="footlogo">
+            Footer Logo
+          </Label>
+          <Input
+            id="footlogo"
+            type="file"
+            required={false}
+            onChange={handleFileChange}
+            accept=".jpg,.jpeg,.png"
+          />
+        </div>
+
+        {/* Footer Logo Position Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="footlogopos">
+            Footer Logo Position
+          </Label>
+          <Select 
+            onValueChange={(value) => handleSelectChange("footlogopos", value)} 
+            value={formData.footlogopos || ""}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select position" />
+            </SelectTrigger>
+            <SelectContent>
+              {footerPositionOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Footer Text Field */}
+        <div className="grid gap-2">
+          <Label htmlFor="foottext">
+            Footer Text
+          </Label>
+          <Input
+            id="foottext"
+            type="text"
+            required={false}
+            onChange={handleInputChange}
+            value={formData.foottext || ""}
+          />
+        </div>
       </div>
       <Button className="w-fit" type="submit">
         Save Email Template
@@ -152,4 +319,3 @@ export function EmailForm() {
     </form>
   )
 }
-

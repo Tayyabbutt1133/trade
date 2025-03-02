@@ -5,6 +5,7 @@ import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
+import TableActionBtn from "@/components/table-action-btn";
 
 const columns = [
   { accessorKey: "title", header: "Title" },
@@ -16,13 +17,7 @@ const columns = [
   { accessorKey: "status", header: "Status" },
   {
     header: "Actions",
-    cell: ({ row }) => (
-      <Link href={`/dashboard/audience/${row.original.id}`}>
-        <Button className="bg-green-700 text-white" size="sm" variant="outline">
-          Edit
-        </Button>
-      </Link>
-    ),
+    cell: ({ row }) => <TableActionBtn page="audience" data={row.original} />,
   },
 ];
 
@@ -39,7 +34,6 @@ const fetchAudienceData = async () => {
         }
       );
       const data = await res.json();
-      console.log(data);
 
       // Check if the body has "No Record"
       if (data.Audience && data.Audience[0]?.body === "No Record") {

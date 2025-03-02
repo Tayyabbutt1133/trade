@@ -5,11 +5,12 @@ import { fonts } from "@/components/ui/font";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
 import { useEffect, useState } from "react";
-import roleAccessStore from "@/store/role-access-permission";
+
 
 export default function SellerPage() {
 
   const columns = [
+    { accessorKey: "id", header: "ID" },
     { accessorKey: "name", header: "Name" },
     { accessorKey: "email", header: "Email" },
     { accessorKey: "phone", header: "Phone" },

@@ -1,31 +1,33 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { PlusCircle, Search, Eye, EyeOff } from "lucide-react";
+import { PlusCircle, Search, Eye, EyeOff, Edit } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { fonts } from "@/components/ui/font";
 import { ADDUSER } from "@/app/actions/adduser";
 // import { UPDATEUSER } from "@/app/actions/updateuser"; // Uncomment if you have an update action
-import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+
+const columns = [
+  { accessorKey: "user", header: "User" },
+  { accessorKey: "email", header: "Email" },
+  { accessorKey: "role", header: "Role" },
+  { accessorKey: "status", header: "Status" },
+  {
+    header: "Actions",
+    cell: ({ row }) => (
+      <Button
+        onClick={() => handleEditUser(row.original)}
+        size="sm"
+        variant="secondary"
+      >
+        <Edit className="h-4 w-4" />
+      </Button>
+    ),
+  },
+];
 export default function UsersPage() {
-  const columns = [
-    { accessorKey: "user", header: "User" },
-    { accessorKey: "email", header: "Email" },
-    { accessorKey: "role", header: "Role" },
-    { accessorKey: "status", header: "Status" },
-    {
-      header: "Actions",
-      cell: ({ row }) => (
-        <button
-          onClick={() => handleEditUser(row.original)}
-          className="bg-blue-600 text-white px-2 py-1 rounded"
-        >
-          Edit
-        </button>
-      ),
-    },
-  ];
 
   const [userData, setUserData] = useState([]);
   const [open, setOpen] = useState(false);
@@ -156,7 +158,6 @@ export default function UsersPage() {
         if (response.ok) {
           // Create new user object (using a temporary id if necessary)
           const newUser = {
-            id: Date.now(), // Temporary id; replace with the real id from your backend if available
             user: formData.user,
             email: formData.email,
             role: formData.role,
@@ -324,9 +325,7 @@ export default function UsersPage() {
                   id="status"
                   name="status"
                   value={formData.status}
-                  onChange={(e) =>
-                    handleSelectChange("status", e.target.value)
-                  }
+                  onChange={(e) => handleSelectChange("status", e.target.value)}
                   required
                   className="w-full p-2 border rounded"
                 >

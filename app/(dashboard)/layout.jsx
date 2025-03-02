@@ -269,7 +269,6 @@ const DashboardLayout = ({ children }) => {
       try {
         const response = await fetch("/api/auth/user");
         const data = await response.json();
-        console.log(data);
         if (data.userData) {
           setUserData(data.userData);
         }

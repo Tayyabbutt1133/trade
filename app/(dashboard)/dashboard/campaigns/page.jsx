@@ -5,42 +5,33 @@ import TableActionBtn from "@/components/table-action-btn";
 import { fonts } from "@/components/ui/font";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const columns = [
-  { accessorKey: "name", header: "Name" },
+  { accessorKey: "id", header: "ID" },
+  { accessorKey: "campaign", header: "Campaign" },
   { accessorKey: "type", header: "Type" },
-  { accessorKey: "status", header: "Status" },
-  { accessorKey: "startDate", header: "Start Date" },
-  { accessorKey: "endDate", header: "End Date" },
+  { accessorKey: "emailtemp", header: "Email Template" },
+  { accessorKey: "audience", header: "Audience" },
   { accessorKey: "description", header: "Description" },
-  {
-    accessorKey: "Actions",
-    cell: ({ row }) => <TableActionBtn page="campaigns" data={row.original} />,
-  },
+  // {
+  //   accessorKey: "Actions",
+  //   cell: ({ row }) => <TableActionBtn page="campaigns" data={row.original} />,
+  // },
 ];
 
-const initialData = [
-  {
-    id: "1",
-    name: "Summer Sale",
-    type: "Discount",
-    status: "Active",
-    startDate: "2024-06-01",
-    endDate: "2024-06-30",
-    description: "Summer season special discount campaign"
-  }
-];
 
-const emailTemplates = [
-  { id: "1", name: "Welcome Email" },
-  { id: "2", name: "Summer Promotion" },
-  { id: "3", name: "Holiday Special" },
-  { id: "4", name: "Flash Sale Alert" },
-]
 
 export default function CampaignsPage() {
-  const [campaignData, setCampaignData] = useState(initialData);
+  const [campaignData, setCampaignData] = useState();
+  useEffect(() => {
+    const fetchCampaignData = async () => {
+      const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/campaign/")
+      const data = (await res.json()).Campaign
+      setCampaignData(data)
+    }
+    fetchCampaignData()
+  }, [setCampaignData]);
   
   return (
     <div className="space-y-6">
@@ -55,7 +46,7 @@ export default function CampaignsPage() {
           </button>
         </Link>
       </div>
-      <DataTable columns={columns} data={campaignData} />
+      <DataTable columns={columns} data={campaignData || []} />
     </div>
   );
 }

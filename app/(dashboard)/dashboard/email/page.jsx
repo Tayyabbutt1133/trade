@@ -1,38 +1,38 @@
 "use client";
 
 import { DataTable } from "@/components/data-table";
+import TableActionBtn from "@/components/table-action-btn";
 import { Button } from "@/components/ui/button";
 import { PlusCircle } from "lucide-react";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 
 
 const columns = [
+  { accessorKey: "id", header: "ID" },
+  { accessorKey: "title", header: "Title" },
   { accessorKey: "subject", header: "Subject" },
-  { accessorKey: "recipientType", header: "Recipient Type" },
-  { accessorKey: "description", header: "Description" },
-  { accessorKey: "createdDate", header: "Created Date" },
-];
-
-const data = [
   {
-    id: "1",
-    subject: "Welcome to Our Platform",
-    recipientType: "All",
-    description: "A warm welcome message for all new users",
-    createdDate: "2024-03-20",
-  },
-  {
-    id: "2",
-    subject: "Special Offer for Sellers",
-    recipientType: "Seller",
-    description: "Exclusive deal for our valued sellers",
-    createdDate: "2024-03-21",
+    accessorKey: "Actions",
+    cell: ({ row }) => <TableActionBtn page="email" data={row.original} />,
   },
 ];
 
 export default function EmailPage() {
+  const [emailData, setEmailData] = useState({})
+  useEffect(() => {
+    const fetchEmailData = async () => {
+      const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/emailtemplate/")
+      const data = (await res.json()).EmailTemplate
+
+      setEmailData(data)
+    }
+    fetchEmailData()
+  }, [setEmailData]);
+
+  console.log(emailData)
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -46,7 +46,7 @@ export default function EmailPage() {
           </Button>
         </Link>
       </div>
-      <DataTable columns={columns} data={data} />
+      <DataTable columns={columns} data={emailData || []} />
     </div>
   );
 }

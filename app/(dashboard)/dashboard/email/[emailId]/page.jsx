@@ -11,7 +11,7 @@ const EmailFormPage = async ({ params }) => {
         {isNewEmail ? "Add Email Template" : "Edit Email Template"}
       </h1>
       <div>
-        <EmailForm />
+        <EmailForm emailId={emailId}/>
       </div>
     </div>
   );
