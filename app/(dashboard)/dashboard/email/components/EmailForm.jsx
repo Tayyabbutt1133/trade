@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
 import { createEmailTemplate } from "@/app/actions/createEmailTemplate"
-import { redirect, useParams } from "next/navigation"
+import { redirect } from "next/navigation"
 
 const positionOptions = [
   { value: "left", label: "Left" },
@@ -16,8 +16,8 @@ const positionOptions = [
 const replaceAngleBrackets = (text) => {
   if (!text) return text
   return text.replace(/</g, '{').replace(/>/g, '}')
-
 }
+
 const convertToBase64 = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -32,13 +32,42 @@ const convertToBase64 = (file) => {
   })
 }
 
-export function EmailForm({emailId}) {
-  const [formData, setFormData] = useState({})
+export function EmailForm({emailId, initialData = null}) {
+  const [formData, setFormData] = useState(() => {
+      if (initialData) {
+        return {
+          title: initialData.title || "",
+          subject: initialData.subject || "",
+          description: initialData.description || "",
+          headlogopos: initialData.headlogopos || "",
+          headtext: initialData.headtext || "",
+          footlogopos: initialData.footlogopos || "",
+          foottext: initialData.foottext || "",
+          status: initialData.status === "True" ? "active" : "inactive"
+        };
+      }
+      return {};
+    });
   const [footerPositionOptions, setFooterPositionOptions] = useState(positionOptions)
   const [submissionSuccess, setSubmissionSuccess] = useState(null)
   const [submissionError, setSubmissionError] = useState(null)
+  const [existingHeadLogo, setExistingHeadLogo] = useState(null)
+  const [existingFootLogo, setExistingFootLogo] = useState(null)
+  const [headLogoChanged, setHeadLogoChanged] = useState(false)
+  const [footLogoChanged, setFootLogoChanged] = useState(false)
 
-
+  // Load initial data if available
+  useEffect(() => {
+    if (initialData) {
+      if (initialData.headlogo) {
+        setExistingHeadLogo(initialData.headlogo)
+      }
+      
+      if (initialData.footlogo) {
+        setExistingFootLogo(initialData.footlogo)
+      }
+    }
+  }, [initialData])
 
   useEffect(() => {
     if (formData["headlogopos"]) {
@@ -67,13 +96,19 @@ export function EmailForm({emailId}) {
         // Convert the file to base64
         const base64 = await convertToBase64(file)
         setFormData((prev) => ({ ...prev, [id]: base64 }))
+        
+        // Mark logo as changed
+        if (id === "headlogo") {
+          setHeadLogoChanged(true)
+        } else if (id === "footlogo") {
+          setFootLogoChanged(true)
+        }
       } else {
         alert("Please select a JPG or PNG file.")
         e.target.value = "" // Clear the file input
       }
     }
   }
-
 
   const handleSelectChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }))
@@ -85,16 +120,6 @@ export function EmailForm({emailId}) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validate positions
-    // if (formData["headlogopos"] === formData["footlogopos"]) {
-    //   alert("Header and footer logo positions cannot be the same.")
-    //   return
-    // }
-    // if (formData["headlogopos"] === "center" && formData["footlogopos"] === "center") {
-    //   alert("If header logo position is center, footer logo position cannot be center.")
-    //   return
-    // }
-
     const formDataToSubmit = new FormData()
 
     // Append all form data with the API parameter names
@@ -104,11 +129,12 @@ export function EmailForm({emailId}) {
     const processedDescription = replaceAngleBrackets(formData.description || "")
     formDataToSubmit.append("description", processedDescription)
     
-    // Optional fields - only append if they have values
-    if (formData.headlogo) {
+    // Only include header logo if it's a new upload
+    if (headLogoChanged && formData.headlogo) {
       formDataToSubmit.append("headlogo", formData.headlogo)
     }
     
+    // Always include positions and text fields
     if (formData.headlogopos) {
       formDataToSubmit.append("headlogopos", formData.headlogopos)
     }
@@ -117,7 +143,8 @@ export function EmailForm({emailId}) {
       formDataToSubmit.append("headtext", formData.headtext)
     }
     
-    if (formData.footlogo) {
+    // Only include footer logo if it's a new upload
+    if (footLogoChanged && formData.footlogo) {
       formDataToSubmit.append("footlogo", formData.footlogo)
     }
     
@@ -135,7 +162,7 @@ export function EmailForm({emailId}) {
     if(emailId === 'new') {
       formDataToSubmit.append("regid", '0')
       formDataToSubmit.append("mode", "New")
-    }else{
+    } else {
       formDataToSubmit.append("regid", emailId)
       formDataToSubmit.append("mode", "Edit")
     }
@@ -152,6 +179,7 @@ export function EmailForm({emailId}) {
         setSubmissionSuccess(null)
       }
     } catch (error) {
+      console.log(error.message)
       setSubmissionError("An error occurred while submitting the form.")
       setSubmissionSuccess(null)
     }
@@ -218,6 +246,12 @@ export function EmailForm({emailId}) {
           <Label htmlFor="headlogo">
             Header Logo
           </Label>
+          {existingHeadLogo && !headLogoChanged && (
+            <div className="mb-2 text-sm text-gray-600 flex items-center">
+              <span className="mr-2">Current logo:</span>
+              <span className="font-medium">{existingHeadLogo}</span>
+            </div>
+          )}
           <Input
             id="headlogo"
             type="file"
@@ -225,6 +259,11 @@ export function EmailForm({emailId}) {
             onChange={handleFileChange}
             accept=".jpg,.jpeg,.png"
           />
+          {headLogoChanged && (
+            <div className="mt-1 text-sm text-green-600">
+              New logo will be uploaded on save
+            </div>
+          )}
         </div>
 
         {/* Header Logo Position Field */}
@@ -268,6 +307,12 @@ export function EmailForm({emailId}) {
           <Label htmlFor="footlogo">
             Footer Logo
           </Label>
+          {existingFootLogo && !footLogoChanged && (
+            <div className="mb-2 text-sm text-gray-600 flex items-center">
+              <span className="mr-2">Current logo:</span>
+              <span className="font-medium">{existingFootLogo}</span>
+            </div>
+          )}
           <Input
             id="footlogo"
             type="file"
@@ -275,6 +320,11 @@ export function EmailForm({emailId}) {
             onChange={handleFileChange}
             accept=".jpg,.jpeg,.png"
           />
+          {footLogoChanged && (
+            <div className="mt-1 text-sm text-green-600">
+              New logo will be uploaded on save
+            </div>
+          )}
         </div>
 
         {/* Footer Logo Position Field */}
