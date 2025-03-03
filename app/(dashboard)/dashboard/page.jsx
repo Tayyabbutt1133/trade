@@ -1,9 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fonts } from "@/components/ui/font";
 import { Users, Package, MessageSquare } from "lucide-react";
+import { GETCOUNT } from "@/app/actions/getcount";
 
 
 export default async function Dashboard() {
+
+
+  const response = await GETCOUNT();
+  const dashboard = response?.Dashboard || [];
+  const { sellers, buyers, products, rfq } = dashboard[0];
+
 
 
   return (
@@ -19,7 +26,7 @@ export default async function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">490</div>
+            <div className="text-2xl font-bold">{sellers}</div>
             {/* <p className="text-xs text-muted-foreground">+12% from last month</p> */}
           </CardContent>
         </Card>
@@ -30,7 +37,7 @@ export default async function Dashboard() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">500</div>
+            <div className="text-2xl font-bold">{buyers}</div>
             {/* <p className="text-xs text-muted-foreground">+8% from last month</p> */}
           </CardContent>
         </Card>
@@ -41,7 +48,7 @@ export default async function Dashboard() {
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4111</div>
+            <div className="text-2xl font-bold">{products}</div>
             {/* <p className="text-xs text-muted-foreground">+23 new products</p> */}
           </CardContent>
         </Card>
@@ -54,7 +61,7 @@ export default async function Dashboard() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">0</div>
+            <div className="text-2xl font-bold">{rfq}</div>
             {/* <p className="text-xs text-muted-foreground">-5 from yesterday</p> */}
           </CardContent>
         </Card>
