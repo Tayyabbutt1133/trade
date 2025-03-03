@@ -17,9 +17,13 @@ export function ImageUpload({ images = [], setImages }) {
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          // Remove the "data:image/xxx;base64," prefix
-          const base64Data = reader.result.replace(/^data:image\/\w+;base64,/, "");
-          resolve(base64Data);
+          // More robust way to extract just the base64 data
+          const base64Data = reader.result.split(',')[1];
+          
+          // Ensure no whitespace or other characters
+          const cleanBase64 = base64Data.trim();
+          
+          resolve(cleanBase64);
         } else {
           reject(new Error("Failed to convert file to base64"));
         }
@@ -100,6 +104,11 @@ export function ImageUpload({ images = [], setImages }) {
               type: file.type,
               size: file.size,
             })
+            
+            // Debug log (remove in production)
+            console.log("Base64 string first 20 chars:", base64Data.substring(0, 20));
+            console.log("Base64 string length:", base64Data.length);
+            
           } catch (error) {
             console.error(`Error processing file ${file.name}:`, error)
             setError(
