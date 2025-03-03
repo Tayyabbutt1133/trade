@@ -1,5 +1,3 @@
-export const dynamic = 'force-dynamic';
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fonts } from "@/components/ui/font";
 import { Users, Package, MessageSquare } from "lucide-react";
