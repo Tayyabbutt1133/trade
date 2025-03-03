@@ -1,26 +1,26 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { FunctionInput } from "./FunctionInput"
-import { ImageUpload } from "./ImageUpload"
-import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog"
-import { existingFunctions } from "../_data"
-import { createProduct } from "@/app/actions/createProduct"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { FunctionInput } from "./FunctionInput";
+import { ImageUpload } from "./ImageUpload";
+import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog";
+import { existingFunctions } from "../_data";
+import { createProduct } from "@/app/actions/createProduct";
+import { useRouter } from "next/navigation";
 
 export function ProductForm({
   initialBrandOptions = [],
   initialCategoriesOption = [],
   initialData = null,
-  productId
+  productId,
 }) {
   const router = useRouter();
   const isEditMode = productId && productId !== "new";
-  
+
   const [formData, setFormData] = useState({
     product: "",
     description: "",
@@ -31,7 +31,6 @@ export function ProductForm({
     maincategory: "",
     subcategory: "",
     chemical: "",
-    logby: "",
     cas: "",
     cinum: "",
     images: [],
@@ -45,10 +44,12 @@ export function ProductForm({
 
   // Option states
   const [brandOptions, setBrandOptions] = useState(initialBrandOptions);
-  const [categoriesOption, setCategoriesOption] = useState(initialCategoriesOption);
+  const [categoriesOption, setCategoriesOption] = useState(
+    initialCategoriesOption
+  );
   const [mainCategoriesOption, setMainCategoriesOption] = useState([]);
   const [subcategoriesOption, setSubcategoriesOption] = useState([]);
-  
+
   // Selected category IDs for dependency chain
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [selectedMainCategoryId, setSelectedMainCategoryId] = useState(null);
@@ -56,6 +57,7 @@ export function ProductForm({
   // User Data state
   const [userData, setUserData] = useState({});
 
+  // Load initial data when available
   // Load initial data when available
   useEffect(() => {
     if (initialData) {
@@ -71,35 +73,60 @@ export function ProductForm({
         chemical: initialData.chemical || "",
         cas: initialData.cas || "",
         cinum: initialData.cinum || "",
-        logby: initialData.logby || "",
         images: initialData.images || [],
         // functions: initialData.functions || []
       });
-      
+
       // If there's a category in the initialData, fetch related main categories
       if (initialData.category) {
-        const categoryObj = categoriesOption.find(cat => cat.category === initialData.category);
+        const categoryObj = categoriesOption.find(
+          (cat) => cat.category === initialData.category
+        );
         if (categoryObj && categoryObj.id) {
           setSelectedCategoryId(categoryObj.id);
           fetchMainCategories(categoryObj.id);
-          
-          // If there's a main category, fetch related subcategories
-          if (initialData.maincategory && categoryObj.id) {
-            const mainCategoryObj = mainCategoriesOption.find(
-              mainCat => mainCat.maincategory === initialData.maincategory
-            );
-            if (mainCategoryObj && mainCategoryObj.id) {
-              setSelectedMainCategoryId(mainCategoryObj.id);
-              fetchSubcategories(mainCategoryObj.id);
-            }
-          }
+          // Removed the nested main category and subcategory logic from here
         }
       }
-      
+
       setIsLoading(false);
     }
+  }, [initialData, categoriesOption]);
 
-  }, [initialData, isEditMode, productId, categoriesOption, mainCategoriesOption]);
+  // Handle main category selection when main categories are loaded
+  useEffect(() => {
+    if (
+      initialData &&
+      initialData.maincategory &&
+      mainCategoriesOption.length > 0
+    ) {
+      const mainCategoryObj = mainCategoriesOption.find(
+        (mainCat) => mainCat.maincategory === initialData.maincategory
+      );
+
+      if (mainCategoryObj && mainCategoryObj.id) {
+        setSelectedMainCategoryId(mainCategoryObj.id);
+        fetchSubcategories(mainCategoryObj.id);
+      }
+    }
+  }, [mainCategoriesOption, initialData]);
+
+  // Handle subcategory selection when subcategories are loaded
+  useEffect(() => {
+    if (
+      initialData &&
+      initialData.subcategory &&
+      subcategoriesOption.length > 0 &&
+      !isLoading
+    ) {
+      // No need to set anything here, just having the correct value in formData is enough
+      // This useEffect ensures we don't have timing issues with the dependent dropdowns
+      console.log(
+        "Subcategories loaded with initial subcategory:",
+        initialData.subcategory
+      );
+    }
+  }, [subcategoriesOption, initialData, isLoading]);
 
   // Load options on initial component mount
   useEffect(() => {
@@ -112,52 +139,54 @@ export function ProductForm({
       const response = await fetch("/api/auth/user");
       const data = (await response.json()).userData;
       setUserData(data);
-    }
+    };
     fetchUserData();
-  }, [])
+  }, []);
 
   // Fetch options function
   const fetchOptionForType = async (type) => {
-    let endpoint = ""
-    let setOption
+    let endpoint = "";
+    let setOption;
     if (type === "brand") {
-      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/brand/'
-      setOption = setBrandOptions
+      endpoint = "https://tradetoppers.esoftideas.com/esi-api/responses/brand/";
+      setOption = setBrandOptions;
     } else if (type === "category") {
-      endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/categories/'
-      setOption = setCategoriesOption
+      endpoint =
+        "https://tradetoppers.esoftideas.com/esi-api/responses/categories/";
+      setOption = setCategoriesOption;
     }
 
     try {
-      const res = await fetch(endpoint)
-      const data = await res.json()
+      const res = await fetch(endpoint);
+      const data = await res.json();
       if (type === "brand") {
-        setOption(data.Brand || data)
+        setOption(data.Brand || data);
       } else if (type === "category") {
-        setOption(data.Categories || data)
+        setOption(data.Categories || data);
       }
     } catch (error) {
-      console.error(`Error fetching ${type} options:`, error)
+      console.error(`Error fetching ${type} options:`, error);
     }
-  }
+  };
 
   // Function to fetch main categories based on category ID
   const fetchMainCategories = async (categoryId) => {
     if (!categoryId) return;
-    
+
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append('catid', categoryId);
-    
+    formDataToSubmit.append("catid", categoryId);
+
     try {
-      const endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/maincategory/';
+      const endpoint =
+        "https://tradetoppers.esoftideas.com/esi-api/responses/maincategory/";
       const res = await fetch(endpoint, {
         method: "POST",
-        body: formDataToSubmit
+        body: formDataToSubmit,
       });
       const data = await res.json();
       setMainCategoriesOption(data.MainCategories || []);
     } catch (error) {
-      console.error('Error fetching main categories:', error);
+      console.error("Error fetching main categories:", error);
       setMainCategoriesOption([]);
     }
   };
@@ -165,20 +194,21 @@ export function ProductForm({
   // Function to fetch subcategories based on main category ID
   const fetchSubcategories = async (mainCategoryId) => {
     if (!mainCategoryId) return;
-    
+
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append('catid', mainCategoryId); // API expects 'catid' but it's actually the main category ID
-    
+    formDataToSubmit.append("catid", mainCategoryId); // API expects 'catid' but it's actually the main category ID
+
     try {
-      const endpoint = 'https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/';
+      const endpoint =
+        "https://tradetoppers.esoftideas.com/esi-api/responses/subcategories/";
       const res = await fetch(endpoint, {
         method: "POST",
-        body: formDataToSubmit
+        body: formDataToSubmit,
       });
       const data = await res.json();
       setSubcategoriesOption(data.SubCategories || []);
     } catch (error) {
-      console.error('Error fetching subcategories:', error);
+      console.error("Error fetching subcategories:", error);
       setSubcategoriesOption([]);
     }
   };
@@ -188,23 +218,23 @@ export function ProductForm({
     setFormData((prev) => ({ ...prev, [id]: value }));
     // Clear any errors for this field
     setErrors((prev) => ({ ...prev, [id]: "" }));
-  }
+  };
 
   // Handle options changes
   const handleBrandChange = async (newValue) => {
     handleInputChange("brand", newValue.brand);
-  }
+  };
 
   const handleCategoryChange = async (newValue) => {
     // Update category
     handleInputChange("category", newValue.category);
-    
+
     // Clear dependent fields
     handleInputChange("maincategory", "");
     handleInputChange("subcategory", "");
     setMainCategoriesOption([]);
     setSubcategoriesOption([]);
-    
+
     // Set the selected category ID and fetch main categories
     if (newValue && newValue.id) {
       setSelectedCategoryId(newValue.category);
@@ -212,19 +242,19 @@ export function ProductForm({
     } else {
       setSelectedCategoryId(null);
     }
-    
+
     // Reset main category ID since we cleared the main category
     setSelectedMainCategoryId(null);
-  }
+  };
 
   const handleMainCategoryChange = async (newValue) => {
     // Update main category
     handleInputChange("maincategory", newValue.maincategory);
-    
+
     // Clear subcategory
     handleInputChange("subcategory", "");
     setSubcategoriesOption([]);
-    
+
     // Set the selected main category ID and fetch subcategories
     if (newValue && newValue.id) {
       setSelectedMainCategoryId(newValue.maincategory);
@@ -232,18 +262,19 @@ export function ProductForm({
     } else {
       setSelectedMainCategoryId(null);
     }
-  }
+  };
 
   const handleSubcategoryChange = async (newValue) => {
     handleInputChange("subcategory", newValue.subcategory);
-  }
-  console.log(formData)
+  };
+  console.log(formData);
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
-  
+
     const formDataToSubmit = new FormData();
-  
+    const imageDataToSubmit = new FormData();
+
     // Append all product data
     formDataToSubmit.append("product", formData.product || "");
     formDataToSubmit.append("description", formData.description || "");
@@ -256,30 +287,33 @@ export function ProductForm({
     formDataToSubmit.append("chemical", formData.chemical || "");
     formDataToSubmit.append("cas", formData.cas || "");
     formDataToSubmit.append("cinum", formData.cinum || "");
-    
-    if(userData.type !== "Seller" && userData.type !== "buyer") {
+
+    if (userData.type !== "Seller" && userData.type !== "buyer") {
       formDataToSubmit.append("logby", "0");
-    }else if(userData.type?.toLowerCase() === "seller" || userData.type?.toLowerCase() === "buyer"){
+    } else if (
+      userData.type?.toLowerCase() === "seller" ||
+      userData.type?.toLowerCase() === "buyer"
+    ) {
       formDataToSubmit.append("logby", userData.id);
     }
-    
-    // Append category IDs for the backend
-    if (selectedCategoryId) {
-      formDataToSubmit.append("catid", selectedCategoryId);
-    }
-    if (selectedMainCategoryId) {
-      formDataToSubmit.append("maincatid", selectedMainCategoryId);
-    }
-    if (formData.subcategory) {
-      // Find the subcategory ID
-      const subcategoryObj = subcategoriesOption.find(
-        subCat => subCat.subcategory === formData.subcategory
-      );
-      if (subcategoryObj && subcategoryObj.id) {
-        formDataToSubmit.append("subcatid", subcategoryObj.id);
-      }
-    }
-    
+
+    // // Append category IDs for the backend
+    // if (selectedCategoryId) {
+    //   formDataToSubmit.append("catid", selectedCategoryId);
+    // }
+    // if (selectedMainCategoryId) {
+    //   formDataToSubmit.append("maincatid", selectedMainCategoryId);
+    // }
+    // if (formData.subcategory) {
+    //   // Find the subcategory ID
+    //   const subcategoryObj = subcategoriesOption.find(
+    //     subCat => subCat.subcategory === formData.subcategory
+    //   );
+    //   if (subcategoryObj && subcategoryObj.id) {
+    //     formDataToSubmit.append("subcatid", subcategoryObj.id);
+    //   }
+    // }
+
     // Append mode based on whether this is a new product or an edit
     if (isEditMode) {
       formDataToSubmit.append("Mode", "Edit");
@@ -288,34 +322,34 @@ export function ProductForm({
       formDataToSubmit.append("Mode", "New");
       formDataToSubmit.append("regid", "0"); // Set default regid as 0
     }
-  
+
     // Handle functions array if needed
     if (formData.functions && formData.functions.length > 0) {
       formDataToSubmit.append("functions", JSON.stringify(formData.functions));
     }
-  
+
     // Add images array as JSON string
     if (formData.images && formData.images.length > 0) {
       // Only send the necessary image data
-      const imageData = formData.images.map(img => ({
+      const imageData = formData.images.map((img) => ({
         base64: img.base64,
         name: img.name,
-        type: img.type
+        type: img.type,
       }));
-      formDataToSubmit.append("images", JSON.stringify(imageData));
+      imageDataToSubmit.append("images", JSON.stringify(imageData));
     }
-  
+
     try {
-      const result = await createProduct(formDataToSubmit);
+      const result = await createProduct(formDataToSubmit, imageDataToSubmit);
       if (result.success) {
         setSubmissionSuccess(result.message);
         setSubmissionError(null);
-        
+
         // Clean up session storage if needed
         if (isEditMode) {
           sessionStorage.removeItem(`product_${productId}`);
         }
-        
+
         // Wait a moment before redirecting so user can see success message
         setTimeout(() => {
           router.push("/dashboard/products");
@@ -339,70 +373,78 @@ export function ProductForm({
       <div className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="product">Name</Label>
-          <Input 
+          <Input
             id="product"
             name="product"
             type="text"
             value={formData.product || ""}
             onChange={(e) => handleInputChange("product", e.target.value)}
-            required 
+            required
           />
-          {errors.product && <p className="text-red-500 text-sm">{errors.product}</p>}
+          {errors.product && (
+            <p className="text-red-500 text-sm">{errors.product}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="description">Description</Label>
-          <Textarea 
+          <Textarea
             id="description"
             name="description"
             value={formData.description || ""}
             onChange={(e) => handleInputChange("description", e.target.value)}
-            required 
+            required
           />
-          {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+          {errors.description && (
+            <p className="text-red-500 text-sm">{errors.description}</p>
+          )}
         </div>
 
         {/* Other form fields */}
         <div className="space-y-2">
           <Label htmlFor="code">Code</Label>
-          <Input 
+          <Input
             id="code"
             name="code"
             type="text"
             value={formData.code || ""}
             onChange={(e) => handleInputChange("code", e.target.value)}
-            required 
+            required
           />
           {errors.code && <p className="text-red-500 text-sm">{errors.code}</p>}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="formula">Formula</Label>
-          <Input 
+          <Input
             id="formula"
             name="formula"
             type="text"
             value={formData.formula || ""}
             onChange={(e) => handleInputChange("formula", e.target.value)}
-            required 
+            required
           />
-          {errors.formula && <p className="text-red-500 text-sm">{errors.formula}</p>}
+          {errors.formula && (
+            <p className="text-red-500 text-sm">{errors.formula}</p>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label htmlFor="chemical">Chemical</Label>
-          <Input 
+          <Input
             id="chemical"
             name="chemical"
             type="text"
             value={formData.chemical || ""}
             onChange={(e) => handleInputChange("chemical", e.target.value)}
           />
-          {errors.chemical && <p className="text-red-500 text-sm">{errors.chemical}</p>}
+          {errors.chemical && (
+            <p className="text-red-500 text-sm">{errors.chemical}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="cas">CAS</Label>
-          <Input 
+          <Input
             id="cas"
             name="cas"
             type="text"
@@ -413,14 +455,16 @@ export function ProductForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="cinum">C.I. Number</Label>
-          <Input 
+          <Input
             id="cinum"
             name="cinum"
             type="text"
             value={formData.cinum || ""}
             onChange={(e) => handleInputChange("cinum", e.target.value)}
           />
-          {errors.cinum && <p className="text-red-500 text-sm">{errors.cinum}</p>}
+          {errors.cinum && (
+            <p className="text-red-500 text-sm">{errors.cinum}</p>
+          )}
         </div>
 
         <CategoryComboBoxWithDialog
@@ -464,7 +508,7 @@ export function ProductForm({
           existingFunctions={existingFunctions}
         /> */}
 
-        <ImageUpload 
+        <ImageUpload
           images={formData.images}
           setImages={(newImages) => handleInputChange("images", newImages)}
         />
@@ -475,7 +519,9 @@ export function ProductForm({
       </Button>
 
       {submissionError && <p className="text-red-500">{submissionError}</p>}
-      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
+      {submissionSuccess && (
+        <p className="text-green-500">{submissionSuccess}</p>
+      )}
     </form>
-  )
+  );
 }
