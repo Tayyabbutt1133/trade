@@ -16,8 +16,8 @@ const positionOptions = [
 const replaceAngleBrackets = (text) => {
   if (!text) return text
   return text.replace(/</g, '{').replace(/>/g, '}')
-
 }
+
 const convertToBase64 = (file) => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader()
@@ -32,13 +32,41 @@ const convertToBase64 = (file) => {
   })
 }
 
-export function EmailForm({emailId}) {
+export function EmailForm({emailId, initialData = null}) {
   const [formData, setFormData] = useState({})
   const [footerPositionOptions, setFooterPositionOptions] = useState(positionOptions)
   const [submissionSuccess, setSubmissionSuccess] = useState(null)
   const [submissionError, setSubmissionError] = useState(null)
+  const [existingHeadLogo, setExistingHeadLogo] = useState(null)
+  const [existingFootLogo, setExistingFootLogo] = useState(null)
 
-
+  // Load initial data if available
+  useEffect(() => {
+    if (initialData) {
+      // Format initialData to match the form structure
+      const formattedData = {
+        title: initialData.title || "",
+        subject: initialData.subject || "",
+        description: initialData.body || "",
+        headlogopos: initialData.headlogopos || "",
+        headtext: initialData.headtext || "",
+        footlogopos: initialData.footlogopos || "",
+        foottext: initialData.foottext || "",
+        status: initialData.status === "True" ? "active" : "inactive"
+      }
+      
+      // Store existing logo information separately
+      if (initialData.headlogo) {
+        setExistingHeadLogo(initialData.headlogo)
+      }
+      
+      if (initialData.footlogo) {
+        setExistingFootLogo(initialData.footlogo)
+      }
+      
+      setFormData(formattedData)
+    }
+  }, [initialData])
 
   useEffect(() => {
     if (formData["headlogopos"]) {
@@ -67,13 +95,19 @@ export function EmailForm({emailId}) {
         // Convert the file to base64
         const base64 = await convertToBase64(file)
         setFormData((prev) => ({ ...prev, [id]: base64 }))
+        
+        // Clear the existing logo reference if a new file is uploaded
+        if (id === "headlogo") {
+          setExistingHeadLogo(null)
+        } else if (id === "footlogo") {
+          setExistingFootLogo(null)
+        }
       } else {
         alert("Please select a JPG or PNG file.")
         e.target.value = "" // Clear the file input
       }
     }
   }
-
 
   const handleSelectChange = (id, value) => {
     setFormData((prev) => ({ ...prev, [id]: value }))
@@ -85,16 +119,6 @@ export function EmailForm({emailId}) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    // Validate positions
-    // if (formData["headlogopos"] === formData["footlogopos"]) {
-    //   alert("Header and footer logo positions cannot be the same.")
-    //   return
-    // }
-    // if (formData["headlogopos"] === "center" && formData["footlogopos"] === "center") {
-    //   alert("If header logo position is center, footer logo position cannot be center.")
-    //   return
-    // }
-
     const formDataToSubmit = new FormData()
 
     // Append all form data with the API parameter names
@@ -104,9 +128,12 @@ export function EmailForm({emailId}) {
     const processedDescription = replaceAngleBrackets(formData.description || "")
     formDataToSubmit.append("description", processedDescription)
     
-    // Optional fields - only append if they have values
+    // Handle header logo - use new upload or existing reference
     if (formData.headlogo) {
       formDataToSubmit.append("headlogo", formData.headlogo)
+    } else if (existingHeadLogo) {
+      formDataToSubmit.append("headlogo", existingHeadLogo)
+      formDataToSubmit.append("headlogo_existing", "true") // Flag to indicate using existing logo
     }
     
     if (formData.headlogopos) {
@@ -117,8 +144,12 @@ export function EmailForm({emailId}) {
       formDataToSubmit.append("headtext", formData.headtext)
     }
     
+    // Handle footer logo - use new upload or existing reference
     if (formData.footlogo) {
       formDataToSubmit.append("footlogo", formData.footlogo)
+    } else if (existingFootLogo) {
+      formDataToSubmit.append("footlogo", existingFootLogo)
+      formDataToSubmit.append("footlogo_existing", "true") // Flag to indicate using existing logo
     }
     
     if (formData.footlogopos) {
@@ -135,7 +166,7 @@ export function EmailForm({emailId}) {
     if(emailId === 'new') {
       formDataToSubmit.append("regid", '0')
       formDataToSubmit.append("mode", "New")
-    }else{
+    } else {
       formDataToSubmit.append("regid", emailId)
       formDataToSubmit.append("mode", "Edit")
     }
@@ -218,6 +249,11 @@ export function EmailForm({emailId}) {
           <Label htmlFor="headlogo">
             Header Logo
           </Label>
+          {existingHeadLogo && (
+            <div className="mb-2 text-sm text-gray-600">
+              Existing logo: {existingHeadLogo}
+            </div>
+          )}
           <Input
             id="headlogo"
             type="file"
@@ -268,6 +304,11 @@ export function EmailForm({emailId}) {
           <Label htmlFor="footlogo">
             Footer Logo
           </Label>
+          {existingFootLogo && (
+            <div className="mb-2 text-sm text-gray-600">
+              Existing logo: {existingFootLogo}
+            </div>
+          )}
           <Input
             id="footlogo"
             type="file"
