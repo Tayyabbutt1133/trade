@@ -25,7 +25,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{sellers}</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            {/* <p className="text-xs text-muted-foreground">+12% from last month</p> */}
           </CardContent>
         </Card>
 
@@ -36,7 +36,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{buyers}</div>
-            <p className="text-xs text-muted-foreground">+8% from last month</p>
+            {/* <p className="text-xs text-muted-foreground">+8% from last month</p> */}
           </CardContent>
         </Card>
 
@@ -47,7 +47,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{products}</div>
-            <p className="text-xs text-muted-foreground">+23 new products</p>
+            {/* <p className="text-xs text-muted-foreground">+23 new products</p> */}
           </CardContent>
         </Card>
 
@@ -60,7 +60,7 @@ export default async function Dashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{rfq}</div>
-            <p className="text-xs text-muted-foreground">-5 from yesterday</p>
+            {/* <p className="text-xs text-muted-foreground">-5 from yesterday</p> */}
           </CardContent>
         </Card>
       </div>
