@@ -9,10 +9,13 @@ export async function GETCOUNT() {
         headers: {
             "Content-Type": "application/json"
         },
-        cache: "no-store"
+        cache: "no-store",
+        next: {
+            revalidate: 0
+        }
     });
 
-    const jsonCount = response.json();
+    const jsonCount = await response.json();
     return jsonCount;
 
 }
