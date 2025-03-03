@@ -59,7 +59,11 @@ const Navbar = () => {
           {isMenuOpen && <SideMenu onclose={() => setisMenuOpen(false)} />}
 
           <Link href={"/"}>
-            <h1 className={`text-white ${fonts.montserrat} text-[18px] lg:text-xl font-bold`}>Trade</h1>
+            <h1
+              className={`text-white ${fonts.montserrat} text-[18px] lg:text-xl font-bold`}
+            >
+              Trade
+            </h1>
           </Link>
         </div>
         {/* Search bar */}
@@ -78,7 +82,7 @@ const Navbar = () => {
             <Link href={userData?.id ? "/dashboard" : "/signin"}>
               <button
                 className={`
-            text-sm px-5 text-white ${
+            text-sm font-bold px-5 text-white ${
               fonts.montserrat
             } py-2 rounded-md transition-all
             ${
@@ -105,7 +109,7 @@ const Navbar = () => {
                 className={`
       text-sm text-white ${
         fonts.montserrat
-      } px-5 py-2 rounded-md transition-all capitalize
+      } px-5 py-2 rounded-md font-bold transition-all capitalize
       ${
         pathname === "/signin"
           ? "bg-transparent"
