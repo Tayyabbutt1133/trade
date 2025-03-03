@@ -32,7 +32,6 @@ export default function EmailPage() {
     fetchEmailData()
   }, [setEmailData]);
 
-  console.log(emailData)
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">

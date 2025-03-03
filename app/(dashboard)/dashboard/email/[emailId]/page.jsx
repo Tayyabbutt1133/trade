@@ -14,7 +14,6 @@ const EmailFormPage = async ({ params }) => {
     })
     const data = (await res.json()).EmailTemplate[0]
     emailData = data
-    console.log(data)
   }
   
   return (

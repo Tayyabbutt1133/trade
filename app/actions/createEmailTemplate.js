@@ -11,21 +11,11 @@ export const createEmailTemplate = async (formData) => {
       }
     );
 
-    // Get the response as text first
-    const responseText = await res.text();
+    const data = await res.json();
 
-    // Try to parse it as JSON
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error(
-        "Failed to parse response as JSON:",
-        responseText.substring(0, 500)
-      );
-      return { success: false, message: "Server did not return valid JSON" };
+    if(data.id === '0') {
+      return { success: false, message: data.body }
     }
-    console.log(data);
     // Check if response indicates success
     if (data.EmailTemplate && data.EmailTemplate[0]?.body === "No Record") {
       return { success: false, message: "No record created" };
