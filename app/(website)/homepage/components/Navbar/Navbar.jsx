@@ -59,7 +59,7 @@ const Navbar = () => {
           {isMenuOpen && <SideMenu onclose={() => setisMenuOpen(false)} />}
 
           <Link href={"/"}>
-            <h1 className="text-white text-[18px] lg:text-xl font-bold">TT</h1>
+            <h1 className="text-white text-[18px] lg:text-xl font-bold">Trade</h1>
           </Link>
         </div>
         {/* Search bar */}
