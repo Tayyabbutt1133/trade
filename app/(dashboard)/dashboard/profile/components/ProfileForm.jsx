@@ -48,13 +48,12 @@ export function ProfileForm({
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
 
-  const [userId, setUserId] = useState(null);
+  const [userData, setUserData] = useState(null);
   useEffect(() => {
     const fetchUserData = async () => {
       const getUserData = await fetch("/api/auth/user");
-      const userData = (await getUserData.json()).userData;
-      console.log("userData", userData);
-      setUserId(userData.id);
+      const data = (await getUserData.json()).userData;
+      setUserData(data);
     }
     fetchUserData();
   }, [])
@@ -132,15 +131,14 @@ export function ProfileForm({
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const getUserData = await fetch("/api/auth/user");
-    const { userData } = await getUserData.json();
+    // const getUserData = await fetch("/api/auth/user");
+    // const { userData } = await getUserData.json();
     const userType = userData.type;
 
-    console.log(formData, userType);
     // Create a new FormData object
     const formDataToSubmit = new FormData();
 
-    formDataToSubmit.append("logby", userId)
+    formDataToSubmit.append("logby", userData.id)
     // Add form data for buyer
     if (userType === "Buyer") {
 
