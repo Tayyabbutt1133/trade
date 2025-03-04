@@ -1,82 +1,131 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
-import { ContactInput } from "../../../../../components/ContactInput"
-import { fonts } from "@/components/ui/font"
-import { createBuyer } from "@/app/actions/createBuyer"
-import { redirect } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { ContactInput } from "../../../../../components/ContactInput";
+import { fonts } from "@/components/ui/font";
+import { createBuyer } from "@/app/actions/createBuyer";
+import { GETBUYER } from "@/app/actions/getbuyer";
+import { useParams, useRouter } from "next/navigation";
 
 // Static options for the status field
-const statusOptions = ["Active", "Inactive"]
+const statusOptions = ["Active", "Inactive"];
 
-// Maximum file size constant
-const MAX_FILE_SIZE = 3 * 1024 * 1024 // 3MB in bytes
+// Maximum file size constant (3MB)
+const MAX_FILE_SIZE = 3 * 1024 * 1024;
 
-// Function to convert file to base64
+// Function to convert a file to base64
 const fileToBase64 = (file) => {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = (error) => reject(error)
-  })
-}
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+};
+
+// Helper function to convert a raw phone string to an object
+const parsePhoneNumber = (phoneStr) => {
+  if (!phoneStr) return { countryCode: "", number: "" };
+  // For now, assume the entire string is the number.
+  // Add logic here if you need to extract a country code.
+  return { countryCode: "", number: phoneStr };
+};
 
 export function BuyerForm({ countries = [], industries = [], designations = [] }) {
   const [formData, setFormData] = useState({
     ccontact: { countryCode: "", number: "" },
     poccontact: { countryCode: "", number: "" },
     document: [],
-  })
-  const [errors, setErrors] = useState({})
-  const [submissionError, setSubmissionError] = useState(null)
-  const [submissionSuccess, setSubmissionSuccess] = useState(null)
+  });
+  const [errors, setErrors] = useState({});
+  const [submissionError, setSubmissionError] = useState(null);
+  const [submissionSuccess, setSubmissionSuccess] = useState(null);
 
-  // Validation function for each field
+  const params = useParams();
+  const router = useRouter();
+
+  // When in edit mode (buyerId exists and is not "new"), fetch existing buyer data.
+  useEffect(() => {
+    if (params?.buyerId && params.buyerId !== "new") {
+      async function fetchBuyer() {
+        try {
+          // Call GETBUYER with the buyer id from the URL.
+          const response = await GETBUYER({ id: params.buyerId });
+          console.log("Response from get buyer:", response);
+          if (response.success && response.buyer) {
+            const buyerData = response.buyer;
+            // Map the API's fields to our form fields.
+            setFormData({
+              buyername: buyerData.bname || "",
+              email: buyerData.email || "",
+              ccontact: parsePhoneNumber(buyerData.compcontact),
+              address: buyerData.saddress || "",
+              pocname: buyerData.pocname || "",
+              poccontact: parsePhoneNumber(buyerData.poccontact),
+              // Convert numeric status to text.
+              status: buyerData.sstatus === 1 ? "Active" : "Inactive",
+              // Convert blocked string to a boolean (assume "Blocked" means true).
+              blocked: buyerData.blocked === "Blocked",
+              country: buyerData.country || "",
+              designation: buyerData.designation || "",
+              industry: buyerData.industry || "",
+              document: [], // Documents are not returned by the API for edit.
+            });
+          }
+        } catch (error) {
+          console.error("Error fetching buyer data:", error);
+          setSubmissionError("Failed to load buyer data");
+        }
+      }
+      fetchBuyer();
+    }
+  }, [params?.buyerId]);
+
+  // Validation function for fields (example for email and phone fields).
   const validateField = (id, value) => {
-    let error = ""
+    let error = "";
     if (id === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
-      error = "Invalid email address"
+      error = "Invalid email address";
     }
-    if ((id === "ccontact") && value) {
-      const phoneNumber = typeof value === "object" ? value.number : value
+    if (id === "ccontact" && value) {
+      const phoneNumber = typeof value === "object" ? value.number : value;
       if (!phoneNumber) {
-        error = "This field is required"
+        error = "This field is required";
       } else if (/\D/.test(phoneNumber)) {
-        error = "Only numbers allowed"
+        error = "Only numbers allowed";
       } else if (phoneNumber.length > 10) {
-        error = "Maximum 10 digits allowed"
+        error = "Maximum 10 digits allowed";
       }
     }
-    // POC contact validation only if value is provided (since it's optional)
+    // Validate POC contact only if a number is provided (it's optional)
     if (id === "poccontact" && value && value.number) {
-      const phoneNumber = typeof value === "object" ? value.number : value
+      const phoneNumber = typeof value === "object" ? value.number : value;
       if (/\D/.test(phoneNumber)) {
-        error = "Only numbers allowed"
+        error = "Only numbers allowed";
       } else if (phoneNumber.length > 10) {
-        error = "Maximum 10 digits allowed"
+        error = "Maximum 10 digits allowed";
       }
     }
-    return error
-  }
+    return error;
+  };
 
-  // Handle input changes
+  // Handle input changes and update formData state.
   const handleInputChange = async (id, value) => {
     if (id === "document") {
-      const newFiles = Array.from(value)
-      const validFiles = []
-      const invalidFiles = []
+      const newFiles = Array.from(value);
+      const validFiles = [];
+      const invalidFiles = [];
 
       for (const file of newFiles) {
         if (file.size > MAX_FILE_SIZE) {
-          invalidFiles.push(file.name)
+          invalidFiles.push(file.name);
         } else {
-          validFiles.push(file)
+          validFiles.push(file);
         }
       }
 
@@ -84,9 +133,9 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
         setErrors((prev) => ({
           ...prev,
           document: `The following files exceed the 3MB limit: ${invalidFiles.join(", ")}`,
-        }))
+        }));
       } else {
-        setErrors((prev) => ({ ...prev, document: "" }))
+        setErrors((prev) => ({ ...prev, document: "" }));
       }
 
       const base64Files = await Promise.all(
@@ -95,64 +144,72 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           type: file.type,
           size: file.size,
           base64: await fileToBase64(file),
-        })),
-      )
+        }))
+      );
 
-      setFormData((prev) => ({ ...prev, [id]: [...(prev[id] || []), ...base64Files] }))
+      setFormData((prev) => ({ ...prev, document: [...(prev.document || []), ...base64Files] }));
     } else {
-      setFormData((prev) => ({ ...prev, [id]: value }))
+      setFormData((prev) => ({ ...prev, [id]: value }));
     }
 
     if (id !== "document") {
-      const error = validateField(id, value)
-      setErrors((prev) => ({ ...prev, [id]: error }))
+      const error = validateField(id, value);
+      setErrors((prev) => ({ ...prev, [id]: error }));
     }
-  }
+  };
 
-  // Handle form submission
+  // Handle form submission.
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    const formDataToSubmit = new FormData()
+    const formDataToSubmit = new FormData();
 
-    // Append all form data with the specified parameter names
-    formDataToSubmit.append("buyername", formData.buyername || "")
-    formDataToSubmit.append("email", formData.email || "")
-    formDataToSubmit.append("ccontact", `${formData.ccontact.countryCode}${formData.ccontact.number}`)
-    formDataToSubmit.append("address", formData.address || "")
-    // Optional fields - only append if they have values
+    // Append form fields using the parameter names expected by the API.
+    formDataToSubmit.append("buyername", formData.buyername || "");
+    formDataToSubmit.append("email", formData.email || "");
+    formDataToSubmit.append("ccontact", `${formData.ccontact.countryCode}${formData.ccontact.number}`);
+    formDataToSubmit.append("address", formData.address || "");
     if (formData.pocname) {
-      formDataToSubmit.append("pocname", formData.pocname)
+      formDataToSubmit.append("pocname", formData.pocname);
     }
     if (formData.poccontact && formData.poccontact.number) {
-      formDataToSubmit.append("poccontact", `${formData.poccontact.countryCode}${formData.poccontact.number}`)
+      formDataToSubmit.append("poccontact", `${formData.poccontact.countryCode}${formData.poccontact.number}`);
     }
-    formDataToSubmit.append("status", formData.status || "")
-    formDataToSubmit.append("blocked", formData.blocked || false)
-    formDataToSubmit.append("country", formData.country || "")
-    formDataToSubmit.append("designation", formData.designation || "")
-    formDataToSubmit.append("industry", formData.industry || "")
-    formDataToSubmit.append("regid", 0)
+    formDataToSubmit.append("status", formData.status || "");
+    // Convert the blocked boolean back to the string the API expects.
+    formDataToSubmit.append("blocked", formData.blocked ? "Blocked" : "Pending");
+    formDataToSubmit.append("country", formData.country || "");
+    formDataToSubmit.append("designation", formData.designation || "");
+    formDataToSubmit.append("industry", formData.industry || "");
+    // For new buyers, regid is 0. (Adjust if needed in edit mode.)
+    formDataToSubmit.append("regid", 0);
 
-    // Handle document files (optional)
+    // **Key Update Pattern:** Append extra parameters if in edit mode.
+    if (params?.buyerId && params.buyerId !== "new") {
+      formDataToSubmit.append("mode", "Edit");
+      formDataToSubmit.append("id", params.buyerId);
+    } else {
+      formDataToSubmit.append("mode", "New");
+    }
+
+    // Append document files (if any).
     if (formData.document.length > 0) {
       formData.document.forEach((file) => {
-        formDataToSubmit.append("document", JSON.stringify(file))
-      })
+        formDataToSubmit.append("document", JSON.stringify(file));
+      });
     }
 
-
-    const result = await createBuyer(formDataToSubmit)
+    const result = await createBuyer(formDataToSubmit);
 
     if (result.success) {
-      setSubmissionSuccess(result.message)
-      setSubmissionError(null)
-      redirect("/dashboard/buyer")
+      setSubmissionSuccess(result.message);
+      setSubmissionError(null);
+      router.push("/dashboard/buyer");
     } else {
-      setSubmissionError(result.message)
-      setSubmissionSuccess(null)
+      setSubmissionError(result.message);
+      setSubmissionSuccess(null);
     }
-  }
+  };
 
   return (
     <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
@@ -220,7 +277,12 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           <Label htmlFor="country">
             Country <span className="text-red-500">*</span>
           </Label>
-          <Select onValueChange={(value) => handleInputChange("country", value)} required name="country">
+          <Select
+            value={formData.country} 
+            onValueChange={(value) => handleInputChange("country", value)}
+            required
+            name="country"
+          >
             <SelectTrigger id="country">
               <SelectValue placeholder="Select Country" />
             </SelectTrigger>
@@ -239,7 +301,12 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           <Label htmlFor="industry">
             Industry <span className="text-red-500">*</span>
           </Label>
-          <Select onValueChange={(value) => handleInputChange("industry", value)} required name="industry">
+          <Select
+            value={formData.industry}
+            onValueChange={(value) => handleInputChange("industry", value)}
+            required
+            name="industry"
+          >
             <SelectTrigger id="industry">
               <SelectValue placeholder="Select Industry" />
             </SelectTrigger>
@@ -258,7 +325,12 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           <Label htmlFor="designation">
             Designation <span className="text-red-500">*</span>
           </Label>
-          <Select onValueChange={(value) => handleInputChange("designation", value)} required name="designation">
+          <Select
+            value={formData.designation}
+            onValueChange={(value) => handleInputChange("designation", value)}
+            required
+            name="designation"
+          >
             <SelectTrigger id="designation">
               <SelectValue placeholder="Select Designation" />
             </SelectTrigger>
@@ -324,8 +396,8 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          const newFiles = formData.document.filter((_, i) => i !== index)
-                          setFormData((prev) => ({ ...prev, document: newFiles }))
+                          const newFiles = formData.document.filter((_, i) => i !== index);
+                          setFormData((prev) => ({ ...prev, document: newFiles }));
                         }}
                       >
                         Remove
@@ -343,7 +415,12 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           <Label htmlFor="status">
             Status <span className="text-red-500">*</span>
           </Label>
-          <Select onValueChange={(value) => handleInputChange("status", value)} required name="status">
+          <Select
+            value={formData.status}
+            onValueChange={(value) => handleInputChange("status", value)}
+            required
+            name="status"
+          >
             <SelectTrigger id="status">
               <SelectValue placeholder="Select Status" />
             </SelectTrigger>
@@ -371,10 +448,10 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
       </div>
 
       <Button type="submit" className="w-fit">
-        Save Buyer
+        {params?.buyerId && params.buyerId !== "new" ? "Update Buyer" : "Save Buyer"}
       </Button>
       {submissionError && <p className="text-red-500">{submissionError}</p>}
       {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
     </form>
-  )
+  );
 }

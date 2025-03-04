@@ -5,9 +5,9 @@ const Buyer = async ({ params }) => {
   const isNewBuyer = buyerId === "new";
   try {
     const [countryRes, industryRes, designationRes] = await Promise.all([
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country/"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry/"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation/"),
     ]);
 
     const [countries, industries, designations] = await Promise.all([
