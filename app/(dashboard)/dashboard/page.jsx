@@ -6,10 +6,12 @@ import { GETCOUNT } from "@/app/actions/getcount";
 
 export default async function Dashboard() {
 
-  const response = await GETCOUNT()
-  const dashboard = response?.Dashboard || [];  
-  console.log("Response getting from server :", dashboard);
-  const { sellers, buyers, products, rfq} = dashboard[0];
+
+  const response = await GETCOUNT();
+  const dashboard = response?.Dashboard || [];
+  const { sellers, buyers, products, rfq } = dashboard[0];
+
+
 
   return (
     <div className={`${fonts.montserrat} space-y-6`}>

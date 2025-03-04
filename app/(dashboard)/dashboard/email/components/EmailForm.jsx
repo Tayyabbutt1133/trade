@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
 import { createEmailTemplate } from "@/app/actions/createEmailTemplate"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
 
 const positionOptions = [
   { value: "left", label: "Left" },
@@ -55,6 +55,8 @@ export function EmailForm({emailId, initialData = null}) {
   const [existingFootLogo, setExistingFootLogo] = useState(null)
   const [headLogoChanged, setHeadLogoChanged] = useState(false)
   const [footLogoChanged, setFootLogoChanged] = useState(false)
+
+  const router = useRouter();
 
   // Load initial data if available
   useEffect(() => {
@@ -173,7 +175,7 @@ export function EmailForm({emailId, initialData = null}) {
       if (result.success) {
         setSubmissionSuccess(result.message)
         setSubmissionError(null)
-        redirect("/dashboard/email")
+        router.push("/dashboard/email")
       } else {
         setSubmissionError(result.message)
         setSubmissionSuccess(null)

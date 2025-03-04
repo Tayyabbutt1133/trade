@@ -14,18 +14,18 @@ const columns = [
   { accessorKey: "email", header: "Email" },
   { accessorKey: "role", header: "Role" },
   { accessorKey: "status", header: "Status" },
-  {
-    header: "Actions",
-    cell: ({ row }) => (
-      <Button
-        onClick={() => handleEditUser(row.original)}
-        size="sm"
-        variant="secondary"
-      >
-        <Edit className="h-4 w-4" />
-      </Button>
-    ),
-  },
+  // {
+  //   header: "Actions",
+  //   cell: ({ row }) => (
+  //     <Button
+  //       onClick={() => handleEditUser(row.original)}
+  //       size="sm"
+  //       variant="secondary"
+  //     >
+  //       <Edit className="h-4 w-4" />
+  //     </Button>
+  //   ),
+  // },
 ];
 export default function UsersPage() {
 
