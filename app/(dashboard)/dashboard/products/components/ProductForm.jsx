@@ -5,12 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { FunctionInput } from "./FunctionInput";
 import { ImageUpload } from "./ImageUpload";
 import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog";
-import { existingFunctions } from "../_data";
 import { createProduct } from "@/app/actions/createProduct";
-import { useRouter } from "next/navigation";
+import { redirect, replace } from "next/navigation";
 
 export function ProductForm({
   initialBrandOptions = [],
@@ -18,7 +16,6 @@ export function ProductForm({
   initialData = null,
   productId,
 }) {
-  const router = useRouter();
   const isEditMode = productId && productId !== "new";
 
   const [formData, setFormData] = useState({
@@ -121,10 +118,7 @@ export function ProductForm({
     ) {
       // No need to set anything here, just having the correct value in formData is enough
       // This useEffect ensures we don't have timing issues with the dependent dropdowns
-      console.log(
-        "Subcategories loaded with initial subcategory:",
-        initialData.subcategory
-      );
+    
     }
   }, [subcategoriesOption, initialData, isLoading]);
 
@@ -267,7 +261,6 @@ export function ProductForm({
   const handleSubcategoryChange = async (newValue) => {
     handleInputChange("subcategory", newValue.subcategory);
   };
-  console.log(formData);
   // Handle form submission
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -296,23 +289,6 @@ export function ProductForm({
     ) {
       formDataToSubmit.append("logby", userData.id);
     }
-
-    // // Append category IDs for the backend
-    // if (selectedCategoryId) {
-    //   formDataToSubmit.append("catid", selectedCategoryId);
-    // }
-    // if (selectedMainCategoryId) {
-    //   formDataToSubmit.append("maincatid", selectedMainCategoryId);
-    // }
-    // if (formData.subcategory) {
-    //   // Find the subcategory ID
-    //   const subcategoryObj = subcategoriesOption.find(
-    //     subCat => subCat.subcategory === formData.subcategory
-    //   );
-    //   if (subcategoryObj && subcategoryObj.id) {
-    //     formDataToSubmit.append("subcatid", subcategoryObj.id);
-    //   }
-    // }
 
     // Append mode based on whether this is a new product or an edit
     if (isEditMode) {
@@ -352,7 +328,7 @@ export function ProductForm({
 
         // Wait a moment before redirecting so user can see success message
         setTimeout(() => {
-          router.push("/dashboard/products");
+          redirect(`/dashboard/products/${result.data.id}`);
         }, 1000);
       } else {
         setSubmissionError(result.message);

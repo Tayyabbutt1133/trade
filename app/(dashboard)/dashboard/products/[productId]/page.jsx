@@ -2,6 +2,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ProductForm } from "../components/ProductForm";
 import { DescriptionListForm } from "../components/DescriptionListForm";
+import { FileUploadForm } from "../components/FileUploadForm";
+import PropertyTable from "../components/PropertyTable";
 
 export default async function ProductDetail({ params }) {
   const productId = (await params).productId;
@@ -19,6 +21,7 @@ export default async function ProductDetail({ params }) {
 
   // If editing existing product, fetch its data
   let productData = null;
+  let productSpecs = null
   if (!isNewProduct) {
     try {
       const formData = new FormData();
@@ -40,6 +43,9 @@ export default async function ProductDetail({ params }) {
       if (data && data.Product && data.Product.length > 0) {
         productData = data.Product[0];
       }
+      if (data && data["Product Specs"] && data["Product Specs"].length > 0) {
+        productSpecs = data["Product Specs"]
+      }
     } catch (error) {
       console.error("Error fetching product data:", error);
     }
@@ -51,13 +57,21 @@ export default async function ProductDetail({ params }) {
         {isNewProduct ? "Add Product" : "Edit Product"}
       </h1>
       <Tabs defaultValue="product" className="w-full">
-        <TabsList className="flex w-full max-w-md overflow-x-auto">
+        <TabsList className="flex w-full">
           <TabsTrigger value="product" className="flex-1 min-w-[80px]">
             <span className="hidden sm:inline">Product</span>
             <span className="sm:hidden">Prod</span>
           </TabsTrigger>
           <TabsTrigger value="details" className="flex-1 min-w-[80px]">
-            Details
+              Details
+          </TabsTrigger>
+          <TabsTrigger value="document" className="flex-1 min-w-[80px]">
+            <span className="hidden sm:inline">Document</span>
+            <span className="sm:hidden">Docs</span>
+          </TabsTrigger>
+          <TabsTrigger value="specification" className="flex-1 min-w-[80px]">
+            <span className="hidden sm:inline">Specification</span>
+            <span className="sm:hidden">Specs</span>
           </TabsTrigger>
         </TabsList>
         <div className="mt-6">
@@ -74,6 +88,12 @@ export default async function ProductDetail({ params }) {
               productId={productId}
               initialData={productData}
             />
+          </TabsContent>
+          <TabsContent value="document">
+            <FileUploadForm />
+          </TabsContent>
+          <TabsContent value="specification">
+            <PropertyTable initialData={productSpecs}/>
           </TabsContent>
         </div>
       </Tabs>
