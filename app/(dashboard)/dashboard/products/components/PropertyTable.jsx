@@ -106,7 +106,7 @@ export default function PropertyTable({initialData}) {
   return (
     <Card className="w-full">
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Properties Table</CardTitle>
+        <CardTitle>Enhance TDS</CardTitle>
         <Button onClick={addRow} size="sm" className="flex items-center gap-1">
           <Plus className="h-4 w-4" /> Add Row
         </Button>
@@ -115,8 +115,8 @@ export default function PropertyTable({initialData}) {
         <div className="space-y-4">
           {/* Header */}
           <div className="grid grid-cols-12 gap-4 font-medium text-sm border-b pb-2">
-            <div className="col-span-3">Property</div>
-            <div className="col-span-3">Value</div>
+            <div className="col-span-3">Heading</div>
+            <div className="col-span-3">Label</div>
             <div className="col-span-5">Description</div>
             <div className="col-span-1"></div>
           </div>
@@ -126,14 +126,14 @@ export default function PropertyTable({initialData}) {
             <div key={row.id} className="grid grid-cols-12 gap-4 items-start">
               <div className="col-span-3">
                 <Input 
-                  placeholder="Property name" 
+                  placeholder="Heading name" 
                   value={row.property} 
                   onChange={(e) => updateRow(row.id, "property", e.target.value)} 
                 />
               </div>
               <div className="col-span-3">
                 <Input 
-                  placeholder="Value" 
+                  placeholder="Lable name" 
                   value={row.value} 
                   onChange={(e) => updateRow(row.id, "value", e.target.value)} 
                 />

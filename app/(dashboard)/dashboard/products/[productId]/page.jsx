@@ -62,9 +62,9 @@ export default async function ProductDetail({ params }) {
             <span className="hidden sm:inline">Product</span>
             <span className="sm:hidden">Prod</span>
           </TabsTrigger>
-          <TabsTrigger value="details" className="flex-1 min-w-[80px]">
+          {/* <TabsTrigger value="details" className="flex-1 min-w-[80px]">
               Details
-          </TabsTrigger>
+          </TabsTrigger> */}
           <TabsTrigger value="document" className="flex-1 min-w-[80px]">
             <span className="hidden sm:inline">Document</span>
             <span className="sm:hidden">Docs</span>
