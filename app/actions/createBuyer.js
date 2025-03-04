@@ -1,5 +1,7 @@
 "use server"
 export const createBuyer = async (formData) => {
+
+  console.log("Buyer response recieved at server :", formData);
   try {
     // Use the correct singular "buyer" endpoint
     const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/buyer/", 

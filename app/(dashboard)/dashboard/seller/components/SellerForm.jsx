@@ -89,7 +89,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
   // Validation function for each field.
   const validateField = (id, value) => {
     let error = "";
-    if (id === "seller-email" && value && !/\S+@\S+\.\S+/.test(value)) {
+    if (id === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
       error = "Invalid email address";
     }
     if ((id === "seller-company-contact" || id === "poc-contact") && value) {
@@ -159,7 +159,10 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     formDataToSubmit.append("sellername", formData.sellername || "");
     formDataToSubmit.append("email", formData.email || "");
     if (formData["seller-company-contact"]) {
-      formDataToSubmit.set("ccontact", `${formData["seller-company-contact"].countryCode}${formData["seller-company-contact"].number}`);
+      formDataToSubmit.set(
+        "ccontact",
+        `${formData["seller-company-contact"].countryCode}${formData["seller-company-contact"].number}`
+      );
     }
     formDataToSubmit.append("address", formData.address || "");
     formDataToSubmit.append("country", formData.country || "");
@@ -167,18 +170,22 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     formDataToSubmit.append("designation", formData.designation || "");
     formDataToSubmit.append("pocname", formData.pocname || "");
     if (formData["poc-contact"]) {
-      formDataToSubmit.set("poccontact", `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`);
+      formDataToSubmit.set(
+        "poccontact",
+        `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`
+      );
     }
     formDataToSubmit.append("status", formData.status || "");
     // Convert the blocked boolean back to the string the API expects.
     formDataToSubmit.append("blocked", formData.blocked ? "Blocked" : "Pending");
-    formDataToSubmit.append("regid", 0);
 
-    // **Key Update Pattern:** Append extra parameters if in edit mode.
+    // **Key Update Pattern:**
+    // If in edit mode, pass the seller id from params as regid.
     if (params?.sellerId && params.sellerId !== "new") {
+      formDataToSubmit.append("regid", params.sellerId);
       formDataToSubmit.append("mode", "Edit");
-      formDataToSubmit.append("id", params.sellerId);
     } else {
+      formDataToSubmit.append("regid", 0);
       formDataToSubmit.append("mode", "New");
     }
 
@@ -229,7 +236,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
             name="email"
             type="email"
             value={formData.email || ""}
-            onChange={(e) => handleInputChange("seller-email", e.target.value)}
+            onChange={(e) => handleInputChange("email", e.target.value)}
             required
           />
         </div>
