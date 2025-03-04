@@ -9,6 +9,7 @@ export async function GETCOUNT() {
         headers: {
             "Content-Type": "application/json"
         },
+        cache: "no-store"
     });
 
     const jsonCount = response.json();
