@@ -1,95 +1,142 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle2, Loader2, X } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { fonts } from "@/components/ui/font";
 
 export function FileUploadForm() {
-  // Get productId from URL params
   const params = useParams();
   const productId = params.productId;
   console.log("Product ID:", productId);
 
-  // States for each file section
-  const [sdsFile, setSdsFile] = useState(null);            // 1 file
-  const [tdsFile, setTdsFile] = useState(null);            // 1 file
-  const [productionFiles, setProductionFiles] = useState([]); // up to 5 files
+  // Store user data (includes id, type, etc.)
+  const [userData, setUserData] = useState(null);
 
-  // Upload progress & status
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(false);
-  const [uploadResults, setUploadResults] = useState([]);
+  // Separate states for TDS and SDS files
+  const [tdsFile, setTdsFile] = useState(null);
+  const [sdsFile, setSdsFile] = useState(null);
 
-  // -- Handle File Changes --------------------------------------------------
+  // UI states for TDS
+  const [isUploadingTDS, setIsUploadingTDS] = useState(false);
+  const [uploadProgressTDS, setUploadProgressTDS] = useState(0);
+  const [errorTDS, setErrorTDS] = useState(null);
+  const [successTDS, setSuccessTDS] = useState(false);
+  const [uploadResultsTDS, setUploadResultsTDS] = useState([]);
 
-  // SDS (Safety Data Sheet) - single file
-  const handleSdsFileChange = useCallback((e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      setSdsFile(e.target.files[0]);
-      setError(null);
-      setSuccess(false);
+  // UI states for SDS
+  const [isUploadingSDS, setIsUploadingSDS] = useState(false);
+  const [uploadProgressSDS, setUploadProgressSDS] = useState(0);
+  const [errorSDS, setErrorSDS] = useState(null);
+  const [successSDS, setSuccessSDS] = useState(false);
+  const [uploadResultsSDS, setUploadResultsSDS] = useState([]);
+
+  // For Product Certification – 5 separate file slots.
+  const initialProductCertState = Array.from({ length: 5 }, () => ({
+    file: null,
+    isUploading: false,
+    progress: 0,
+    error: null,
+    success: false,
+    result: null,
+  }));
+  const [productCertUploads, setProductCertUploads] = useState(initialProductCertState);
+
+  // ─────────────────────────────────────────────────────────────
+  // 1. Fetch User Data
+  // ─────────────────────────────────────────────────────────────
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("/api/auth/user");
+      const data = await response.json();
+      if (data?.userData) {
+        setUserData(data.userData);
+        console.log("Fetched user data:", data.userData);
+      }
+    } catch (err) {
+      console.error("Error fetching user data:", err);
     }
+  };
+
+  useEffect(() => {
+    fetchUserData();
   }, []);
 
-  // TDS (Technical Data Sheet) - single file
+  // ─────────────────────────────────────────────────────────────
+  // 2. Handle File Changes for TDS, SDS, & Product Certification
+  // ─────────────────────────────────────────────────────────────
   const handleTdsFileChange = useCallback((e) => {
-    if (e.target.files && e.target.files.length > 0) {
+    if (e.target.files?.length) {
       setTdsFile(e.target.files[0]);
-      setError(null);
-      setSuccess(false);
+      setErrorTDS(null);
+      setSuccessTDS(false);
     }
   }, []);
 
-  // Production certifications - up to 5 files
-  const handleProductionFileChange = useCallback((e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files);
-      setProductionFiles((prev) => {
-        const combined = [...prev, ...newFiles];
-        return combined.slice(0, 5); // limit to 5
-      });
-      setError(null);
-      setSuccess(false);
+  const handleSdsFileChange = useCallback((e) => {
+    if (e.target.files?.length) {
+      setSdsFile(e.target.files[0]);
+      setErrorSDS(null);
+      setSuccessSDS(false);
     }
-  }, []);
-
-  // Remove selected file(s)
-  const removeSdsFile = useCallback(() => {
-    setSdsFile(null);
-    setSuccess(false);
-    setError(null);
   }, []);
 
   const removeTdsFile = useCallback(() => {
     setTdsFile(null);
-    setSuccess(false);
-    setError(null);
+    setSuccessTDS(false);
+    setErrorTDS(null);
   }, []);
 
-  const removeProductionFile = useCallback((index) => {
-    setProductionFiles((prev) => prev.filter((_, i) => i !== index));
-    setSuccess(false);
-    setError(null);
+  const removeSdsFile = useCallback(() => {
+    setSdsFile(null);
+    setSuccessSDS(false);
+    setErrorSDS(null);
   }, []);
 
-  // -- Convert File to Base64 ----------------------------------------------
+  const handleProductCertFileChange = useCallback((index, e) => {
+    if (e.target.files?.length) {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index] = {
+          ...updated[index],
+          file: e.target.files[0],
+          error: null,
+          success: false,
+        };
+        return updated;
+      });
+    }
+  }, []);
 
+  const removeProductCertFile = useCallback((index) => {
+    setProductCertUploads((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], file: null, error: null, success: false };
+      return updated;
+    });
+  }, []);
+
+  // ─────────────────────────────────────────────────────────────
+  // 3. Convert File to Base64 (common)
+  // ─────────────────────────────────────────────────────────────
   const convertToBase64 = useCallback((file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          // Remove the 'data:...' prefix if needed
           const base64String = reader.result.split(",")[1];
           resolve(base64String);
         } else {
@@ -100,8 +147,9 @@ export function FileUploadForm() {
     });
   }, []);
 
-  // -- Upload a Single File -----------------------------------------------
-
+  // ─────────────────────────────────────────────────────────────
+  // 4. Common Upload Function (for any file)
+  // ─────────────────────────────────────────────────────────────
   const uploadFile = useCallback(
     async (file, filenameLabel) => {
       try {
@@ -110,24 +158,50 @@ export function FileUploadForm() {
           throw new Error(`${file.name} exceeds the 3MB limit`);
         }
 
+        // Convert file to base64
         const base64 = await convertToBase64(file);
         if (!base64 || typeof base64 !== "string") {
           throw new Error(`Invalid file content for ${file.name}`);
         }
 
-        // Build FormData
+        // Determine filetype from extension
+        const extension = file.name.split(".").pop().toLowerCase();
+        let filetype = "Other";
+        if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension)) {
+          filetype = "Image";
+        } else if (extension === "pdf") {
+          filetype = "Pdf";
+        } else if (["doc", "docx"].includes(extension)) {
+          filetype = "Doc";
+        }
+        console.log("Detected filetype:", filetype);
+
+        // For Product Certification, ensure only images are allowed.
+        if (filenameLabel.startsWith("Product Certification") && filetype !== "Image") {
+          throw new Error("Product Certification files must be in image format (png, jpg, jpeg, gif, bmp, webp).");
+        }
+
+        // Use the user id as logby
+        const logby = userData?.id || "UnknownUser";
+        console.log("Using logby:", logby);
+
         const formData = new FormData();
         formData.append("productid", productId || "");
         formData.append("file", base64);
-        formData.append("filename", filenameLabel);
+        formData.append("filename", filenameLabel); // "TDS", "SDS", or "Product Certification X"
+        formData.append("ext", extension);
+        formData.append("logby", logby);
+        formData.append("filetype", filetype);
 
-        // POST to your API
+        // Log FormData entries
+        console.log("FormData payload:");
+        for (const [key, value] of formData.entries()) {
+          console.log(`${key}:`, value);
+        }
+
         const response = await fetch(
           "https://tradetoppers.esoftideas.com/esi-api/requests/products/default2.aspx",
-          {
-            method: "POST",
-            body: formData,
-          }
+          { method: "POST", body: formData }
         );
 
         const text = await response.text();
@@ -138,7 +212,6 @@ export function FileUploadForm() {
           throw new Error(`Server returned invalid response: ${text}`);
         }
 
-        // Check for server-side error
         if (data.Response && data.Response.includes("Error:")) {
           throw new Error(data.Response);
         }
@@ -161,120 +234,172 @@ export function FileUploadForm() {
         };
       }
     },
-    [convertToBase64, productId]
+    [convertToBase64, productId, userData]
   );
 
-  // -- Handle Form Submission ---------------------------------------------
-
-  const handleSubmit = async (e) => {
+  // ─────────────────────────────────────────────────────────────
+  // 5. Handle TDS Submit
+  // ─────────────────────────────────────────────────────────────
+  const handleTdsSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate presence of SDS, TDS, and exactly 5 production files
-    if (!sdsFile) {
-      setError("Please upload the SDS (Safety Data Sheet) file");
-      return;
-    }
     if (!tdsFile) {
-      setError("Please upload the TDS (Technical Data Sheet) file");
-      return;
-    }
-    if (productionFiles.length !== 5) {
-      setError("Please upload exactly 5 production certification files");
+      setErrorTDS("Please upload the TDS (Technical Data Sheet) file");
       return;
     }
     if (!productId) {
-      setError("Product ID is missing. Please ensure you're on the correct page.");
+      setErrorTDS("Product ID is missing. Please ensure you're on the correct page.");
       return;
     }
-
-    setIsUploading(true);
-    setUploadProgress(0);
-    setError(null);
-    setSuccess(false);
-    setUploadResults([]);
-
+    if (!userData?.id) {
+      setErrorTDS("User ID not found. Please ensure you're logged in.");
+      return;
+    }
+    setIsUploadingTDS(true);
+    setUploadProgressTDS(0);
+    setErrorTDS(null);
+    setSuccessTDS(false);
+    setUploadResultsTDS([]);
     try {
-      const results = [];
-      const totalFiles = 1 + 1 + productionFiles.length; // 1 SDS + 1 TDS + 5 production
-
-      // 1) Upload SDS first
-      const sdsResult = await uploadFile(sdsFile, "SDS (Safety Data Sheet)");
-      results.push(sdsResult);
-      setUploadProgress((1 / totalFiles) * 100);
-
-      // 2) Upload TDS second
-      const tdsResult = await uploadFile(tdsFile, "TDS (Technical Data Sheet)");
-      results.push(tdsResult);
-      setUploadProgress((2 / totalFiles) * 100);
-
-      // 3) Upload production files last
-      for (let i = 0; i < productionFiles.length; i++) {
-        const label = `Production certification ${i + 1}`;
-        const result = await uploadFile(productionFiles[i], label);
-        results.push(result);
-        setUploadProgress(((2 + (i + 1)) / totalFiles) * 100);
-      }
-
-      setUploadResults(results);
-
-      // Check if all were successful
-      const allSuccessful = results.every((r) => r.success);
-      if (allSuccessful) {
-        setSuccess(true);
+      const result = await uploadFile(tdsFile, "TDS");
+      setUploadProgressTDS(100);
+      setUploadResultsTDS([result]);
+      if (result.success) {
+        setSuccessTDS(true);
       } else {
-        const failed = results.filter((r) => !r.success);
-        const errMsg = failed.map((r) => `${r.file}: ${r.message}`).join("\n");
-        setError(`Some files failed to upload:\n${errMsg}`);
+        setErrorTDS(`File failed to upload: ${result.message}`);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      setErrorTDS(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
-      setIsUploading(false);
+      setIsUploadingTDS(false);
     }
   };
 
+  // ─────────────────────────────────────────────────────────────
+  // 6. Handle SDS Submit
+  // ─────────────────────────────────────────────────────────────
+  const handleSdsSubmit = async (e) => {
+    e.preventDefault();
+    if (!sdsFile) {
+      setErrorSDS("Please upload the SDS (Safety Data Sheet) file");
+      return;
+    }
+    if (!productId) {
+      setErrorSDS("Product ID is missing. Please ensure you're on the correct page.");
+      return;
+    }
+    if (!userData?.id) {
+      setErrorSDS("User ID not found. Please ensure you're logged in.");
+      return;
+    }
+    setIsUploadingSDS(true);
+    setUploadProgressSDS(0);
+    setErrorSDS(null);
+    setSuccessSDS(false);
+    setUploadResultsSDS([]);
+    try {
+      const result = await uploadFile(sdsFile, "SDS");
+      setUploadProgressSDS(100);
+      setUploadResultsSDS([result]);
+      if (result.success) {
+        setSuccessSDS(true);
+      } else {
+        setErrorSDS(`File failed to upload: ${result.message}`);
+      }
+    } catch (err) {
+      setErrorSDS(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setIsUploadingSDS(false);
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 7. Handle Product Certification Upload (for each slot)
+  // ─────────────────────────────────────────────────────────────
+  const handleProductCertUpload = async (index, e) => {
+    e.preventDefault();
+    const cert = productCertUploads[index];
+    if (!cert.file) {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].error = `Please upload Product Certification ${index + 1} file.`;
+        return updated;
+      });
+      return;
+    }
+    if (!productId) {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].error = "Product ID is missing.";
+        return updated;
+      });
+      return;
+    }
+    if (!userData?.id) {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].error = "User ID not found.";
+        return updated;
+      });
+      return;
+    }
+    // Mark upload in progress for this certification
+    setProductCertUploads((prev) => {
+      const updated = [...prev];
+      updated[index].isUploading = true;
+      updated[index].progress = 0;
+      updated[index].error = null;
+      updated[index].success = false;
+      return updated;
+    });
+    try {
+      const result = await uploadFile(cert.file, `Product Certification ${index + 1}`);
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].progress = 100;
+        updated[index].result = result;
+        updated[index].success = result.success;
+        if (!result.success) {
+          updated[index].error = `Upload failed: ${result.message}`;
+        }
+        return updated;
+      });
+    } catch (err) {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].error = err instanceof Error ? err.message : "An unknown error occurred";
+        return updated;
+      });
+    } finally {
+      setProductCertUploads((prev) => {
+        const updated = [...prev];
+        updated[index].isUploading = false;
+        return updated;
+      });
+    }
+  };
+
+  // ─────────────────────────────────────────────────────────────
+  // 8. Render the Form
+  // ─────────────────────────────────────────────────────────────
   return (
     <Card className={`w-full ${fonts.montserrat}`}>
       <CardHeader>
         <CardTitle>Upload Certification Files</CardTitle>
-        <CardDescription>Please upload the required files.</CardDescription>
+        <CardDescription>
+          Upload your TDS, SDS, and Product Certification files individually.
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SDS Section */}
-          <div className="space-y-2">
-            <Label className="font-bold">SDS (Safety Data Sheet)</Label>
-            <Input
-              type="file"
-              onChange={handleSdsFileChange}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              disabled={isUploading || sdsFile !== null}
-              className="cursor-pointer"
-            />
-            {sdsFile && (
-              <div className="flex items-center justify-between p-2 border rounded-md">
-                <span className="truncate max-w-[80%]">{sdsFile.name}</span>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={removeSdsFile}
-                  disabled={isUploading}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-
+        <form className="space-y-10">
           {/* TDS Section */}
-          <div className="space-y-2">
+          <div className="space-y-4">
             <Label className="font-bold">TDS (Technical Data Sheet)</Label>
             <Input
               type="file"
               onChange={handleTdsFileChange}
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              disabled={isUploading || tdsFile !== null}
+              disabled={isUploadingTDS || tdsFile !== null}
               className="cursor-pointer"
             />
             {tdsFile && (
@@ -285,126 +410,196 @@ export function FileUploadForm() {
                   variant="ghost"
                   size="icon"
                   onClick={removeTdsFile}
-                  disabled={isUploading}
+                  disabled={isUploadingTDS}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             )}
+            {isUploadingTDS && (
+              <div className="space-y-2">
+                <Label>Upload Progress</Label>
+                <Progress value={uploadProgressTDS} className="h-2" />
+                <p className="text-sm text-muted-foreground text-center">
+                  {Math.round(uploadProgressTDS)}% Complete
+                </p>
+              </div>
+            )}
+            {errorTDS && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription className="whitespace-pre-line">
+                  {errorTDS}
+                </AlertDescription>
+              </Alert>
+            )}
+            {successTDS && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>
+                  TDS file uploaded successfully.
+                </AlertDescription>
+              </Alert>
+            )}
+            <Button
+              onClick={handleTdsSubmit}
+              className="w-full mt-2"
+              disabled={isUploadingTDS || !tdsFile || !productId}
+            >
+              {isUploadingTDS ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading TDS...
+                </>
+              ) : (
+                "Upload TDS File"
+              )}
+            </Button>
           </div>
 
-          {/* Production Certifications Section */}
-          <div className="space-y-2">
-            <Label className="font-bold">Production Certifications (5 files)</Label>
+          {/* SDS Section */}
+          <div className="space-y-4">
+            <Label className="font-bold">SDS (Safety Data Sheet)</Label>
             <Input
               type="file"
-              multiple
-              onChange={handleProductionFileChange}
+              onChange={handleSdsFileChange}
               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-              disabled={isUploading || productionFiles.length >= 5}
+              disabled={isUploadingSDS || sdsFile !== null}
               className="cursor-pointer"
             />
-            <p className="text-sm text-muted-foreground">
-              Upload exactly 5 production certification files.
-            </p>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {productionFiles.map((file, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-2 border rounded-md"
+            {sdsFile && (
+              <div className="flex items-center justify-between p-2 border rounded-md">
+                <span className="truncate max-w-[80%]">{sdsFile.name}</span>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={removeSdsFile}
+                  disabled={isUploadingSDS}
                 >
-                  <span className="truncate max-w-[80%]">{file.name}</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeProductionFile(index)}
-                    disabled={isUploading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+            {isUploadingSDS && (
+              <div className="space-y-2">
+                <Label>Upload Progress</Label>
+                <Progress value={uploadProgressSDS} className="h-2" />
+                <p className="text-sm text-muted-foreground text-center">
+                  {Math.round(uploadProgressSDS)}% Complete
+                </p>
+              </div>
+            )}
+            {errorSDS && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription className="whitespace-pre-line">
+                  {errorSDS}
+                </AlertDescription>
+              </Alert>
+            )}
+            {successSDS && (
+              <Alert className="bg-green-50 text-green-800 border-green-200">
+                <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>
+                  SDS file uploaded successfully.
+                </AlertDescription>
+              </Alert>
+            )}
+            <Button
+              onClick={handleSdsSubmit}
+              className="w-full mt-2"
+              disabled={isUploadingSDS || !sdsFile || !productId}
+            >
+              {isUploadingSDS ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Uploading SDS...
+                </>
+              ) : (
+                "Upload SDS File"
+              )}
+            </Button>
           </div>
 
-          {/* Upload Progress */}
-          {isUploading && (
-            <div className="space-y-2">
-              <Label>Upload Progress</Label>
-              <Progress value={uploadProgress} className="h-2" />
-              <p className="text-sm text-muted-foreground text-center">
-                {Math.round(uploadProgress)}% Complete
-              </p>
-            </div>
-          )}
-
-          {/* Error Alert */}
-          {error && (
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Error</AlertTitle>
-              <AlertDescription className="whitespace-pre-line">
-                {error}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Success Alert */}
-          {success && (
-            <Alert className="bg-green-50 text-green-800 border-green-200">
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-              <AlertTitle>Success</AlertTitle>
-              <AlertDescription>
-                All certification files have been uploaded successfully.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Upload Results */}
-          {uploadResults.length > 0 && !success && !isUploading && (
-            <div className="space-y-2 text-sm border rounded-md p-3">
-              <p className="font-medium">Upload Results:</p>
-              <ul className="space-y-1">
-                {uploadResults.map((result, index) => (
-                  <li
-                    key={index}
-                    className={`flex items-center ${
-                      result.success ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {result.success ? (
-                      <CheckCircle2 className="h-3 w-3 mr-1" />
-                    ) : (
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                    )}
-                    {result.file}: {result.message}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-
-          <Button
-            type="submit"
-            className="w-full mt-6"
-            disabled={
-              isUploading ||
-              !sdsFile ||
-              !tdsFile ||
-              productionFiles.length !== 5 ||
-              !productId
-            }
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Uploading...
-              </>
-            ) : (
-              "Upload Certification Files"
-            )}
-          </Button>
+          {/* Product Certification Section */}
+          <div className="space-y-6">
+            <Label className="font-bold">
+              Product Certification (5 files required - images only)
+            </Label>
+            {productCertUploads.map((cert, index) => (
+              <div key={index} className="space-y-2 border p-4 rounded-md">
+                <Label>Product Certification {index + 1}</Label>
+                <Input
+                  type="file"
+                  onChange={(e) => handleProductCertFileChange(index, e)}
+                  // Only allow images in the file selector
+                  accept=".png,.jpg,.jpeg,.gif,.bmp,.webp"
+                  disabled={cert.isUploading || cert.file !== null}
+                  className="cursor-pointer"
+                />
+                {cert.file && (
+                  <div className="flex items-center justify-between p-2 border rounded-md">
+                    <span className="truncate max-w-[80%]">{cert.file.name}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeProductCertFile(index)}
+                      disabled={cert.isUploading}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
+                {cert.isUploading && (
+                  <div className="space-y-2">
+                    <Label>Upload Progress</Label>
+                    <Progress value={cert.progress} className="h-2" />
+                    <p className="text-sm text-muted-foreground text-center">
+                      {Math.round(cert.progress)}% Complete
+                    </p>
+                  </div>
+                )}
+                {cert.error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Error</AlertTitle>
+                    <AlertDescription className="whitespace-pre-line">
+                      {cert.error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {cert.success && (
+                  <Alert className="bg-green-50 text-green-800 border-green-200">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <AlertTitle>Success</AlertTitle>
+                    <AlertDescription>
+                      Product Certification {index + 1} uploaded successfully.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                <Button
+                  onClick={(e) => handleProductCertUpload(index, e)}
+                  className="w-full mt-2"
+                  disabled={cert.isUploading || !cert.file || !productId}
+                >
+                  {cert.isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Uploading Product Certification {index + 1}...
+                    </>
+                  ) : (
+                    `Upload Product Certification ${index + 1}`
+                  )}
+                </Button>
+              </div>
+            ))}
+          </div>
         </form>
       </CardContent>
     </Card>

@@ -5,13 +5,10 @@ import ProductsGrid from "../../[category]/components/ProductsGrid";
 import SuppliersGrid from "../../[category]/components/SupplierGrid/SuppliersGrid";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 
-
-
 const Page = async ({ params }) => {
   const { topmenu } = await params;
   const decodedcategory = decodeURIComponent(topmenu);
   console.log(decodedcategory);
-  // console.log("data in menubar:",decodedcategory);
 
   const maincatid = "";
   const subcatid = "";
@@ -27,29 +24,35 @@ const Page = async ({ params }) => {
     logby
   );
 
-  // console.log("Actual response data:", fetchProducts);
-  // This will make a check that if we have product, is it array then only we need to fetch because that is how out mechanism is set further
+  // Ensure we have an array of products
   const isfetchProductsArray = Array.isArray(fetchProducts?.data?.Product)
     ? fetchProducts.data.Product
     : [];
-  // console.log("Top Category data:", isfetchProductsArray);
-  const totalProducts = isfetchProductsArray.length;
-  // console.log("Total Products :", totalProducts);
+
+  // Fisher-Yates shuffle function
+  function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+  }
+
+  // Create a copy of the array and shuffle it
+  const shuffledProducts = shuffleArray([...isfetchProductsArray]);
+  const totalProducts = shuffledProducts.length;
 
   return (
-    <>
-      <Container className="my-10 space-y-10">
-        <ProductCategoryHeader category={decodedcategory} />
-        {/* <SearchBar placeholder={`Search ${decodedcategory}`} /> */}
-        {/* <CategoryFilters decodedcategory={decodedcategory} /> */}
-        <ProductsGrid
-          products={isfetchProductsArray}
-          categoryName={decodedcategory}
-          totalProducts={totalProducts}
-        />
-        {/* <SuppliersGrid /> */}
-      </Container>
-    </>
+    <Container className="my-10 space-y-10">
+      <ProductCategoryHeader category={decodedcategory} />
+      {/* Optionally, add your SearchBar or CategoryFilters here */}
+      <ProductsGrid
+        products={shuffledProducts}
+        categoryName={decodedcategory}
+        totalProducts={totalProducts}
+      />
+      {/* <SuppliersGrid /> */}
+    </Container>
   );
 };
 

@@ -36,22 +36,20 @@ export default function ProductsPage() {
   useEffect(() => {
     const fetchProductData = async () => {
       const userRes = await fetch("/api/auth/user")
-      const {id, type} = (await userRes.json()).userData
-
+      const { id, type } = (await userRes.json()).userData
       const formData = new FormData();
-      formData.append("productid", "0");
-      formData.append("maincatid", "0");
-      formData.append("catid", "0");
-      formData.append("subcatid", "0");
+      formData.append("productid", "");
+      formData.append("maincatid", "");
+      formData.append("catid", "");
+      formData.append("subcatid", "");
 
-      // productid: maincatid: catid: subcatid: logby: 0;
 
       if (type === "Seller" || type === "buyer") {
         formData.append("logby", id);
       } else {
-        formData.append("logby", "0");
+        formData.append("logby", 0);
       }
-
+      // console.log("Product Form data:", formData);
 
 
       try {
@@ -62,6 +60,7 @@ export default function ProductsPage() {
           }
         );
         const data = await res.json();
+        console.log("Product data:",data);
 
         // Transform the data to match column accessors
         const transformedData = data.Product?.map((product) => ({
