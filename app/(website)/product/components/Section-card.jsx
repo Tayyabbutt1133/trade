@@ -1,5 +1,3 @@
-import PropTypes from 'prop-types'
-
 export function SectionCard({ title, children }) {
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
@@ -10,9 +8,3 @@ export function SectionCard({ title, children }) {
     </div>
   )
 }
-
-SectionCard.propTypes = {
-  title: PropTypes.string.isRequired,
-  children: PropTypes.node.isRequired
-}
-
