@@ -164,7 +164,7 @@ export function FileUploadForm() {
           throw new Error(`Invalid file content for ${file.name}`);
         }
 
-        // Determine filetype from extension
+        // Determine file extension and filetype
         const extension = file.name.split(".").pop().toLowerCase();
         let filetype = "Other";
         if (["png", "jpg", "jpeg", "gif", "bmp", "webp"].includes(extension)) {
@@ -176,19 +176,24 @@ export function FileUploadForm() {
         }
         console.log("Detected filetype:", filetype);
 
-        // For Product Certification, ensure only images are allowed.
+        // Enforce restrictions:
+        // For TDS and SDS, only allow Pdf or Doc formats.
+        if ((filenameLabel === "TDS" || filenameLabel === "SDS") && !["pdf", "doc", "docx"].includes(extension)) {
+          throw new Error(`${filenameLabel} file must be in PDF, DOC, or DOCX format.`);
+        }
+        // For Product Certification, only allow images.
         if (filenameLabel.startsWith("Product Certification") && filetype !== "Image") {
           throw new Error("Product Certification files must be in image format (png, jpg, jpeg, gif, bmp, webp).");
         }
 
-        // Use the user id as logby
+        // Use user id as logby
         const logby = userData?.id || "UnknownUser";
         console.log("Using logby:", logby);
 
         const formData = new FormData();
         formData.append("productid", productId || "");
         formData.append("file", base64);
-        formData.append("filename", filenameLabel); // "TDS", "SDS", or "Product Certification X"
+        formData.append("filename", filenameLabel);
         formData.append("ext", extension);
         formData.append("logby", logby);
         formData.append("filetype", filetype);
@@ -343,7 +348,7 @@ export function FileUploadForm() {
       });
       return;
     }
-    // Mark upload in progress for this certification
+    // Mark upload in progress for this certification slot
     setProductCertUploads((prev) => {
       const updated = [...prev];
       updated[index].isUploading = true;
@@ -398,7 +403,7 @@ export function FileUploadForm() {
             <Input
               type="file"
               onChange={handleTdsFileChange}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              accept=".pdf,.doc,.docx"
               disabled={isUploadingTDS || tdsFile !== null}
               className="cursor-pointer"
             />
@@ -465,7 +470,7 @@ export function FileUploadForm() {
             <Input
               type="file"
               onChange={handleSdsFileChange}
-              accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+              accept=".pdf,.doc,.docx"
               disabled={isUploadingSDS || sdsFile !== null}
               className="cursor-pointer"
             />
@@ -537,7 +542,6 @@ export function FileUploadForm() {
                 <Input
                   type="file"
                   onChange={(e) => handleProductCertFileChange(index, e)}
-                  // Only allow images in the file selector
                   accept=".png,.jpg,.jpeg,.gif,.bmp,.webp"
                   disabled={cert.isUploading || cert.file !== null}
                   className="cursor-pointer"

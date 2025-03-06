@@ -3,6 +3,7 @@ import SideProduct from "../components/SideProduct";
 import ProductDetails from "../components/ProductDetail";
 import Enhancetds from "../components/Enhancetds";
 import { GETPRODUCT } from "@/app/actions/getproduct";
+import Certification from "../components/Certification";
 
 const page = async ({ params }) => {
   const { product } = await params;
@@ -13,7 +14,13 @@ const page = async ({ params }) => {
   const subcatid = "";
   const logby = "0";
 
-  const fetchproduct = await GETPRODUCT(product, catid, maincatid, subcatid, logby);
+  const fetchproduct = await GETPRODUCT(
+    product,
+    catid,
+    maincatid,
+    subcatid,
+    logby
+  );
   // console.log("Response back from server :", fetchproduct);
   const isfetchProductArray = fetchproduct?.data?.Product || [];
 
@@ -29,7 +36,8 @@ const page = async ({ params }) => {
         {/* Main content column (grows to fill) */}
         <main className="flex-1">
           <ProductDetails productdata={isfetchProductArray} />
-          <Enhancetds />
+          <Certification docs={isfetchProductArray} />
+          <Enhancetds tds={isfetchProductArray} />
         </main>
       </div>
     </>

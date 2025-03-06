@@ -128,6 +128,7 @@ export function ProductForm({
     fetchOptionForType("category");
   }, []);
 
+  // getting userdata from cookies to authenticate user type on server side
   useEffect(() => {
     const fetchUserData = async () => {
       const response = await fetch("/api/auth/user");

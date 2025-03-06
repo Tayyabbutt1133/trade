@@ -17,7 +17,7 @@ import Link from "next/link";
 export default function SideProduct({ productdetails }) {
   const singleproduct =
     productdetails && productdetails.length > 0 ? productdetails[0] : null;
-
+  console.log("Product details in sidebar :", productdetails);
   return (
     <div className="p-4 flex flex-col gap-4 overflow-y-auto h-screen">
       {/* Main Storefront */}

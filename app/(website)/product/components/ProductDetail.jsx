@@ -10,6 +10,14 @@ export default function ProductDetails({ productdata }) {
   const singleproduct =
     productdata && productdata.length > 0 ? productdata[0] : null;
 
+  console.log("Product data in details :",productdata);
+
+  // Picking up array of docs from single product
+  const docs = singleproduct?.docs || [];
+  // Extract the doc with filetype "SDS" and "TDS"
+  const sdsDoc = docs.find((doc) => doc.filetype === "SDS");
+  const tdsDoc = docs.find((doc) => doc.filetype === "TDS");
+
   if (!singleproduct) {
     return <div>No product data available</div>;
   }
@@ -34,16 +42,35 @@ export default function ProductDetails({ productdata }) {
         <div className="flex-1 p-4 space-y-8">
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3">
+            {/* TDS Button */}
             <Button
               variant="outline"
               className="gap-2 font-semibold text-lg hover:scale-105 transition-all"
+              // Disable the button if we don't have a TDS doc
+              disabled={!tdsDoc}
+              onClick={() => {
+                if (tdsDoc) {
+                  // Open TDS path in a new tab
+                  window.open(tdsDoc.path, "_blank");
+                }
+              }}
             >
               <FileText size={25} className="text-blue-600" />
               Technical Data Sheet
             </Button>
+
+            {/* SDS Button */}
             <Button
               variant="outline"
               className="gap-2 font-semibold text-lg hover:scale-105 transition-all"
+              // Disable the button if we don't have an SDS doc
+              disabled={!sdsDoc}
+              onClick={() => {
+                if (sdsDoc) {
+                  // Open SDS path in a new tab
+                  window.open(sdsDoc.path, "_blank");
+                }
+              }}
             >
               <Shield className="w-4 h-4 text-red-600" />
               Safety Data Sheet
@@ -62,7 +89,9 @@ export default function ProductDetails({ productdata }) {
             <h2 className={`text-lg ${fonts.montserrat} font-semibold`}>
               Product Information
             </h2>
-            <ul className={`list-disc ${fonts.montserrat} list-none pl-6 space-y-1`}>
+            <ul
+              className={`list-disc ${fonts.montserrat} list-none pl-6 space-y-1`}
+            >
               {singleproduct.code && (
                 <li>
                   <strong>Code:</strong> {singleproduct.code}
