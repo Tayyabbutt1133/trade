@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "@/components/data-table";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import TableActionBtn from "@/components/table-action-btn";
 
@@ -25,13 +25,11 @@ export default function AudiencePage() {
   const [audiences, setAudiences] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-const fetchAudienceData = async () => {
+  const fetchAudienceData = async () => {
     try {
       const res = await fetch(
         `https://tradetoppers.esoftideas.com/esi-api/responses/audience/`,
-        {
-          method: "POST",
-        }
+        { method: "POST" }
       );
       const data = await res.json();
 
@@ -56,7 +54,9 @@ const fetchAudienceData = async () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="sm:text-3xl text-2xl font-bold ml-14 lg:ml-0">Audiences</h1>
+        <h1 className="sm:text-3xl text-2xl font-bold ml-14 lg:ml-0">
+          Audiences
+        </h1>
         <Link href="/dashboard/audience/new">
           <Button>
             <PlusCircle className="mr-2 h-4 w-4" />
@@ -64,9 +64,14 @@ const fetchAudienceData = async () => {
           </Button>
         </Link>
       </div>
-      
-      {/* Show the DataTable (empty if no data) */}
-      <DataTable columns={columns} data={audiences} />
+
+      {isLoading ? (
+        <div className="flex justify-center py-6">
+          <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={audiences} />
+      )}
     </div>
   );
 }

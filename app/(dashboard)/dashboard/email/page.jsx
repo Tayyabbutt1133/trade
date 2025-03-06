@@ -3,12 +3,9 @@
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-
+import { PlusCircle, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-
 
 const columns = [
   { accessorKey: "id", header: "ID" },
@@ -21,16 +18,24 @@ const columns = [
 ];
 
 export default function EmailPage() {
-  const [emailData, setEmailData] = useState({})
+  const [emailData, setEmailData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchEmailData = async () => {
-      const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/emailtemplate/")
-      const data = (await res.json()).EmailTemplate
-
-      setEmailData(data)
-    }
-    fetchEmailData()
-  }, [setEmailData]);
+      try {
+        setLoading(true);
+        const res = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/emailtemplate/");
+        const data = (await res.json()).EmailTemplate;
+        setEmailData(data);
+      } catch (error) {
+        console.error("Error fetching email templates:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEmailData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -45,7 +50,14 @@ export default function EmailPage() {
           </Button>
         </Link>
       </div>
-      <DataTable columns={columns} data={emailData || []} />
+
+      {loading ? (
+        <div className="flex justify-center py-6">
+          <Loader2 className="animate-spin h-8 w-8 text-gray-500" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={emailData || []} />
+      )}
     </div>
   );
 }

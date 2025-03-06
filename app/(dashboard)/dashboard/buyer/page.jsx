@@ -6,12 +6,12 @@ import { PlusCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import roleAccessStore from "@/store/role-access-permission";
+import { Loader2 } from "lucide-react"; // Import spinner icon
 
 export default function BuyersPage() {
-
   const { role } = roleAccessStore();
 
-  console.log('Role:', role);
+  console.log("Role:", role);
 
   const columns = [
     { accessorKey: "name", header: "Name" },
@@ -26,35 +26,42 @@ export default function BuyersPage() {
   ];
 
   const [buyerData, setBuyerData] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state
 
   useEffect(() => {
     const fetchBuyerData = async () => {
+      setLoading(true); // Start loading
       const formData = new FormData();
-      formData.append('regid', '0');
-      
+      formData.append("regid", "0");
+
       try {
-        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/buyers/`, {
-          method: "POST",
-          body: formData
-        });
+        const res = await fetch(
+          `https://tradetoppers.esoftideas.com/esi-api/responses/buyers/`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
         const data = await res.json();
-        
+
         // Transform the data to match column accessors
-        const transformedData = data.Buyers.map(buyer => ({
+        const transformedData = data.Buyers.map((buyer) => ({
           id: buyer.id,
           name: buyer.bname,
           email: buyer.email,
           phone: buyer.compcontact,
           address: buyer.saddress,
-          country: buyer.country || '-',
+          country: buyer.country || "-",
         }));
-    
+
         setBuyerData(transformedData);
       } catch (error) {
-        console.error('Error fetching buyer data:', error);
+        console.error("Error fetching buyer data:", error);
+      } finally {
+        setLoading(false); // Stop loading
       }
-    }
-    
+    };
+
     fetchBuyerData();
   }, []);
 
@@ -73,7 +80,15 @@ export default function BuyersPage() {
           </button>
         </Link>
       </div>
-      <DataTable columns={columns} data={buyerData} />
+
+      {/* Show spinner when loading */}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={buyerData} />
+      )}
     </div>
   );
 }

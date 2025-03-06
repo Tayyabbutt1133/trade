@@ -5,7 +5,7 @@ import { fonts } from "@/components/ui/font";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
 import { useEffect, useState } from "react";
-
+import { Loader2 } from "lucide-react"; // Import spinner icon
 
 export default function SellerPage() {
 
@@ -23,29 +23,37 @@ export default function SellerPage() {
   ];
   
   const [sellerdata, setSellerdata] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state
   
   useEffect(() => {
     const fetchSellerData = async () => {
+      setLoading(true); // Start loading
       const formData = new FormData();
       formData.append('regid', '0');
       
-      const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/seller/`, {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-      
-      // Transform the data to match column accessors
-      const transformedData = data.Sellers.map(seller => ({
-        id: seller.id,
-        name: seller.sname,
-        email: seller.email,
-        phone: seller.compcontact,
-        address: seller.saddress,
-        country: seller.country || '-',  // Using || '-' to show dash if null
-      }));
-  
-      setSellerdata(transformedData);
+      try {
+        const res = await fetch(`https://tradetoppers.esoftideas.com/esi-api/responses/seller/`, {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        
+        // Transform the data to match column accessors
+        const transformedData = data.Sellers.map(seller => ({
+          id: seller.id,
+          name: seller.sname,
+          email: seller.email,
+          phone: seller.compcontact,
+          address: seller.saddress,
+          country: seller.country || '-',  // Using || '-' to show dash if null
+        }));
+    
+        setSellerdata(transformedData);
+      } catch (error) {
+        console.error("Error fetching seller data:", error);
+      } finally {
+        setLoading(false); // Stop loading
+      }
     }
     fetchSellerData();
   }, []);
@@ -57,19 +65,24 @@ export default function SellerPage() {
           Seller
         </h1>
         
-          <Link href="/dashboard/seller/new/">
-            <button
-              className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Add Seller
-            </button>
-          </Link>
-        
+        <Link href="/dashboard/seller/new/">
+          <button
+            className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
+          >
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add Seller
+          </button>
+        </Link>
       </div>
 
-      {/* DataTable Component */}
-      <DataTable columns={columns} data={sellerdata} />
+      {/* Show spinner when loading */}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={sellerdata} />
+      )}
     </div>
   );
 }

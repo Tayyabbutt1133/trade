@@ -1,15 +1,20 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { PlusCircle } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
 import { fonts } from "@/components/ui/font";
 import { Button } from "@/components/ui/button";
-import { PlusCircle } from "lucide-react";
-import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
+import { Loader2 } from "lucide-react"; // Import loading icon
 
 export default function ProductsPage() {
+  const [productData, setProductData] = useState([]);
+  const [searchProduct, setSearchProduct] = useState("");
+  const [loading, setLoading] = useState(true); // State for loading
+
   const columns = [
     { accessorKey: "id", header: "ID" },
     { accessorKey: "code", header: "Code" },
@@ -26,43 +31,35 @@ export default function ProductsPage() {
     },
   ];
 
-  const [productData, setProductData] = useState([]);
-  const [searchProduct, setSearchProduct] = useState("");
-
   const sortedProductData = useMemo(() => {
     return productData?.sort((a, b) => a.id - b.id);
   }, [productData]);
 
   useEffect(() => {
     const fetchProductData = async () => {
-      const userRes = await fetch("/api/auth/user")
-      const { id, type } = (await userRes.json()).userData
-      const formData = new FormData();
-      formData.append("productid", "");
-      formData.append("maincatid", "");
-      formData.append("catid", "");
-      formData.append("subcatid", "");
-
-
-      if (type === "Seller" || type === "buyer") {
-        formData.append("logby", id);
-      } else {
-        formData.append("logby", 0);
-      }
-      // console.log("Product Form data:", formData);
-
+      setLoading(true); // Start loading
 
       try {
+        const userRes = await fetch("/api/auth/user");
+        const { id, type } = (await userRes.json()).userData;
+        const formData = new FormData();
+        formData.append("productid", "");
+        formData.append("maincatid", "");
+        formData.append("catid", "");
+        formData.append("subcatid", "");
+
+        if (type === "Seller" || type === "buyer") {
+          formData.append("logby", id);
+        } else {
+          formData.append("logby", 0);
+        }
+
         const res = await fetch(
-          `https://tradetoppers.esoftideas.com/esi-api/responses/products/`, {
-            method: "POST",
-            body: formData,
-          }
+          `https://tradetoppers.esoftideas.com/esi-api/responses/products/`,
+          { method: "POST", body: formData }
         );
         const data = await res.json();
-        console.log("Product data:",data);
 
-        // Transform the data to match column accessors
         const transformedData = data.Product?.map((product) => ({
           id: product.id,
           code: product.code || "-",
@@ -73,15 +70,15 @@ export default function ProductsPage() {
           category: product.category || "-",
           subcategory: product.subcategory || "-",
           chemical: product.chemical || "-",
-          // Include any additional fields needed for actions
           logby: product.logby,
-          // functions: product.functions,
           images: product.images,
         }));
 
         setProductData(transformedData);
       } catch (error) {
         console.error("Error fetching product data:", error);
+      } finally {
+        setLoading(false); // Stop loading
       }
     };
 
@@ -114,13 +111,22 @@ export default function ProductsPage() {
           </Button>
         </Link>
       </div>
+
       <Input
         type="search"
         placeholder="Search products..."
         value={searchProduct}
         onChange={(e) => setSearchProduct(e.target.value)}
       />
-      <DataTable columns={columns} data={filteredProduct || []} />
+
+      {/* Show spinner while loading */}
+      {loading ? (
+        <div className="flex justify-center items-center h-40">
+          <Loader2 className="animate-spin w-10 h-10 text-gray-500" />
+        </div>
+      ) : (
+        <DataTable columns={columns} data={filteredProduct || []} />
+      )}
     </div>
   );
 }
