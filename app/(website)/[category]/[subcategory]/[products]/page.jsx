@@ -1,6 +1,6 @@
 import SidebarProductsGrid from "./components/SidebarProductsGrid";
-import FilterDropdowns from "./components/FilterDropdown/FilterDropdown";
-import FilterSidebar from "./components/FilterSideBar";
+// import FilterDropdowns from "./components/FilterDropdown/FilterDropdown";
+// import FilterSidebar from "./components/FilterSideBar";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 import Container from "@/components/container";
 import ProductCategoryHeader from "../../components/ProductCategoryHeader";
@@ -26,7 +26,7 @@ const Page = async ({ params }) => {
     logby
   );
 
-  console.log("Actual response data:", fetchallproducts);
+  // console.log("Actual response data:", fetchallproducts);
 
   const isfetchProductsArray = Array.isArray(fetchallproducts?.data?.Product)
     ? fetchallproducts.data.Product
