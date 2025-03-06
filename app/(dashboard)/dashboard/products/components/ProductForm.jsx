@@ -479,12 +479,6 @@ export function ProductForm({
           disabled={!selectedMainCategoryId}
         />
 
-        {/* <FunctionInput
-          functions={formData.functions}
-          setFunctions={(newFunctions) => handleInputChange("functions", newFunctions)}
-          existingFunctions={existingFunctions}
-        /> */}
-
         <ImageUpload
           images={formData.images}
           setImages={(newImages) => handleInputChange("images", newImages)}

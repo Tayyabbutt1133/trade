@@ -3,9 +3,10 @@ import Container from "@/components/container";
 import CategoryFilters from "./components/CategoryFilter";
 import ProductsGrid from "./components/ProductsGrid";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
+import { Suspense } from "react";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 
-const Page = async ({ params }) => {
-  const { category } = await params;
+const CategoryPage = async ({ category }) => {
   const decodedcategory = decodeURIComponent(category);
 
   // because we are at first level and we don't have these further categories data neither we require but at the same time api is expecting these as a parameters as empty to get data back
@@ -28,7 +29,7 @@ const Page = async ({ params }) => {
   const totalProducts = isfetchProductsArray.length;
 
   return (
-    <Container className="my-10 space-y-10">
+    <>
       <ProductCategoryHeader
         category={decodedcategory}
         totalProducts={totalProducts}
@@ -39,8 +40,22 @@ const Page = async ({ params }) => {
         categoryName={decodedcategory}
         totalProducts={totalProducts}
       />
+    </>
+  );
+};
+
+
+const Page = async ({ params }) => {
+  const { category } = await params;
+  
+  return (
+    <Container className="my-10 mt-16 space-y-10">
+      <Suspense fallback={<LoadingSpinner />}>
+        <CategoryPage category={category} />
+      </Suspense>
     </Container>
   );
 };
 
 export default Page;
+
