@@ -58,11 +58,11 @@
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
     "tesseract.js": "^6.0.0",
-    "zustand": "^5.0.3"
+    "zustand": "^5.0.3",
+    "autoprefixer": "^10.4.20"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "autoprefixer": "^10.4.20",
     "case-sensitive-paths-webpack-plugin": "^2.4.0",
     "eslint": "^9",
     "eslint-config-next": "15.1.3",
