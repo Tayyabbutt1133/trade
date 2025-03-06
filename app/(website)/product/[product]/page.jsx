@@ -36,8 +36,8 @@ const page = async ({ params }) => {
         {/* Main content column (grows to fill) */}
         <main className="flex-1">
           <ProductDetails productdata={isfetchProductArray} />
-          <Certification docs={isfetchProductArray} />
           <Enhancetds tds={isfetchProductArray} />
+          <Certification docs={isfetchProductArray} />
         </main>
       </div>
     </>
