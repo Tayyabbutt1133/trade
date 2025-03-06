@@ -13,9 +13,15 @@ const positionOptions = [
   { value: "center", label: "Center" },
   { value: "right", label: "Right" },
 ]
+
 const replaceAngleBrackets = (text) => {
   if (!text) return text
   return text.replace(/</g, '{').replace(/>/g, '}')
+}
+
+const restoreAngleBrackets = (text) => {
+  if (!text) return text
+  return text.replace(/{/g, '<').replace(/}/g, '>')
 }
 
 const convertToBase64 = (file) => {
@@ -38,7 +44,7 @@ export function EmailForm({emailId, initialData = null}) {
         return {
           title: initialData.title || "",
           subject: initialData.subject || "",
-          description: initialData.description || "",
+          description: initialData.description ? restoreAngleBrackets(initialData.description) : "",
           headlogopos: initialData.headlogopos || "",
           headtext: initialData.headtext || "",
           footlogopos: initialData.footlogopos || "",
