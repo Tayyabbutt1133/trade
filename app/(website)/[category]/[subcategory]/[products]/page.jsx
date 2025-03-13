@@ -39,24 +39,24 @@ const Page = async ({ params }) => {
 
 
 
-   // Step 2: Fetch initial products in parallel using Promise.all
-   const [fetchProducts] = await Promise.all([
-    GETALLPRODUCT(
-      catid,
-      maincatid,
-      subcatid,
-      productid,
-      logby,
-      dynamicSize, // Dynamically calculated size
-      initialPage
-    ),
-  ]);
+  //  // Step 2: Fetch initial products in parallel using Promise.all
+  //  const [fetchProducts] = await Promise.all([
+  //   GETALLPRODUCT(
+  //     catid,
+  //     maincatid,
+  //     subcatid,
+  //     productid,
+  //     logby,
+  //     dynamicSize, // Dynamically calculated size
+  //     initialPage
+  //   ),
+  // ]);
 
-  // Step 3: Extract products
-  const isfetchProductsArray = Array.isArray(fetchProducts?.data?.Product)
-    ? fetchProducts.data.Product
-    : [];
-  console.log("Half Fetched Products : ", isfetchProductsArray);
+  // // Step 3: Extract products
+  // const isfetchProductsArray = Array.isArray(fetchProducts?.data?.Product)
+  //   ? fetchProducts.data.Product
+  //   : [];
+  // console.log("Half Fetched Products : ", isfetchProductsArray);
 
 
 
