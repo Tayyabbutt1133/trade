@@ -7,8 +7,8 @@ import ProductCard from "./ProductCard";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 
-// Pagination component to display page controls and page-size selector
-function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChange, onPageSizeChange }) {
+function Pagination({ currentPage, totalPages, totalItems, onPageChange }) {
+  const pageSize = 20; // Default page size
   const delta = 2;
   let range = [];
   let lastPage;
@@ -32,23 +32,9 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
 
   return (
     <div className="flex flex-col md:flex-row items-center justify-between mt-8 space-y-2 md:space-y-0">
-      {/* Left side: results count and page-size dropdown */}
-      <div className="flex items-center space-x-4">
-        <span className="text-sm text-gray-600">
-          Results: {startItem} - {endItem} of {totalItems}
-        </span>
-        <div className="flex items-center space-x-2">
-          <span className="text-sm text-gray-600">Show:</span>
-          <select
-            value={pageSize}
-            onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="text-sm border border-gray-300 rounded px-2 py-1"
-          >
-            <option value={10}>10</option>
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-          </select>
-        </div>
+      {/* Left side: results count */}
+      <div className="text-sm text-gray-600">
+        Results: {startItem} - {endItem} of {totalItems}
       </div>
 
       {/* Right side: page navigation */}
@@ -91,11 +77,12 @@ function Pagination({ currentPage, totalPages, totalItems, pageSize, onPageChang
   );
 }
 
+
 // Main ProductsGrid component that fetches products based on offset (page) and pageSize
 export default function ProductsGrid({ catid, totalProducts, maincatid, subcatid }) {
   const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); // Default page size
+  const [pageSize, setPageSize] = useState(20); // Default page size
   const [loading, setLoading] = useState(false);
 
   // Calculate total pages based on totalProducts (passed from initial fetch) and pageSize
