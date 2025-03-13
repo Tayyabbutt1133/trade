@@ -1,6 +1,6 @@
 "use server";
 
-export async function GETALLPRODUCT(catid, maincatid, subcatid, productid, logby) {
+export async function GETALLPRODUCT(catid, maincatid, subcatid, productid, logby, size, Page) {
     // console.log("TopCategory Response at server:", catid);
     // console.log("MainCategory Response at server:", maincatid);
     // console.log("subCategory Response at server:", subcatid);
@@ -13,6 +13,8 @@ export async function GETALLPRODUCT(catid, maincatid, subcatid, productid, logby
         allproducts.append("subcatid", subcatid || "");
         allproducts.append("productid", productid || "");
         allproducts.append("logby", logby || "");
+        allproducts.append("size", size || "");
+        allproducts.append("Page", Page || "");
         console.log("Product data recieve at server :", allproducts);
 
         const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/responses/products/", {

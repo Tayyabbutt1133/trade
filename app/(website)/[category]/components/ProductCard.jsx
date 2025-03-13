@@ -7,7 +7,7 @@ export default function ProductCard({ product }) {
   // If there's no product, return null
   if (!product) return null;
 
-  console.log("Checking product Images in ProductCard:", product.image);
+  // console.log("Checking product Images in ProductCard:", product.image);
 
 
   return (
