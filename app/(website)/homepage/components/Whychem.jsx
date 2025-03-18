@@ -29,21 +29,21 @@ const Whychem = () => {
       <Container>
         <div className="relative z-10 py-20 px-4 sm:px-6 lg:px-8">
           <div className="mb-12">
-            <p className={`${fonts.roboto} text-lg mb-2`}>Why Chemistry</p>
+            <p className={`${fonts.roboto} text-lg mb-2`}>Why Chem</p>
             <h1 className={`${fonts.montserrat} text-2xl font-bold leading-tight mb-16 max-w-96`}>
-              Driving the world's most impactful industry forward.
+            Propelling the world's most influential industry into the future.
             </h1>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
             <p className={`text-[15px] ${fonts.montserrat} leading-relaxed`}>
-              At trade toppers, we believe in the power of chemistry. We believe that easy and efficient access to information and raw materials enables you to work smarter and faster so you can continue to make a rich global impact.
+            At Trade Toppers, we believe in the transformative power of chemistry. We are committed to providing seamless and efficient access to information and raw materials, empowering you to work smarter and faster—driving meaningful global impact.
             </p>
             <p className={`text-[15px] ${fonts.montserrat} leading-relaxed`}>
-              Your innovations have decreased the carbon footprint of the automotive industry, imagined a sustainable agricultural future, developed alternative, biodegradable packaging materials, and changed the landscape of connectivity forever – to name a few. This is only the beginning.
+            Your innovations have reduced the automotive industry's carbon footprint, reimagined a sustainable future for agriculture, created biodegradable packaging alternatives, and revolutionized connectivity—just to name a few. And this is just the beginning.
             </p>
           </div>
           <p className={`text-2xl font-medium ${fonts.montserrat} flex justify-end`}>
-            We can't wait to see what you create with trade toppers.
+          We are excited to elevate your purchasing experience beyond expectations.
           </p>
         </div>
       </Container>

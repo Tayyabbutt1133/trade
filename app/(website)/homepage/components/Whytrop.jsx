@@ -1,6 +1,7 @@
 import { BsBuilding } from 'react-icons/bs'
 import { HiOutlineDocumentText } from 'react-icons/hi'
 import { GiChemicalDrop } from 'react-icons/gi'
+import { FaFirstOrder } from "react-icons/fa6";
 import Container from '@/components/container'
 import { fonts } from '@/components/ui/font'
 
@@ -8,18 +9,18 @@ export default function FeaturesSection() {
   const features = [
     {
       icon: <BsBuilding className="w-12 h-12 text-gray-700" />,
-      title: "Instant access to the most comprehensive product catalog",
-      description: "Browse, search and filter the world's largest catalog of chemicals, ingredients and polymers.",
+      title: "Get up to date access to the most complete products by the manufacturers",
+      description: "Browse, search and filter the manufacturers catalog of chemicals, ingredients and polymers",
     },
     {
       icon: <HiOutlineDocumentText className="w-12 h-12 text-gray-700" />,
-      title: "Chat directly to suppliers' experts",
-      description: "Ask technical product questions, talk to a sales rep and inquire about pricing.",
+      title: "Send quotation directly to the suppliers or manufacturers",
+      description: "Checkout latest pricing and chemicals technical questions or talk to our experts.",
     },
     {
-      icon: <GiChemicalDrop className="w-12 h-12 text-gray-700" />,
-      title: "Order samples, request documents, and get quotes",
-      description: "trade toppers concierge will handle all the details and ensure your requests are handled faster than ever.",
+      icon: <FaFirstOrder className="w-12 h-12 text-gray-700" />,
+      title: "Create Orders or verify documents and get quotes",
+      description: "Check products range by the suppliers and manufacturers around the globe.",
     },
   ]
 
@@ -28,7 +29,7 @@ export default function FeaturesSection() {
         <Container>
       <div className="space-y-12">
         <div className="">
-          <h2 className={`text-gray-600 mb-4 ${fonts.roboto}`}>Why TradeTroppers</h2>
+          <h2 className={`text-gray-600 mb-4 ${fonts.montserrat}`}>Connect with suppliers around the globe, explore their catalogs, access essential documents</h2>
             <h3 className={`md:text-4xl leading-[48px] text-3xl max-w-[560px] md:max-w-[70%] ${fonts.montserrat} font-semibold leading-tight text-gray-900`}>
             Interact with over 8,000 suppliers, browse their catalogs, access documents and download starter formulations.
           </h3>

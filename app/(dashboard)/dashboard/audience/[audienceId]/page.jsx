@@ -17,10 +17,10 @@ const AudienceFormPage = async ({ params }) => {
       buyersRes,
       sellersRes,
     ] = await Promise.all([
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/region"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country/"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry/"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/region/"),
+      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation/"),
       // Pass form-data for buyers
       fetch("https://tradetoppers.esoftideas.com/esi-api/responses/buyers/", {
         method: "POST",
