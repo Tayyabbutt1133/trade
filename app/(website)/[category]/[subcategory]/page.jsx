@@ -31,31 +31,7 @@ const SubCategory = async ({ category, subcategory }) => {
   );
 
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
-  console.log("Total count is : ", totalCount);
-    // making sure that we initially get third half of total products that we have to reduce delay, and then each new record will come through pagination GETALLPRODUCT FUNCTION CALL
-  const dynamicSize = Math.max(1, Math.ceil(totalCount / 3)); // Ensure at least 1 product is fetched
-  console.log("Dynamic Category Products half size is : ", dynamicSize);
-
-
-    // // Step 2: Fetch initial products in parallel using Promise.all
-    // const [fetchProducts] = await Promise.all([
-    //   GETALLPRODUCT(
-    //     catid,
-    //     maincatid,
-    //     subcatid,
-    //     productid,
-    //     logby,
-    //     dynamicSize, // Dynamically calculated size
-    //     initialPage
-    //   ),
-    // ]);
-  
-    // // Step 3: Extract products
-    // const isfetchProductsArray = Array.isArray(fetchProducts?.data?.Product)
-    //   ? fetchProducts.data.Product
-    //   : [];
-    // console.log("Half Fetched Products : ", isfetchProductsArray);
-
+  // console.log("Total count is : ", totalCount);
 
 
 

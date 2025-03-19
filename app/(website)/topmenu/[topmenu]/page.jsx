@@ -4,12 +4,15 @@ import ProductsGrid from "../../[category]/components/ProductsGrid";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
+import TopProductsGrid from "../../[category]/components/TopProductsGrid";
 
 // Product content component
 const ProductContent = async ({ topMenu }) => {
   const decodedcategory = decodeURIComponent(topMenu);
   console.log(decodedcategory);
 
+  // for now we are sending empty to get all data because we don't have data for topmenu
+  const catid = ""
   const maincatid = "";
   const subcatid = "";
   const productid = "";
@@ -19,7 +22,7 @@ const ProductContent = async ({ topMenu }) => {
 
   // Step 1: Fetch total count and wait for response
   const initialFetch = await GETALLPRODUCT(
-    decodedcategory,
+    catid,
     maincatid,
     subcatid,
     productid,
@@ -27,19 +30,17 @@ const ProductContent = async ({ topMenu }) => {
     initialSize,
     initialPage
   );
+  console.log("Topmenu response :", initialFetch);
 
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
-  // making sure that we initially get third half of total products that we have to reduce delay, and then each new record will come through pagination GETALLPRODUCT FUNCTION CALL
-  const dynamicSize = Math.max(1, Math.ceil(totalCount / 3)); // Ensure at least 1 product is fetched
-  console.log("Dynamic Category Products half size is : ", dynamicSize);
 
 
 
   return (
     <>
       <ProductCategoryHeader category={decodedcategory} />
-      <ProductsGrid
-        catid={decodedcategory}
+      <TopProductsGrid
+        catid={catid}
         maincatid={maincatid}
         subcatid={subcatid}
         totalProducts={totalCount}

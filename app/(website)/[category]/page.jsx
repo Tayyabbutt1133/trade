@@ -26,15 +26,10 @@ const CategoryPage = async ({ category }) => {
     initialSize,
     initialPage
   );
+  // console.log("Sidemenu response :", initialFetch);
 
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
-  // making sure that we initially get third half of total products that we have to reduce delay, and then each new record will come through pagination GETALLPRODUCT FUNCTION CALL
-  const dynamicSize = Math.max(1, Math.ceil(totalCount / 3)); // Ensure at least 1 product is fetched
-  console.log("Dynamic Category Products half size is : ", dynamicSize);
-
-
-
-
+  
   return (
     <>
       <ProductCategoryHeader
