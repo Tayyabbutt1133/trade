@@ -13,18 +13,21 @@ const page = async ({ params }) => {
   const maincatid = "";
   const subcatid = "";
   const logby = "0";
+  const initialSize = 1; // Fetch 1 product just to get total count
+  const initialPage = "";
 
   const fetchproduct = await GETPRODUCT(
-    product,
     catid,
     maincatid,
     subcatid,
-    logby
+    product,
+    logby,
+    initialSize,
+    initialPage
   );
   // console.log("Response back from server :", fetchproduct);
   const isfetchProductArray = fetchproduct?.data?.Product || [];
 
-  // console.log("Product Id:", product);
   return (
     <>
       <div className="flex flex-col md:flex-row min-h-screen">
