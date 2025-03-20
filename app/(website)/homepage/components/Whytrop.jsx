@@ -31,7 +31,7 @@ export default function FeaturesSection() {
         <div className="">
           <h2 className={`text-gray-600 mb-4 ${fonts.montserrat}`}>Connect with suppliers around the globe, explore their catalogs, access essential documents</h2>
             <h3 className={`md:text-4xl leading-[48px] text-3xl max-w-[560px] md:max-w-[70%] ${fonts.montserrat} font-semibold leading-tight text-gray-900`}>
-            Interact with over 8,000 suppliers, browse their catalogs, access documents and download starter formulations.
+            Reach out suppliers, explore their catalogs and access documents.
           </h3>
         </div>
 
