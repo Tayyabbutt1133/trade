@@ -2,18 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle, Loader2 } from "lucide-react";
 import { DataTable } from "@/components/data-table";
+import LoadingSpinner from "@/components/ui/LoadingSpinner";
 import TableActionBtn from "@/components/table-action-btn";
 import { fonts } from "@/components/ui/font";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2 } from "lucide-react"; // Import loading icon
 
 export default function ProductsPage() {
   const [productData, setProductData] = useState([]);
-  const [searchProduct, setSearchProduct] = useState("");
-  const [loading, setLoading] = useState(true); // State for loading
+  const [loading, setLoading] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
   const columns = [
     { accessorKey: "id", header: "ID" },
@@ -37,28 +36,34 @@ export default function ProductsPage() {
 
   useEffect(() => {
     const fetchProductData = async () => {
-      setLoading(true); // Start loading
+      setLoading(true);
 
       try {
         const userRes = await fetch("/api/auth/user");
         const { id, type } = (await userRes.json()).userData;
+
         const formData = new FormData();
         formData.append("productid", "");
         formData.append("maincatid", "");
         formData.append("catid", "");
         formData.append("subcatid", "");
-
-        if (type === "Seller" || type === "buyer") {
-          formData.append("logby", id);
-        } else {
-          formData.append("logby", 0);
-        }
+        formData.append("size", "250");  // for now giving static count to fetch static no.of products
+        formData.append("Page", "");     
+        formData.append(
+          "logby",
+          type === "Seller" || type === "buyer" ? id : 0
+        );
 
         const res = await fetch(
-          `https://tradetoppers.esoftideas.com/esi-api/responses/products/`,
+          "https://tradetoppers.esoftideas.com/esi-api/responses/products/",
           { method: "POST", body: formData }
         );
+
         const data = await res.json();
+
+        // Get total count from the response
+        const totalRecords = data?.["Total Records"]?.[0]?.records || 0;
+        setTotalCount(totalRecords);
 
         const transformedData = data.Product?.map((product) => ({
           id: product.id,
@@ -70,39 +75,24 @@ export default function ProductsPage() {
           category: product.category || "-",
           subcategory: product.subcategory || "-",
           chemical: product.chemical || "-",
-          logby: product.logby,
-          images: product.images,
         }));
 
         setProductData(transformedData);
       } catch (error) {
         console.error("Error fetching product data:", error);
       } finally {
-        setLoading(false); // Stop loading
+        setLoading(false);
       }
     };
 
     fetchProductData();
   }, []);
 
-  const filteredProduct = sortedProductData?.filter(
-    (product) =>
-      product?.id?.toLocaleString()?.includes(searchProduct) ||
-      product.code.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.formula.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.brand.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.subcategory.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      product.chemical.toLowerCase().includes(searchProduct.toLowerCase())
-  );
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
-          Products ({productData?.length})
+          Products ({totalCount})
         </h1>
         <Link href="/dashboard/products/new">
           <Button className={`flex items-center ${fonts.montserrat}`}>
@@ -112,21 +102,16 @@ export default function ProductsPage() {
         </Link>
       </div>
 
-      <Input
-        type="search"
-        placeholder="Search products..."
-        value={searchProduct}
-        onChange={(e) => setSearchProduct(e.target.value)}
-      />
-
       {/* Show spinner while loading */}
       {loading ? (
         <div className="flex justify-center items-center h-40">
           <Loader2 className="animate-spin w-10 h-10 text-gray-500" />
         </div>
       ) : (
-        <DataTable columns={columns} data={filteredProduct || []} />
+        <DataTable columns={columns} data={sortedProductData || []} />
       )}
+
+      {/* <DataTable columns={columns} data={sortedProductData || []} loading={loading} /> */}
     </div>
   );
 }
