@@ -44,7 +44,7 @@ export default function SuppliersSection() {
       <div className={`space-y-2 mb-12 ${fonts.montserrat}`}>
         <h2 className="text-gray-600 text-lg md:text-xl">Latest Suppliers</h2>
         <h3 className="text-3xl md:text-5xl font-semibold text-gray-900 max-w-xl">
-          Discover over 200k products in more than 8,000 storefronts.
+          Discover range of products in storefronts around the globe.
         </h3>
       </div>
 

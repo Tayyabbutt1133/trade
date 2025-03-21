@@ -12,7 +12,8 @@ export default function RootLayout({ children }) {
 
   return (
     <html lang="en">
-      <body>
+      <body
+      suppressHydrationWarning >
         {/* Show Navbar and Footer only if not on dashboard or expoevents routes */}
         {!isHiddenRoute && <Navbar />}
         {children}
