@@ -10,6 +10,7 @@ import { CustomRadio } from "./CustomRadio"
 import { redirect } from "next/navigation"
 // import { SocialSignInButtons } from "./SocialSignInButtons";
 import { Register } from "@/app/actions/signup"
+import { Eye, EyeOff } from "lucide-react" // Import eye icons from lucide-react
 
 
 export function SignUpForm() {
@@ -31,6 +32,11 @@ export function SignUpForm() {
   const [countries, setCountries] = useState([])
   const [industries, setIndustries] = useState([])
   const [apiError, setApiError] = useState(false)
+  // Add state for password visibility
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  // New state to track password match status in real-time
+  const [passwordsMatch, setPasswordsMatch] = useState(true)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,6 +76,17 @@ export function SignUpForm() {
     fetchData();
   }, []);
 
+  // Add effect to check password match on every form data change
+  useEffect(() => {
+    // Only check if both fields have values
+    if (formData.password && formData.confirmPassword) {
+      setPasswordsMatch(formData.password === formData.confirmPassword);
+    } else {
+      // Reset match status if one or both fields are empty
+      setPasswordsMatch(true);
+    }
+  }, [formData.password, formData.confirmPassword]);
+
   const handleInputChange = (name, value) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     setErrors((prev) => ({ ...prev, [name]: "" })) // Clear error on change
@@ -77,6 +94,15 @@ export function SignUpForm() {
 
   const handleRoleChange = (value) => {
     setFormData((prev) => ({ ...prev, type: value }))
+  }
+
+  // Toggle password visibility functions
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword)
+  }
+
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword)
   }
 
   const handleSubmit = async (e) => {
@@ -129,11 +155,9 @@ export function SignUpForm() {
     if (!data.email) errors.email = "Email is required"
     else if (!emailRegex.test(data.email)) errors.email = "Invalid email format"
 
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+    // Updated password validation - only check for minimum length
     if (!data.password) errors.password = "Password is required"
-    else if (!passwordRegex.test(data.password))
-      errors.password =
-        "Password must be at least 8 characters, with uppercase, lowercase, number, and special character"
+    else if (data.password.length < 8) errors.password = "Password must be at least 8 characters"
 
     if (!data.confirmPassword) errors.confirmPassword = "Confirm Password is required"
     else if (data.confirmPassword !== data.password) errors.confirmPassword = "Passwords do not match"
@@ -184,7 +208,7 @@ export function SignUpForm() {
   const industriesForSelect = industries.length > 0 ? industries : fallbackIndustries
 
   return (
-    <div className={`space-y-6 ${fonts.montserrat}`}>
+    <div className={`space-y-6 ${fonts.montserrat} w-fit`}>
       {apiError && (
         <div className="p-3 bg-yellow-50 border border-yellow-300 rounded-md">
           <p className="text-yellow-700 text-sm">
@@ -196,16 +220,21 @@ export function SignUpForm() {
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-4">
           <Label className="text-lg font-semibold">I am registering as a:</Label>
+          <div className="">
           <CustomRadio
             options={[
               { value: "buyer", label: "Buyer" },
               { value: "seller", label: "Seller" },
+              { value: "Industrial Manufacturer", label: "Industrial Manufacturer" },
+              { value: "Trading Companies", label: "Trading Companies" },
             ]}
             name="type"
-            defaultValue=""
+              defaultValue=""
+              className=""
             value={formData.type}
             onChange={handleRoleChange}
-          />
+            />
+            </div>
           {errors.type && <div className="text-red-500 text-sm">{errors.type}</div>}
         </div>
 
@@ -317,15 +346,24 @@ export function SignUpForm() {
           <Label htmlFor="password" className="text-sm font-medium">
             Password<span className="text-red-500 ml-1">*</span>
           </Label>
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            placeholder="Enter your password"
-            value={formData.password}
-            onChange={(e) => handleInputChange("password", e.target.value)}
-            className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md`}
-          />
+          <div className="relative">
+            <Input
+              id="password"
+              name="password"
+              type={showPassword ? "text" : "password"}
+              placeholder="Enter your password"
+              value={formData.password}
+              onChange={(e) => handleInputChange("password", e.target.value)}
+              className={`w-full px-3 py-2 border ${errors.password ? "border-red-500" : "border-gray-300"} rounded-md pr-10`}
+            />
+            <button 
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={togglePasswordVisibility}
+            >
+              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           {errors.password && <div className="text-red-500 text-sm">{errors.password}</div>}
         </div>
 
@@ -333,18 +371,31 @@ export function SignUpForm() {
           <Label htmlFor="confirmPassword" className="text-sm font-medium">
             Confirm Password<span className="text-red-500 ml-1">*</span>
           </Label>
-          <Input
-            id="confirmPassword"
-            name="confirmPassword"
-            type="password"
-            placeholder="Confirm your password"
-            value={formData.confirmPassword}
-            onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-            className={`w-full px-3 py-2 border ${
-              errors.confirmPassword ? "border-red-500" : "border-gray-300"
-            } rounded-md`}
-          />
+          <div className="relative">
+            <Input
+              id="confirmPassword"
+              name="confirmPassword"
+              type={showConfirmPassword ? "text" : "password"}
+              placeholder="Confirm your password"
+              value={formData.confirmPassword}
+              onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+              className={`w-full px-3 py-2 border ${
+                errors.confirmPassword || !passwordsMatch ? "border-red-500" : "border-gray-300"
+              } rounded-md pr-10`}
+            />
+            <button 
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              onClick={toggleConfirmPasswordVisibility}
+            >
+              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
           {errors.confirmPassword && <div className="text-red-500 text-sm">{errors.confirmPassword}</div>}
+          {/* New real-time password match error message */}
+          {!passwordsMatch && formData.confirmPassword && (
+            <div className="text-red-500 text-sm">Passwords do not match</div>
+          )}
         </div>
 
         {errors.server && <div className="text-red-500 text-sm">{errors.server}</div>}
@@ -353,7 +404,7 @@ export function SignUpForm() {
         <Button
           type="submit"
           className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b] text-white font-semibold py-2 px-4 rounded-md transition"
-          disabled={isSubmitting}
+          disabled={isSubmitting || (formData.password && formData.confirmPassword && !passwordsMatch)}
         >
           {isSubmitting ? "Signing up..." : "Sign Up"}
         </Button>
@@ -369,4 +420,3 @@ export function SignUpForm() {
     </div>
   )
 }
-

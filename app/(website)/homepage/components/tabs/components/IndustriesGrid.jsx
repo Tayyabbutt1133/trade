@@ -1,5 +1,6 @@
 import { fonts } from '@/components/ui/font'
 import { Pen, Wheat, Car, Hammer, ShoppingBag, Zap, Apple, Heart, SprayCanIcon as Spray, Factory, Paintbrush, Bath, Package } from 'lucide-react'
+import Link from 'next/link'
 
 const industriesData = [
   {
@@ -26,12 +27,14 @@ export default function IndustriesGrid() {
       {industriesData.map((industry) => {
         const Icon = industry.icon
         return (
-          <div key={industry.title} className="p-6 bg-white rounded-lg shadow-lg hover:shadow-md hover:ring-2 hover:ring-primary hover:text-primary transition-shadow cursor-pointer">
-            <div className="flex flex-col items-center text-center space-y-4">
+          <Link href={`/topmenu/${industry.title}`}>
+          <div key={industry.title} className="p-6 h-36 bg-white rounded-lg shadow-lg hover:shadow-md hover:ring-2 hover:ring-primary hover:text-primary transition-shadow cursor-pointer">
+            <div className="flex flex-col justify-center items-center text-center space-y-4">
               <Icon className="w-6 h-6 md:w-8 md:h-8 "/>
               <h3 className="text-md font-medium">{industry.title}</h3>
             </div>
-          </div>
+            </div>
+            </Link>
         )
       })}
     </div>
