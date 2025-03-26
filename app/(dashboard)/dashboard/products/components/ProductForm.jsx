@@ -9,6 +9,7 @@ import { ImageUpload } from "./ImageUpload";
 import { CategoryComboBoxWithDialog } from "./CategoryComboBoxWithDialog";
 import { createProduct } from "@/app/actions/createProduct";
 import { redirect, replace } from "next/navigation";
+import { CompanyLogoUpload } from "./Companylogo";
 
 export function ProductForm({
   initialBrandOptions = [],
@@ -31,6 +32,7 @@ export function ProductForm({
     cas: "",
     cinum: "",
     images: [],
+    logo: [],
     // functions: []
   });
 
@@ -118,7 +120,6 @@ export function ProductForm({
     ) {
       // No need to set anything here, just having the correct value in formData is enough
       // This useEffect ensures we don't have timing issues with the dependent dropdowns
-    
     }
   }, [subcategoriesOption, initialData, isLoading]);
 
@@ -281,6 +282,7 @@ export function ProductForm({
     formDataToSubmit.append("chemical", formData.chemical || "");
     formDataToSubmit.append("cas", formData.cas || "");
     formDataToSubmit.append("cinum", formData.cinum || "");
+    formDataToSubmit.append("logo", formData.logo || "");
 
     if (userData.type !== "Seller" && userData.type !== "buyer") {
       formDataToSubmit.append("logby", "0");
@@ -482,6 +484,11 @@ export function ProductForm({
         <ImageUpload
           images={formData.images}
           setImages={(newImages) => handleInputChange("images", newImages)}
+        />
+
+        <CompanyLogoUpload
+          logo={formData.logo}
+          setLogo={(newLogo) => handleInputChange("logo", newLogo)}
         />
       </div>
 
