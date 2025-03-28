@@ -1,47 +1,48 @@
 name: Deploy Tradetoppers
-
 on:
   push:
     branches:
-      - main # Change to your specific branch
-      # - deployprod  # Additional branch for deployment
-
+      - main
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
+      
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-
+      
       - name: Check Node.js version
         run: node -v
-
+      
       - name: Set up SSH
         uses: webfactory/ssh-agent@v0.5.1
         with:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
+      
+      - name: SSH Connection Test
+        env:
+          HOST: 95.111.226.228
+          USERNAME: root
+        run: |
+          ssh -vvv -o StrictHostKeyChecking=no $USERNAME@$HOST echo "SSH Connection Test"
+      
       - name: Deploy to VPS
         env:
           HOST: 95.111.226.228
           USERNAME: root
           TARGET_DIR: /var/www/trade
-          APP_NAME: trade #should match the name of the server block
+          APP_NAME: trade
           PORT: 3000
-          
         run: |
-          ssh -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
+          ssh -vvv -o StrictHostKeyChecking=no $USERNAME@$HOST << EOF
             export PATH=/root/.nvm/versions/node/v22.13.1/bin:$PATH
             cd $TARGET_DIR
-            # Force reset any local changes
             git reset --hard HEAD
             git clean -f -d
-            # Pull latest changes
             git pull origin ${GITHUB_REF#refs/heads/}
             npm install
             npm run build
@@ -53,4 +54,4 @@ jobs:
               pm2 start npm --name $APP_NAME -- start -- --port=$PORT
             fi            
             pm2 save
-          EOF
+          EOF
