@@ -54,4 +54,3 @@ jobs:
               pm2 start npm --name $APP_NAME -- start -- --port=$PORT
             fi            
             pm2 save
-          EOF
