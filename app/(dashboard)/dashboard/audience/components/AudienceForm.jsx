@@ -4,7 +4,13 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue,} from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DEMO } from "@/app/actions/demographics";
 import { CREATEAUDIENCE } from "@/app/actions/createAudience";
@@ -13,7 +19,11 @@ import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
 // Static options for fields that aren't dynamic
-const recipientTypes = ["Seller", "Buyer", "Both"];
+const recipientTypes = [
+  "Buyer",
+  "Industrial Manufacturer",
+  "Trading Companies",
+];
 const taggings = ["Premium", "New", "Verified", "Partner", "High Volume"];
 const statusOptions = ["Active", "Inactive"];
 
@@ -54,14 +64,14 @@ export function AudienceForm({
             const audienceData = response.audience;
             // Map returned keys to formData
             setFormData({
-              "title": audienceData.title || "",
+              title: audienceData.title || "",
               "recipient-type": audienceData.atype || "",
               "origin-country": audienceData.country || "",
-              "designation": audienceData.designation || "",
-              "industry": audienceData.industry || "",
-              "region": audienceData.region || "",
-              "tagging": audienceData.tag || "",
-              "status": audienceData.status === "True" ? "Active" : "Inactive",
+              designation: audienceData.designation || "",
+              industry: audienceData.industry || "",
+              region: audienceData.region || "",
+              tagging: audienceData.tag || "",
+              status: audienceData.status === "True" ? "Active" : "Inactive",
             });
           }
         } catch (error) {
@@ -74,30 +84,114 @@ export function AudienceForm({
   }, [params?.audienceId]);
 
   const dynamicFormFields = [
-    { id: "title", label: "Title", name: "title", type: "text", required: true },
-    { id: "recipient-type", name: "atype", label: "Recipient", type: "select", options: recipientTypes, required: true },
-    { id: "origin-country", name: "country", type: "select", label: "Country", options: countries, required: true, optionKey: "country" },
-    { id: "designation", name: "designation", type: "select", label: "Designation", options: designation, required: true, optionKey: "designation" },
-    { id: "industry", name: "industry", type: "select", label: "Industry", options: industries, required: true, optionKey: "industry" },
-    { id: "region", name: "region", type: "select", label: "Region", options: regions, required: true, optionKey: "region" },
-    { id: "tagging", label: "Tag", name: "tag", type: "select", options: taggings, required: false },
-    { id: "status", name: "status", type: "select", label: "Status", required: true, options: statusOptions },
+    {
+      id: "title",
+      label: "Title",
+      name: "title",
+      type: "text",
+      required: true,
+    },
+    {
+      id: "recipient-type",
+      name: "atype",
+      label: "Recipient",
+      type: "select",
+      options: recipientTypes,
+      required: true,
+    },
+    {
+      id: "origin-country",
+      name: "country",
+      type: "select",
+      label: "Country",
+      options: countries,
+      required: true,
+      optionKey: "country",
+    },
+    {
+      id: "designation",
+      name: "designation",
+      type: "select",
+      label: "Designation",
+      options: designation,
+      required: true,
+      optionKey: "designation",
+    },
+    {
+      id: "industry",
+      name: "industry",
+      type: "select",
+      label: "Industry",
+      options: industries,
+      required: true,
+      optionKey: "industry",
+    },
+    {
+      id: "region",
+      name: "region",
+      type: "select",
+      label: "Region",
+      options: regions,
+      required: true,
+      optionKey: "region",
+    },
+    {
+      id: "tagging",
+      label: "Tag",
+      name: "tag",
+      type: "select",
+      options: taggings,
+      required: false,
+    },
+    {
+      id: "status",
+      name: "status",
+      type: "select",
+      label: "Status",
+      required: true,
+      options: statusOptions,
+    },
   ];
 
   // Returns dynamic options for the tagging field based on selected recipient
   const getTaggingOptions = () => {
+    const seen = new Set();
+    const addIfUnique = (list, idPrefix = "", nameKey = "") =>
+      list
+        .filter((item) => item[nameKey]?.trim())
+        .map((item) => {
+          const name = item[nameKey];
+          const id = `${idPrefix}${item.id}`;
+          if (!seen.has(name)) {
+            seen.add(name);
+            return { id, name };
+          }
+          return null;
+        })
+        .filter(Boolean); // remove nulls
+
     const recipient = formData["recipient-type"];
-    if (recipient === "Seller") {
-      return buyers.filter((b) => b.bname?.trim()).map((b) => ({ id: b.id, name: b.bname }));
-    } else if (recipient === "Buyer") {
-      return sellers.filter((s) => s.sname?.trim()).map((s) => ({ id: s.id, name: s.sname }));
-    } else if (recipient === "Both") {
-      const buyerOptions = buyers.filter((b) => b.bname?.trim()).map((b) => ({ id: `buyer-${b.id}`, name: b.bname }));
-      const sellerOptions = sellers.filter((s) => s.sname?.trim()).map((s) => ({ id: `seller-${s.id}`, name: s.sname }));
-      return [...buyerOptions, ...sellerOptions];
-    } else {
-      return taggings.map((tag, index) => ({ id: `tag-${index}`, name: tag }));
+
+    if (recipient === "Buyer") {
+      return addIfUnique(buyers, "buyer-", "bname");
+    } else if (recipient === "Industrial Manufacturer") {
+      return addIfUnique(sellers, "manufacturer-", "sname");
+    } else if (recipient === "Trading Companies") {
+      const buyerTags = addIfUnique(buyers, "buyer-", "bname");
+      const manufacturerTags = addIfUnique(sellers, "manufacturer-", "sname");
+
+      const combined = [...buyerTags, ...manufacturerTags];
+
+      // remove duplicates by name
+      const seenNames = new Set();
+      return combined.filter(({ name }) => {
+        if (seenNames.has(name)) return false;
+        seenNames.add(name);
+        return true;
+      });
     }
+
+    return [];
   };
 
   const updateAnalytics = async (newData) => {
@@ -128,7 +222,15 @@ export function AudienceForm({
   const handleInputChange = async (id, value) => {
     const updatedData = { ...formData, [id]: value };
     setFormData(updatedData);
-    if (["recipient-type", "origin-country", "industry", "region", "tagging"].includes(id)) {
+    if (
+      [
+        "recipient-type",
+        "origin-country",
+        "industry",
+        "region",
+        "tagging",
+      ].includes(id)
+    ) {
       await updateAnalytics(updatedData);
     }
   };
@@ -171,7 +273,9 @@ export function AudienceForm({
         setSuccessMessage("Successfully submitted");
         router.push("/dashboard/audience");
       } else {
-        setErrorMessage(response.error || "Submission failed. Please try again.");
+        setErrorMessage(
+          response.error || "Submission failed. Please try again."
+        );
       }
     } catch (error) {
       setErrorMessage("An unexpected error occurred. Please try again later.");
@@ -184,20 +288,27 @@ export function AudienceForm({
       <div className="grid gap-4">
         {dynamicFormFields.map((field) => {
           // For "tagging", disable it in edit mode
-          const isDisabled = field.id === "tagging" && params?.audienceId && params.audienceId !== "new";
-          const options = field.id === "tagging" ? getTaggingOptions() : field.options;
+          const isDisabled =
+            field.id === "tagging" &&
+            params?.audienceId &&
+            params.audienceId !== "new";
+          const options =
+            field.id === "tagging" ? getTaggingOptions() : field.options;
           const fieldValue = formData[field.id] || "";
 
           return (
             <div key={field.id} className="grid gap-2">
               <Label htmlFor={field.id}>
-                {field.label} {field.required && <span className="text-red-500">*</span>}
+                {field.label}{" "}
+                {field.required && <span className="text-red-500">*</span>}
               </Label>
               {field.type === "select" ? (
                 <>
                   <Select
                     value={fieldValue}
-                    onValueChange={(value) => handleInputChange(field.id, value)}
+                    onValueChange={(value) =>
+                      handleInputChange(field.id, value)
+                    }
                     required={field.required}
                     disabled={isDisabled}
                   >
@@ -206,9 +317,13 @@ export function AudienceForm({
                     </SelectTrigger>
                     <SelectContent>
                       {options && options.length > 0 ? (
-                        options.map((option, index) => {
-                          const display = field.optionKey ? option[field.optionKey] : option.name || option;
-                          const key = option.id || display || index;
+                        options.map((option) => {
+                          // Ensure `option.id` or `option.name` is unique
+                          const display = field.optionKey
+                            ? option[field.optionKey]
+                            : option.name || option;
+                          const key = option.id || display; // Ensure a unique key from option.id or option.name
+
                           return (
                             <SelectItem key={key} value={display}>
                               {display}
@@ -216,7 +331,7 @@ export function AudienceForm({
                           );
                         })
                       ) : (
-                        <SelectItem disabled>No options available</SelectItem>
+                        <SelectItem disabled>Nothing available</SelectItem>
                       )}
                     </SelectContent>
                   </Select>
@@ -242,7 +357,9 @@ export function AudienceForm({
       <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Audience</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Audience
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
@@ -253,7 +370,9 @@ export function AudienceForm({
       </div>
 
       <Button className="w-fit" type="submit">
-        {params?.audienceId && params.audienceId !== "new" ? "Update Audience" : "Create Audience"}
+        {params?.audienceId && params.audienceId !== "new"
+          ? "Update Audience"
+          : "Create Audience"}
       </Button>
 
       {/* Message show on either success or failed api response */}

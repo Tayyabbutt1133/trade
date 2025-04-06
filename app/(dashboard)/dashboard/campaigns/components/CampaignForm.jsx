@@ -96,7 +96,7 @@ export function CampaignForm({ initialData }) {
     formDataToSubmit.append("logby", "0");
 
     try {
-      const data = (await createCampaign(formDataToSubmit)).data;
+      const data = await createCampaign(formDataToSubmit);
       console.log("Campaign response from server :", data);
       // Check if Campaign array exists and has at least one item with 'Success' body
       if (

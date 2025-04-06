@@ -4,8 +4,9 @@ import TableActionBtn from "@/components/table-action-btn";
 import { fonts } from "@/components/ui/font";
 import { PlusCircle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import roleAccessStore from "@/store/role-access-permission";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 import { Loader2 } from "lucide-react"; // Import spinner icon
 
 export default function BuyersPage() {
@@ -27,6 +28,9 @@ export default function BuyersPage() {
 
   const [buyerData, setBuyerData] = useState([]);
   const [loading, setLoading] = useState(true); // Loading state
+  const [isPending, startTransition] = useTransition();
+  const [showRouteLoader, setShowRouteLoader] = useState(false);
+
 
   useEffect(() => {
     const fetchBuyerData = async () => {
@@ -65,30 +69,44 @@ export default function BuyersPage() {
     fetchBuyerData();
   }, []);
 
-  return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}>
-          Buyers
-        </h1>
-        <Link href="/dashboard/buyer/new">
-          <button
-            className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            Add Buyer
-          </button>
-        </Link>
-      </div>
+  const handleClick = () => {
+    setShowRouteLoader(true); // show loading
+    startTransition(() => {
+      router.push("/dashboard/seller/new");
+    });
+  };
 
-      {/* Show spinner when loading */}
-      {loading ? (
-        <div className="flex justify-center items-center h-40">
-          <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+  return (
+    <>
+      {showRouteLoader && <RouteTransitionLoader />}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h1
+            className={`text-3xl ${fonts.montserrat} font-bold ml-14 sm:ml-0`}
+          >
+            Buyers
+          </h1>
+          <Link href="/dashboard/buyer/new">
+            <button
+              onClick={handleClick}
+              disabled={isPending}
+              className={`flex items-center px-4 py-2 bg-black text-white rounded hover:bg-black ${fonts.montserrat}`}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Add Buyer
+            </button>
+          </Link>
         </div>
-      ) : (
-        <DataTable columns={columns} data={buyerData} />
-      )}
-    </div>
+
+        {/* Show spinner when loading */}
+        {loading ? (
+          <div className="flex justify-center items-center h-40">
+            <Loader2 className="animate-spin h-10 w-10 text-gray-600" />
+          </div>
+        ) : (
+          <DataTable columns={columns} data={buyerData} />
+        )}
+      </div>
+    </>
   );
 }
