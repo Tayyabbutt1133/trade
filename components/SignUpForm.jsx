@@ -132,7 +132,7 @@ export function SignUpForm() {
 
     try {
       const result = await Register(formDataToSubmit);
-      console.log(result);
+      console.log("Response from server :",result);
 
       if (result.success) {
         setSuccessMessage("Registration successful! Redirecting...");

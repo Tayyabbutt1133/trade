@@ -29,20 +29,84 @@ import withAuthCheck from "@/lib/withAuthCheck";
 import { FaHome } from "react-icons/fa";
 
 // ===================== Sidebar Items =====================
-const sellerSidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, requiresApproval: true },
+const IndustryManufacturerItems = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    requiresApproval: true,
+  },
   { name: "Profile", href: "/dashboard/profile", icon: User },
-  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart, requiresApproval: true },
-  { name: "Inquiries", href: "/dashboard/inquiries", icon: MessageSquare, requiresApproval: true },
-  { name: "Products", href: "/dashboard/products", icon: BoxesIcon, requiresApproval: true },
+  {
+    name: "RFQ",
+    href: "/dashboard/rfq",
+    icon: ShoppingCart,
+    requiresApproval: true,
+  },
+  {
+    name: "Inquiries",
+    href: "/dashboard/inquiries",
+    icon: MessageSquare,
+    requiresApproval: true,
+  },
+  {
+    name: "Products",
+    href: "/dashboard/products",
+    icon: BoxesIcon,
+    requiresApproval: true,
+  },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 
 const buyerSidebarItems = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard, requiresApproval: true },
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    requiresApproval: true,
+  },
   { name: "Profile", href: "/dashboard/profile", icon: User },
-  { name: "RFQ", href: "/dashboard/rfq", icon: ShoppingCart, requiresApproval: true },
-  { name: "Inquiry", href: "/dashboard/inquiries", icon: MessageSquare, requiresApproval: true },
+  {
+    name: "RFQ",
+    href: "/dashboard/rfq",
+    icon: ShoppingCart,
+    requiresApproval: true,
+  },
+  {
+    name: "Inquiries",
+    href: "/dashboard/inquiries",
+    icon: MessageSquare,
+    requiresApproval: true,
+  },
+  { name: "Sign out", href: "/signin", icon: LogOut },
+];
+
+const tradingCompaniesItems = [
+  {
+    name: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+    requiresApproval: true,
+  },
+  { name: "Profile", href: "/dashboard/profile", icon: User },
+  {
+    name: "RFQ",
+    href: "/dashboard/rfq",
+    icon: ShoppingCart,
+    requiresApproval: true,
+  },
+  {
+    name: "Inquiries",
+    href: "/dashboard/inquiries",
+    icon: MessageSquare,
+    requiresApproval: true,
+  },
+  {
+    name: "Products",
+    href: "/dashboard/products",
+    icon: BoxesIcon,
+    requiresApproval: true,
+  },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 
@@ -58,7 +122,11 @@ const adminSidebarItems = [
   { name: "Products", href: "/dashboard/products", icon: BoxesIcon },
   { name: "Expo Events", href: "/dashboard/expo-events", icon: Armchair },
   { name: "Users", href: "/dashboard/users", icon: User },
-  { name: "Pending User", href: "/dashboard/pending-reg", icon: UserRoundCheck },
+  {
+    name: "Pending User",
+    href: "/dashboard/pending-reg",
+    icon: UserRoundCheck,
+  },
   { name: "Sign out", href: "/signin", icon: LogOut },
 ];
 
@@ -66,10 +134,11 @@ const adminSidebarItems = [
 const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
   const Icon = item.icon;
   const router = useRouter();
-  
+
   // Check if user is pending registration
-  const isPending = userData?.body === "Pending Registeration" || userData?.body === "Pending";
-  
+  const isPending =
+    userData?.body === "Pending Registeration" || userData?.body === "Pending";
+
   // Check if this item should be locked for pending users
   const isLocked = isPending && item.requiresApproval;
 
@@ -80,7 +149,7 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
       e.preventDefault();
       return;
     }
-    
+
     // If it's "Sign out", delete cookies & redirect
     if (item.name === "Sign out") {
       e.preventDefault();
@@ -100,25 +169,40 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
         <span
           className={cn(
             "group flex items-center rounded-lg px-4 py-3 transition-all",
-            isActive ? (isLocked ? "bg-white/5 text-gray-400" : "bg-white/10 text-white") : 
-                      (isLocked ? "text-gray-400 cursor-not-allowed" : "text-gray-200 hover:text-white"),
+            isActive
+              ? isLocked
+                ? "bg-white/5 text-gray-400"
+                : "bg-white/10 text-white"
+              : isLocked
+              ? "text-gray-400 cursor-not-allowed"
+              : "text-gray-200 hover:text-white",
             isCollapsed ? "justify-center" : "justify-start"
           )}
         >
-          <Icon className={cn("h-5 w-5", isCollapsed ? "mr-0" : "mr-3", isLocked && "opacity-50")} />
+          <Icon
+            className={cn(
+              "h-5 w-5",
+              isCollapsed ? "mr-0" : "mr-3",
+              isLocked && "opacity-50"
+            )}
+          />
           {!isCollapsed && (
-            <span className={`font-medium ${fonts.montserrat} ${isLocked ? "opacity-50" : ""}`}>
+            <span
+              className={`font-medium ${fonts.montserrat} ${
+                isLocked ? "opacity-50" : ""
+              }`}
+            >
               {item.name}
             </span>
           )}
-          
+
           {/* Show lock icon for locked items */}
           {isLocked && !isCollapsed && (
             <LockIcon className="h-4 w-4 ml-auto text-gray-400" />
           )}
         </span>
       </Link>
-      
+
       {/* Show lock icon in tooltip for collapsed sidebar */}
       {isLocked && isCollapsed && (
         <div className="absolute right-1 top-1">
@@ -156,18 +240,24 @@ const DesktopSidebar = ({ items, isCollapsed, onToggleCollapse, userData }) => {
             </h2>
           </Link>
         )}
-        <Button variant="ghost" className="text-white" onClick={onToggleCollapse}>
+        <Button
+          variant="ghost"
+          className="text-white"
+          onClick={onToggleCollapse}
+        >
           <Menu className="h-5 w-5" />
         </Button>
       </div>
 
       {/* Display pending status if applicable */}
-      {(userData?.body === "Pending Registeration" || userData?.body === "Pending") && !isCollapsed && (
-        <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
-          <AlertCircle className="h-4 w-4 mr-2" />
-          <span>Pending approval. Only Profile is accessible.</span>
-        </div>
-      )}
+      {(userData?.body === "Pending Registeration" ||
+        userData?.body === "Pending") &&
+        !isCollapsed && (
+          <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            <span>Pending approval. Only Profile is accessible.</span>
+          </div>
+        )}
 
       {/* Sidebar Navigation */}
       <ScrollArea className="flex-1 px-3">
@@ -195,7 +285,11 @@ const MobileSidebar = ({ items, userData }) => {
   return (
     <>
       {/* Hamburger Button visible on mobile (LEFT side) */}
-      <Button variant="ghost" className="text-white" onClick={() => setOpen(true)}>
+      <Button
+        variant="ghost"
+        className="text-white"
+        onClick={() => setOpen(true)}
+      >
         <Menu className="h-5 w-5" />
       </Button>
 
@@ -223,15 +317,16 @@ const MobileSidebar = ({ items, userData }) => {
               <Menu className="h-5 w-5" />
             </Button>
           </div>
-          
+
           {/* Display pending status if applicable */}
-          {(userData?.body === "Pending Registeration" || userData?.body === "Pending") && (
+          {(userData?.body === "Pending Registeration" ||
+            userData?.body === "Pending") && (
             <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
               <AlertCircle className="h-4 w-4 mr-2" />
               <span>Pending approval. Only Profile is accessible.</span>
             </div>
           )}
-          
+
           <ScrollArea className="flex-1 px-3">
             <nav className="flex flex-col gap-1 py-4">
               {items.map((item) => (
@@ -294,8 +389,10 @@ const DashboardLayout = ({ children }) => {
   const userType = userData.type?.toLowerCase() || "";
   if (userType === "admin") {
     sidebarItems = adminSidebarItems;
-  } else if (userType === "seller") {
-    sidebarItems = sellerSidebarItems;
+  } else if (userType === "industrial_manufacturer") {
+    sidebarItems = IndustryManufacturerItems;
+  } else if (userType === "trading_companies") {
+    sidebarItems = tradingCompaniesItems;
   } else if (userType === "buyer") {
     sidebarItems = buyerSidebarItems;
   } else {
@@ -342,11 +439,15 @@ const DashboardLayout = ({ children }) => {
         </div>
 
         {/* Pending registration warning banner - show on all pages */}
-        {(userData?.body === "Pending Registeration" || userData?.body === "Pending") && (
+        {(userData?.body === "Pending Registeration" ||
+          userData?.body === "Pending") && (
           <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
             <div className="flex items-center">
               <AlertCircle className="h-5 w-5 mr-2 text-yellow-500" />
-              <p>Your registration is pending approval. Only your Profile page is accessible until approved.</p>
+              <p>
+                Your registration is pending approval. Only your Profile page is
+                accessible until approved.
+              </p>
             </div>
           </div>
         )}
