@@ -177,6 +177,7 @@ export function EmailForm({emailId, initialData = null}) {
 
     try {
       const result = await createEmailTemplate(formDataToSubmit)
+      console.log("Response from server :", result);
 
       if (result.success) {
         setSubmissionSuccess(result.message)
@@ -195,13 +196,7 @@ export function EmailForm({emailId, initialData = null}) {
 
   return (
     <form onSubmit={handleSubmit} className="grid gap-6">
-      {submissionSuccess && (
-        <div className="p-4 bg-green-100 text-green-800 rounded-md">{submissionSuccess}</div>
-      )}
-      {submissionError && (
-        <div className="p-4 bg-red-100 text-red-800 rounded-md">{submissionError}</div>
-      )}
-      
+     
       <div className="grid gap-4">
         {/* Title Field */}
         <div className="grid gap-2">
@@ -374,6 +369,13 @@ export function EmailForm({emailId, initialData = null}) {
       <Button className="w-fit" type="submit">
         Save Email Template
       </Button>
+
+      {submissionSuccess && (
+        <div className="p-4 bg-green-100 text-green-800 rounded-md">{submissionSuccess}</div>
+      )}
+      {submissionError && (
+        <div className="p-4 bg-red-100 text-red-800 rounded-md">{submissionError}</div>
+      )}
     </form>
   )
 }
