@@ -32,6 +32,7 @@ export function SignInForm() {
       const loginToSubmit = new FormData(e.target);
       // calling server side login function
       const server_response = await LOGIN(loginToSubmit);
+      console.log("Response from Server : ", server_response);
       setLoading(false);
 
       if (server_response.success) {
@@ -56,11 +57,12 @@ export function SignInForm() {
           return;
         }
 
-    
         window.location.href = "/";
       } else {
         // Display the error message provided by the server (or a fallback message)
-        setErrorMessage(server_response.message || "Login failed. Please try again.");
+        setErrorMessage(
+          server_response.message || "Login failed. Please try again."
+        );
       }
     } catch (error) {
       setLoading(false);
@@ -70,57 +72,63 @@ export function SignInForm() {
   };
 
   return (
-    <div className={`space-y-6 ${fonts.montserrat}`}>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            name="email"
-            placeholder="Enter your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
-          <Input
-            id="password"
-            type="password"
-            name="password"
-            placeholder="Enter your password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]"
-          >
-            {loading ? "Signing in..." : "Sign In"}
-          </Button>
-        </div>
-        <div className="text-sm text-center mt-4">
-          <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">
-            Reset password
-          </span>
-        </div>
-      </form>
+    <div className={`w-full max-w-md mx-auto px-4 ${fonts.montserrat}`}>
+      <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              name="password"
+              placeholder="Enter your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <div>
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 bg-[#37bfb1] hover:bg-[#2ea89b]"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </div>
+          <div className="text-sm text-center mt-4">
+            <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">
+              Reset password
+            </span>
+          </div>
+        </form>
+      </div>
 
-      {/* Display success or error messages */}
+      {/* Success/Error Messages */}
       {successMessage && (
-        <div className="text-green-600 text-center mt-4">{successMessage}</div>
+        <div className="text-green-600 text-center mt-4 max-w-sm mx-auto break-words">
+          {successMessage}
+        </div>
       )}
       {errorMessage && (
-        <div className="text-red-600 text-center mt-4">{errorMessage}</div>
+        <div className="text-red-600 text-center mt-4 max-w-sm mx-auto break-words">
+          {errorMessage}
+        </div>
       )}
 
-      <div className="relative">
+      <div className="relative mt-6">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t" />
         </div>

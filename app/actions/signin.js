@@ -31,12 +31,13 @@ export async function LOGIN(formdata) {
       return { success: false, message: errorMessage };
     }
 
+
     // Parse the successful JSON response
     const responseData = await response.json();
-    
+
     // Handle both response formats
     let userData;
-    
+
     // Check if response contains the Registeration array format
     if (responseData && responseData.Registeration && Array.isArray(responseData.Registeration) && responseData.Registeration.length > 0) {
       // Use the first item from the Registeration array
@@ -53,49 +54,63 @@ export async function LOGIN(formdata) {
     }
 
     // Validate that we have the expected data after normalization
+    // If ID is "0", it's a failed login (usually wrong credentials or unregistered email)
+    if (userData.id === "0") {
+      return {
+        success: false,
+        message: userData.body === "Invalid Authentication"
+          ? "Email not registered or password incorrect. Please try again or sign up."
+          : userData.body || "Login failed. Please try again.",
+      };
+    }
+
+    // Validate essential fields before proceeding
     if (!userData.id || !userData.type) {
       return {
         success: false,
-        message: "Invalid Login Credentials",
+        message: "Login failed due to missing data in response.",
       };
     }
+
+
+
     // Set cookies with user data
     cookieStore.set("userId", userData.id, {
       path: "/",
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 1 week
     });
-    
+
     cookieStore.set("userType", userData.type, {
       path: "/",
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 1 week
     });
-    
+
     cookieStore.set("userBody", userData.body, {
       path: "/",
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 1 week
     });
-    
-    // If there's additional data in the admin response, you might want to store it
-    // if (userData.status) {
-    //   cookieStore.set("userStatus", userData.status, {
-    //     path: "/",
-    //     httpOnly: true,
-    //     maxAge: 60 * 60 * 24 * 7,
-    //   });
-    // }
-    
-    // if (userData.email) {
-    //   cookieStore.set("userEmail", userData.email, {
-    //     path: "/",
-    //     httpOnly: true,
-    //     maxAge: 60 * 60 * 24 * 7,
-    //   });
-    // }
 
+    // If there's additional data in the admin response, you might want to store it
+    if (userData.status) {
+      cookieStore.set("userStatus", userData.status, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
+
+    if (userData.email) {
+      cookieStore.set("userEmail", userData.email, {
+        path: "/",
+        httpOnly: true,
+        maxAge: 60 * 60 * 24 * 7,
+      });
+    }
     return { success: true, data: userData };
+
   } catch (error) {
     console.error("Error during login:", error);
     return {

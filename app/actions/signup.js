@@ -21,10 +21,15 @@ export async function Register(data) {
     // return result;
 
 
-    if (!response.ok || (result.Registeration && result.Registeration[0].body === "Email already registered")) {
-      const errorMessage = result.Registeration?.[0]?.body || "Registration failed. Please try again."
-      return { success: false, error: errorMessage }
+    // Check if email is already registered
+    if (result?.body === "Email already registered" || result?.id === "0") {
+      return {
+        success: false,
+        error: "Email already registered. Try logging in or use a different email.",
+      };
     }
+
+
     if (result.Registeration && result.Registeration[0] && result.Registeration[0].id) {
       const registrationData = result.Registeration[0]
       cookieStore.set("userId", registrationData.id.toString(), {
@@ -36,7 +41,7 @@ export async function Register(data) {
         path: "/",
         httpOnly: true,
         maxAge: 60 * 60 * 24 * 7,
-      })      
+      })
       cookieStore.set("userBody", registrationData.status, {
         path: "/",
         httpOnly: true,
