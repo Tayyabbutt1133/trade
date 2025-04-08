@@ -72,8 +72,8 @@ export function SignInForm() {
   };
 
   return (
-    <div className={`w-full max-w-md mx-auto px-4 ${fonts.montserrat}`}>
-      <div className="space-y-6">
+    <div className={`px-4 ${fonts.montserrat}`}>
+      <div className="space-y-6 w-96 ">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
