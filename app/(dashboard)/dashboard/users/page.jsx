@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useRef, useEffect, useTransition } from "react";
-import { PlusCircle, Search, Eye, EyeOff, Edit, Loader2 } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { PlusCircle, Search, Eye, EyeOff, Loader2 } from "lucide-react";
 import { DataTable } from "@/components/data-table";
 import { fonts } from "@/components/ui/font";
 import { ADDUSER } from "@/app/actions/adduser";
 import RouteTransitionLoader from "@/components/RouteTransitionLoader";
+import { useRouter } from "next/navigation";
 
 const columns = [
   { accessorKey: "user", header: "User" },
@@ -30,10 +31,10 @@ export default function UsersPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingUserId, setEditingUserId] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const [ShowRouteLoader, setShowRouteLoader] = useState();
+  const [ShowRouteLoader, setShowRouteLoader] = useState(false);
 
   const modalRef = useRef(null);
+  const router = useRouter();
 
   // Fetch users from backend
   async function fetchUsers() {
@@ -81,10 +82,6 @@ export default function UsersPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSelectChange = (name, value) => {
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
   const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   const closeModal = () => {
@@ -97,6 +94,7 @@ export default function UsersPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowRouteLoader(true);
     closeModal();
 
     if (isEditing) {
@@ -117,13 +115,18 @@ export default function UsersPage() {
     } else {
       try {
         const response = await ADDUSER(new FormData(e.target));
-        if (response.ok) {
+        console.log("Response from server :", response);
+        if (response.success) {
           setUserData((prevData) => [...prevData, { ...formData }]);
         } else {
           throw new Error("Failed to add user");
         }
       } catch (error) {
         console.error("Error adding user:", error);
+      } finally {
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 2000);
       }
     }
   };
@@ -149,21 +152,12 @@ export default function UsersPage() {
 
   if (!isMounted) return null;
 
-  const handleClick = () => {
-    setShowRouteLoader(true); // show loading
-    startTransition(() => {
-      router.push("/dashboard/seller/new");
-    });
-  };
-
   return (
     <>
       {ShowRouteLoader && <RouteTransitionLoader />}
       <div className="space-y-6">
         <div className="flex justify-between items-center">
-          <h1
-            className={`text-3xl font-bold ml-14 ${fonts.montserrat} sm:ml-0`}
-          >
+          <h1 className={`text-3xl font-bold ml-14 ${fonts.montserrat} sm:ml-0`}>
             Users
           </h1>
           <button
@@ -171,7 +165,6 @@ export default function UsersPage() {
             onClick={() => {
               setOpen(true);
               setIsEditing(false);
-              handleClick;
               setFormData({
                 user: "",
                 email: "",

@@ -271,6 +271,7 @@ export function AudienceForm({
       }
 
       const response = await CREATEAUDIENCE(formDataObj);
+      // console.log("Audience response from server :", response);
 
       if (response.success) {
         setSuccessMessage("Successfully submitted");
@@ -286,7 +287,7 @@ export function AudienceForm({
     } finally {
       setTimeout(() => {
         router.push("/dashboard/audience");
-      }, 8000);
+      }, 2000);
     }
   };
 

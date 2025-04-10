@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Mail, User, Phone, ArrowRight, Building2 } from "lucide-react";
 import { fonts } from "@/components/ui/font";
 import { EXPO } from "@/app/actions/expoevents";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
+import { useRouter } from "next/navigation";
 
 export default function ModernQRPage() {
   const [message, setMessage] = useState("");
@@ -21,6 +23,10 @@ export default function ModernQRPage() {
     country: "",
     industry: "",
   });
+  const [ShowRouteLoader, setShowRouteLoader] = useState(false);
+
+  const router = useRouter();
+
 
   useEffect(() => {
     async function loadMetaData() {
@@ -33,6 +39,7 @@ export default function ModernQRPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowRouteLoader(true);
 
     if (
       !formData.name ||
@@ -55,10 +62,16 @@ export default function ModernQRPage() {
     } catch (error) {
       console.error("Form Submission Error:", error);
       setMessage("Error submitting form. Please try again.");
+    } finally {
+      setTimeout(() => {
+      router.push('/dashboard')
+      }, 2000);
     }
   };
 
   return (
+    <>
+      {ShowRouteLoader && <RouteTransitionLoader/>}
     <div className="px-4 sm:px-6 lg:px-8 py-12">
       <form onSubmit={handleSubmit} className="space-y-6">
         <h3 className={`text-2xl font-semibold ${fonts.montserrat} text-gray-700 mb-4`}>
@@ -128,7 +141,8 @@ export default function ModernQRPage() {
                 Select Type
               </option>
               <option value="buyer">Buyer</option>
-              <option value="seller">Seller</option>
+              <option value="industrial Manufacturer">Industrial Manufacturer</option>
+              <option value="trading companies">Trading Companies</option>
             </select>
           </div>
 
@@ -186,6 +200,7 @@ export default function ModernQRPage() {
           <span className="text-green-600">{message}</span>
         </div>
       )}
-    </div>
+      </div>
+      </>
   );
 }

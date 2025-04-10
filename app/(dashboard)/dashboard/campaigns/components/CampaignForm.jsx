@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createCampaign } from "@/app/actions/createCampaign";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 import { useRouter } from "next/navigation";
 
 export function CampaignForm({ initialData }) {
@@ -31,6 +32,7 @@ export function CampaignForm({ initialData }) {
   const [audiences, setAudiences] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState("");
+  const [ShowRouteLoader, setShowRouteLoader] = useState(false);
 
   const router = useRouter();
 
@@ -86,6 +88,7 @@ export function CampaignForm({ initialData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setShowRouteLoader(true);
     const formDataToSubmit = new FormData();
     formDataToSubmit.append("campname", formData.campname);
     formDataToSubmit.append("camptype", formData.camptype);
@@ -106,12 +109,13 @@ export function CampaignForm({ initialData }) {
       ) {
         setSuccessMessage("Campaign created successfully!");
         // Wait 2 seconds before redirecting
-        setTimeout(() => {
-          router.push("/dashboard/campaigns");
-        }, 2000);
       }
     } catch (e) {
       console.error("Error submitting form:", e);
+    } finally {
+      setTimeout(() => {
+        router.push("/dashboard/campaigns");
+      }, 2000);
     }
   };
 
@@ -120,6 +124,8 @@ export function CampaignForm({ initialData }) {
   }
 
   return (
+    <>
+      {ShowRouteLoader && <RouteTransitionLoader/>}
     <form onSubmit={handleSubmit} className="grid gap-4 py-4">
       <div className="grid gap-2">
         <Label htmlFor="campname">Campaign Name</Label>
@@ -228,6 +234,7 @@ export function CampaignForm({ initialData }) {
           </div>
         )}
       </div>
-    </form>
+      </form>
+      </>
   );
 }
