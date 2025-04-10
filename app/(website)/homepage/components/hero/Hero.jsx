@@ -3,7 +3,7 @@ import { fonts } from "@/components/ui/font";
 import React from "react";
 import Image from "next/image";
 import TabsMenu from "../tabs/TabsMenu";
-import advertisement from "./../../../../../public/tt_add.jpg";
+import advertisement from "./../../../../../public/trade_ad.jpg";
 
 const Hero = () => {
   return (
@@ -11,11 +11,11 @@ const Hero = () => {
       <Container className={`${fonts.montserrat}`}>
         <div className="w-full mt-9">
           {/* Advertisement Placeholder */}
-          <div className="mb-16 py-14 flex justify-center">
+          <div className="mb-16 py-10 flex justify-center">
             <Image
               src={advertisement}
               alt="Advertisement"
-              className="max-w-full h-auto"
+              className="max-w-full max-h-96"
             />
           </div>
 
