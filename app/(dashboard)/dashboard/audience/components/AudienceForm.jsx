@@ -17,6 +17,7 @@ import { CREATEAUDIENCE } from "@/app/actions/createAudience";
 import { GETAUDIENCE } from "@/app/actions/getaudience";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 
 // Static options for fields that aren't dynamic
 const recipientTypes = [
@@ -44,6 +45,7 @@ export function AudienceForm({
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [ShowRouteLoader, setShowRouteLoader] = useState(false);
   const router = useRouter();
   const params = useParams();
 
@@ -249,12 +251,13 @@ export function AudienceForm({
     e.preventDefault();
     setErrorMessage("");
     setSuccessMessage("");
-
+    setShowRouteLoader(true);
     const validationError = validateForm();
     if (validationError) {
       setErrorMessage(validationError);
       return;
     }
+
 
     try {
       const formDataObj = new FormData(e.target);
@@ -271,7 +274,6 @@ export function AudienceForm({
 
       if (response.success) {
         setSuccessMessage("Successfully submitted");
-        router.push("/dashboard/audience");
       } else {
         setErrorMessage(
           response.error || "Submission failed. Please try again."
@@ -279,11 +281,18 @@ export function AudienceForm({
       }
     } catch (error) {
       setErrorMessage("An unexpected error occurred. Please try again later.");
+      setShowRouteLoader(false); // also turn off on error
       console.error("Submission error:", error);
+    } finally {
+      setTimeout(() => {
+        router.push("/dashboard/audience");
+      }, 8000);
     }
   };
 
   return (
+    <>
+      {ShowRouteLoader && <RouteTransitionLoader/>}
     <form onSubmit={handleSubmit} className="grid gap-6">
       <div className="grid gap-4">
         {dynamicFormFields.map((field) => {
@@ -382,6 +391,7 @@ export function AudienceForm({
       {errorMessage && (
         <div className="text-red-600 text-center mt-4">{errorMessage}</div>
       )}
-    </form>
+      </form>
+      </>
   );
 }

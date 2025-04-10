@@ -170,7 +170,8 @@ export default function ExpoEvents() {
                   Select Type
                 </option>
                 <option value="buyer">Buyer</option>
-                <option value="seller">Seller</option>
+                <option value="Industrial Manufacturer">Industrial Manufacturer</option>
+                <option value="Trading Companies">Trading Companies</option>
               </select>
             </div>
 

@@ -3,7 +3,6 @@ import { fonts } from "@/components/ui/font";
 import React from "react";
 import TabsMenu from "../tabs/TabsMenu";
 
-
 const Hero = () => {
   return (
     <section className="">
@@ -14,16 +13,17 @@ const Hero = () => {
             Advertisement
           </div>
           <div>
-            <h1 className="text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e] max-w-[560px] mb-10">
-            The most convenient way to acquire ingredients, polymers, and chemicals.
+            <h1 className="text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e] max-w-[560px] mb-10 drop-shadow-[4px_4px_2px_rgba(0,0,0,0.25)]">
+              The most convenient way to acquire ingredients, polymers, and
+              chemicals.
             </h1>
             <p>
-            Search and explore products from suppliers around the globe — 
+              Search and explore products from suppliers around the globe —
               <span className="font-semibold text-[#222c2e]">
                 all in one place.
               </span>
             </p>
-          </div>       
+          </div>
         </div>
       </Container>
     </section>

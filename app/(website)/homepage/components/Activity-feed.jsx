@@ -39,7 +39,7 @@ const ActivityFeed = ({
               Activity Feed
             </p>
             <h2
-              className={`${fonts.montserrat} text-2xl font-semibold mb-8 leading-tight`}
+              className={`${fonts.montserrat} drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] text-2xl font-semibold mb-8 leading-tight`}
             >
               The ultimate hub for industry innovation and discovery.
             </h2>

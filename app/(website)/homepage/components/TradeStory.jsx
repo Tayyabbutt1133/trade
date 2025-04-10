@@ -17,14 +17,14 @@ const TradeStory = () => {
             <Image
               alt="Vision"
               src={vision}
-              className="w-full h-auto rounded-lg shadow-lg"
+              className="w-full h-auto rounded-lg shadow-[0_10px_20px_rgba(0,0,0,0.2),_0_6px_6px_rgba(0,0,0,0.25)] transition-transform duration-500 hover:scale-105"
             />
           </div>
 
           {/* Right side: Text */}
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
+              className={`${fonts.montserrat} drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Vision
             </h1>
@@ -42,7 +42,7 @@ const TradeStory = () => {
           {/* Left side: Text */}
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
+              className={`${fonts.montserrat} drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Mission
             </h1>
@@ -85,7 +85,7 @@ const TradeStory = () => {
             <Image
               alt="Mission"
               src={mission}
-              className="w-full h-[500px] object-cover rounded-xl shadow-xl"
+              className="w-full h-[500px] drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] transition-transform duration-500 hover:scale-105 object-cover rounded-xl shadow-xl"
             />
           </div>
         </div>
@@ -95,12 +95,12 @@ const TradeStory = () => {
             <Image
               alt="Vision"
               src={purpose}
-              className="w-full h-auto rounded-lg shadow-lg"
+              className="w-full h-auto drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] transition-transform duration-500 hover:scale-105 rounded-lg shadow-lg"
             />
           </div>
           <div className="md:w-1/2 md:pl-10">
             <h1
-              className={`${fonts.montserrat} text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
+              className={`${fonts.montserrat} drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] text-3xl lg:text-[42px] font-semibold tracking-tight leading-[48px] text-[#222c2e]`}
             >
               Purpose
             </h1>

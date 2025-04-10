@@ -65,7 +65,7 @@ export default function InsightsAndInnovations() {
                 </div>
                 <div className="space-y-6">
                   <p className="text-gray-600 text-lg">{item.subtitle}</p>
-                  <h2 className="text-4xl md:text-5xl font-bold text-gray-900 leading-tight">
+                  <h2 className="text-4xl md:text-5xl drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] font-bold text-gray-900 leading-tight">
                     {item.title}
                   </h2>
                   <div className="h-12 relative">

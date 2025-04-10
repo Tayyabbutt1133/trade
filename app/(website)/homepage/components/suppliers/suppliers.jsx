@@ -42,8 +42,8 @@ export default function SuppliersSection() {
   return (
     <Container className="py-16 mx-auto">
       <div className={`space-y-2 mb-12 ${fonts.montserrat}`}>
-        <h2 className="text-gray-600 text-lg md:text-xl">Latest Suppliers</h2>
-        <h3 className="text-3xl md:text-5xl font-semibold text-gray-900 max-w-xl">
+        <h2 className="text-gray-600 text-lg md:text-xl ">Latest Suppliers</h2>
+        <h3 className="text-3xl md:text-5xl font-semibold text-gray-900 max-w-xl drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)]">
           Discover range of products in storefronts around the globe.
         </h3>
       </div>

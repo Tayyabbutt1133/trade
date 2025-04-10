@@ -73,7 +73,7 @@ export default function TestimonialCarousel() {
                 </div>
                 <div className="md:col-span-7">
                   <blockquote>
-                    <p className="text-lg md:text-xl lg:text-2xl font-medium  leading-relaxed text-gray-900 mb-8">
+                    <p className="text-lg md:text-xl drop-shadow-[2px_2px_1px_rgba(0,0,0,0.2)] lg:text-2xl font-medium  leading-relaxed text-gray-900 mb-8">
                       {testimonial.quote}
                     </p>
                     <footer>
