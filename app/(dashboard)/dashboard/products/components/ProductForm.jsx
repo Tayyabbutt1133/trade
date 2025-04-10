@@ -33,7 +33,6 @@ export function ProductForm({
     cinum: "",
     images: [],
     logo: [],
-    // functions: []
   });
 
   const [isLoading, setIsLoading] = useState(!initialData && isEditMode);

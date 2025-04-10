@@ -5,11 +5,11 @@ import { X, Upload } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 export function CompanyLogoUpload({ 
-  logo, 
+  logo = [], 
   setLogo 
 }) {
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
     if (file) {
       const logoData = {
         file,
@@ -27,11 +27,15 @@ export function CompanyLogoUpload({
     setLogo([]);
   };
 
+  const hasLogo = Array.isArray(logo) && logo.length > 0;
+
+
   return (
     <div className="space-y-2">
       <Label>Company Logo</Label>
       <div className="flex flex-wrap gap-2">
-        {logo.length > 0 ? (
+        
+        {hasLogo ? (
           <div className="relative">
             <img 
               src={logo[0].base64} 

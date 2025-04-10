@@ -28,6 +28,9 @@ export default async function ProductDetail({ params }) {
       formData.append("productid", productId);
       formData.append("maincatid", "0");
       formData.append("catid", "0");
+      formData.append("lastpage", "");
+      formData.append("page", "");
+      formData.append("size", 1);
       formData.append("subcatid", "0");
       formData.append("logby", "0");
       
@@ -40,6 +43,7 @@ export default async function ProductDetail({ params }) {
       );
       
       const data = await response.json();
+      console.log("Product Response :", data);
       if (data && data.Product && data.Product.length > 0) {
         productData = data.Product[0];
       }
