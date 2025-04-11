@@ -23,12 +23,30 @@ export default function SearchBar() {
       setIsLoading(true);
 
       // Capitalize each word
+      const lowercaseWords = [
+        "and",
+        "or",
+        "of",
+        "in",
+        "on",
+        "at",
+        "for",
+        "with",
+        "a",
+        "an",
+        "the",
+      ];
+
       const capitalizedSearch = search
         .trim()
+        .toLowerCase()
         .split(" ")
-        .map(
-          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-        )
+        .map((word, index) => {
+          if (index === 0 || !lowercaseWords.includes(word)) {
+            return word.charAt(0).toUpperCase() + word.slice(1);
+          }
+          return word;
+        })
         .join(" ");
 
       router.push(`/search/${encodeURIComponent(capitalizedSearch)}`);
