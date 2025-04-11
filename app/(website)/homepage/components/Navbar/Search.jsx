@@ -21,8 +21,16 @@ export default function SearchBar() {
   const handleSearch = () => {
     if (search.trim() !== "") {
       setIsLoading(true);
-      const capitalizedSearch =
-        search.charAt(0).toUpperCase() + search.slice(1).toLowerCase();
+
+      // Capitalize each word
+      const capitalizedSearch = search
+        .trim()
+        .split(" ")
+        .map(
+          (word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+        )
+        .join(" ");
+
       router.push(`/search/${encodeURIComponent(capitalizedSearch)}`);
       setSearch("");
     }
