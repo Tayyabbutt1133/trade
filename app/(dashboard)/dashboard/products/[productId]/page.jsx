@@ -4,6 +4,7 @@ import { ProductForm } from "../components/ProductForm";
 import { DescriptionListForm } from "../components/DescriptionListForm";
 import { FileUploadForm } from "../components/FileUploadForm";
 import PropertyTable from "../components/PropertyTable";
+import ProductUploader from "../components/ProductUploader";
 
 export default async function ProductDetail({ params }) {
   const productId = (await params).productId;
@@ -21,7 +22,7 @@ export default async function ProductDetail({ params }) {
 
   // If editing existing product, fetch its data
   let productData = null;
-  let productSpecs = null
+  let productSpecs = null;
   if (!isNewProduct) {
     try {
       const formData = new FormData();
@@ -33,7 +34,7 @@ export default async function ProductDetail({ params }) {
       formData.append("size", 1);
       formData.append("subcatid", "0");
       formData.append("logby", "0");
-      
+
       const response = await fetch(
         "https://tradetoppers.esoftideas.com/esi-api/responses/products/",
         {
@@ -41,14 +42,14 @@ export default async function ProductDetail({ params }) {
           body: formData,
         }
       );
-      
+
       const data = await response.json();
       console.log("Product Response :", data);
       if (data && data.Product && data.Product.length > 0) {
         productData = data.Product[0];
       }
       if (data && data["Product Specs"] && data["Product Specs"].length > 0) {
-        productSpecs = data["Product Specs"]
+        productSpecs = data["Product Specs"];
       }
     } catch (error) {
       console.error("Error fetching product data:", error);
@@ -62,24 +63,30 @@ export default async function ProductDetail({ params }) {
       </h1>
       <Tabs defaultValue="product" className="w-full">
         <TabsList className="flex w-full">
-          <TabsTrigger value="product" className="flex-1 min-w-[80px]">
-            <span className="hidden sm:inline">Product</span>
+          <TabsTrigger value="Add product" className="flex-1 min-w-[80px]">
+            <span className="hidden sm:inline">Add Product (Manual)</span>
             <span className="sm:hidden">Prod</span>
           </TabsTrigger>
           {/* <TabsTrigger value="details" className="flex-1 min-w-[80px]">
               Details
           </TabsTrigger> */}
           <TabsTrigger value="document" className="flex-1 min-w-[80px]">
-            <span className="hidden sm:inline">Document</span>
+            <span className="hidden sm:inline">Documents</span>
             <span className="sm:hidden">Docs</span>
           </TabsTrigger>
           <TabsTrigger value="specification" className="flex-1 min-w-[80px]">
-            <span className="hidden sm:inline">Specification</span>
+            <span className="hidden sm:inline">Specifications</span>
             <span className="sm:hidden">Specs</span>
           </TabsTrigger>
+          {/* ✅ New tab for uploading product via Excel */}
+          <TabsTrigger value="upload" className="flex-1 min-w-[80px]">
+            <span className="hidden sm:inline">Upload Product</span>
+            <span className="sm:hidden">Up</span>
+          </TabsTrigger>
         </TabsList>
+
         <div className="mt-6">
-          <TabsContent value="product">
+          <TabsContent value="Add product">
             <ProductForm
               initialBrandOptions={brands.Brand}
               initialCategoriesOption={categories.Categories}
@@ -97,7 +104,10 @@ export default async function ProductDetail({ params }) {
             <FileUploadForm />
           </TabsContent>
           <TabsContent value="specification">
-            <PropertyTable initialData={productSpecs}/>
+            <PropertyTable initialData={productSpecs} />
+          </TabsContent>
+          <TabsContent value="upload">
+            <ProductUploader />
           </TabsContent>
         </div>
       </Tabs>
