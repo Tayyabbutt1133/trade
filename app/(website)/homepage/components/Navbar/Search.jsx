@@ -1,15 +1,18 @@
 "use client";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { fonts } from "@/components/ui/font";
 import { Input } from "@/components/ui/input";
 import { IoSearchSharp } from "react-icons/io5";
+import RouteTransitionLoader from "@/components/RouteTransitionLoader";
+import { usePathname } from "next/navigation";
 
 export default function SearchBar() {
   const [search, setSearch] = useState("");
+  const [isloading, setIsLoading] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   const handleInputChange = (e) => {
     setSearch(e.target.value);
@@ -17,7 +20,10 @@ export default function SearchBar() {
 
   const handleSearch = () => {
     if (search.trim() !== "") {
-      router.push(`/search/${encodeURIComponent(search)}`);
+      setIsLoading(true);
+      const capitalizedSearch =
+        search.charAt(0).toUpperCase() + search.slice(1).toLowerCase();
+      router.push(`/search/${encodeURIComponent(capitalizedSearch)}`);
       setSearch("");
     }
   };
@@ -30,8 +36,13 @@ export default function SearchBar() {
     }
   };
 
+  useEffect(() => {
+    setIsLoading(false);
+  }, [pathname]);
+
   return (
     <div className="relative">
+      {isloading && <RouteTransitionLoader />}
       <Input
         type="text"
         placeholder="Search the marketplace"
