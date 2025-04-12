@@ -387,13 +387,19 @@ const DashboardLayout = ({ children }) => {
   // Determine which sidebar items to show
   let sidebarItems;
   const userType = userData.type?.toLowerCase() || "";
+
+  // Decode and normalize the userType for comparison
+  const normalizedUserType = decodeURIComponent(userType)
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
   if (userType === "admin") {
     sidebarItems = adminSidebarItems;
-  } else if (userType === "industrial_manufacturer") {
+  } else if (normalizedUserType === "industrial_manufacturer") {
     sidebarItems = IndustryManufacturerItems;
-  } else if (userType === "trading_companies") {
+  } else if (normalizedUserType === "trading_companies") {
     sidebarItems = tradingCompaniesItems;
-  } else if (userType === "buyer") {
+  } else if (normalizedUserType === "buyer") {
     sidebarItems = buyerSidebarItems;
   } else {
     sidebarItems = [];
