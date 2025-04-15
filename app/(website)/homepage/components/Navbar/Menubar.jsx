@@ -105,7 +105,7 @@ export function Menubar() {
               <Link
                 key={index}
                 href={`/topmenu/${encodeURIComponent(category)}`}
-                className="text-white bg-[#404C4D] text-sm rounded-2xl px-3 py-1 hover:border-white"
+                className="text-white bg-[#404C4D] text-sm rounded-md px-3 py-1 hover:border-white"
               >
                 <p className={`text-[12px] ${fonts.montserrat}`}>{category}</p>
               </Link>

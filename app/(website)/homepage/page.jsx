@@ -14,7 +14,7 @@ const HomePage = () => {
   return (
     <>
       <Hero />
-      <TabsMenu />
+      {/* <TabsMenu /> */}
       <TradeStory/>
       <FeaturesSection />
       <SuppliersSection />

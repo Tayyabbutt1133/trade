@@ -1,10 +1,10 @@
 import Container from "@/components/container";
 import ProductCategoryHeader from "../../[category]/components/ProductCategoryHeader";
-import ProductsGrid from "../../[category]/components/ProductsGrid";
 import { GETALLPRODUCT } from "@/app/actions/getallproducts";
 import { Suspense } from "react";
 import LoadingSpinner from "@/components/ui/LoadingSpinner";
-import TopProductsGrid from "../../[category]/components/TopProductsGrid";
+import TopCategoryFilter from "../../[category]/components/TopCategoryFilter";
+
 
 // Product content component
 const ProductContent = async ({ topMenu }) => {
@@ -35,16 +35,10 @@ const ProductContent = async ({ topMenu }) => {
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
 
 
-
   return (
     <>
       <ProductCategoryHeader category={decodedcategory} />
-      <TopProductsGrid
-        catid={catid}
-        maincatid={maincatid}
-        subcatid={subcatid}
-        totalProducts={totalCount}
-      />
+      <TopCategoryFilter />
     </>
   );
 };
