@@ -8,19 +8,6 @@ import SideMenu from "./SideMenu/SideMenu";
 import { fonts } from "@/components/ui/font";
 import MegaMenu from "./MegaMenu";
 import Link from "next/link";
-import Suppliers from "./Suppliers";
-
-// (Optional) Slugify function if needed for other purposes.
-function slugify(str) {
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/\s+/g, "-")     
-    .replace(/&/g, "and")     
-    .replace(/[^\w-]+/g, "")   
-    .replace(/--+/g, "-")      
-    .replace(/^-|-$/g, "");
-}
 
 export function Menubar() {
   const [activeMegaMenu, setActiveMegaMenu] = useState(null);
@@ -72,7 +59,7 @@ export function Menubar() {
   }, [showDropdown]);
 
   // Derive visible and extra categories
-  const visibleCategories = topCategories.slice(0, 7);
+  const visibleCategories = topCategories.slice(0, 6);
   const extraCategories = topCategories.slice(7);
 
   return (
@@ -87,7 +74,7 @@ export function Menubar() {
           />
           {/* Show SideMenu if open */}
           {isMenuOpen && <SideMenu onclose={() => setIsMenuOpen(false)} />}
-         
+
           {/* Mega menu handling */}
           {/* <button
             className="flex items-center gap-1 px-4 text-white py-2 focus:outline-none"
@@ -100,14 +87,18 @@ export function Menubar() {
           </button> */}
 
           {/* Render Top Categories */}
-          <div className="relative flex items-center gap-1 ml-4">
+          <div className="relative flex items-center gap-3 ml-4 my-2">
             {visibleCategories.map((category, index) => (
               <Link
                 key={index}
                 href={`/topmenu/${encodeURIComponent(category)}`}
-                className="text-white bg-[#404C4D] text-sm rounded-md px-3 py-1 hover:border-white"
+                className=""
               >
-                <p className={`text-[12px] ${fonts.montserrat}`}>{category}</p>
+                <p
+                  className={`text-[13px] text-white bg-[#404C4D] rounded-md shadow-sm px-3 py-2 hover:border-white hover:shadow-md transition  duration-300 hover:scale-105 ${fonts.montserrat}`}
+                >
+                  {category}
+                </p>
               </Link>
             ))}
             {extraCategories.length > 0 && (
@@ -128,10 +119,14 @@ export function Menubar() {
                       <Link
                         key={index}
                         href={`/topmenu/${encodeURIComponent(category)}`}
-                        className={`block ${fonts.montserrat} text-white text-sm rounded-2xl px-3 py-1 hover:bg-[#505C5D] mb-1`}
+                        className={``}
                         onClick={() => setShowDropdown(false)}
                       >
-                        {category}
+                        <p
+                          className={`text-[13px] text-white bg-[#404C4D] rounded-md shadow-sm px-3 py-2 hover:border-white hover:shadow-md transition  duration-300 hover:scale-105 ${fonts.montserrat}`}
+                        >
+                          {category}
+                        </p>
                       </Link>
                     ))}
                   </div>

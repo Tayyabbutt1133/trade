@@ -9,7 +9,6 @@ import {
 import { fonts } from "@/components/ui/font";
 import { IoChevronDown } from "react-icons/io5";
 
-
 const Suppliers = () => {
   return (
     <>
