@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -365,6 +365,7 @@ const DashboardLayout = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [userWebcode, setUserWebcode] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showApprovalMessage, setShowApprovalMessage] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -407,6 +408,21 @@ const DashboardLayout = ({ children }) => {
         const userData = json_data?.Registeration?.[0];
 
         if (userData) {
+          const currentStatus = userData.status;
+          const previousStatus = localStorage.getItem("previousStatus");
+
+          // ✅ Show approval message if transitioned from Pending to Approved
+          if (
+            previousStatus &&
+            (previousStatus === "Pending Registeration" ||
+              previousStatus === "Pending") &&
+            currentStatus !== previousStatus
+          ) {
+            setShowApprovalMessage(true);
+            setTimeout(() => setShowApprovalMessage(false), 5000);
+          }
+
+          localStorage.setItem("previousStatus", currentStatus);
           setUserData(userData);
         }
       } catch (error) {
@@ -447,7 +463,7 @@ const DashboardLayout = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* 1) Desktop Sidebar (≥1024px) */}
+      {/* 1) Desktop Sidebar */}
       <DesktopSidebar
         items={sidebarItems}
         isCollapsed={isCollapsed}
@@ -466,17 +482,26 @@ const DashboardLayout = ({ children }) => {
                        hover:scale-105 transition-all px-4 py-2 rounded-lg shadow-md hover:shadow-lg"
           >
             <FaHome className="text-2xl text-yellow-400" />
-            <h2
-              className={`text-lg ${
-                fonts?.montserrat || ""
-              } font-bold text-white`}
-            >
-              Go Main
-            </h2>
+            <h2 className="text-lg font-bold text-white">Go Main</h2>
           </Link>
         </div>
 
-        {/* Pending Registration Banner */}
+        {/* ✅ Approval Message Banner */}
+        {showApprovalMessage && (
+          <div className="bg-green-100 border-l-4 border-green-600 text-green-800 p-4 animate-fade-in">
+            <div className="flex items-center gap-2">
+              <span role="img" aria-label="party">
+                🎉
+              </span>
+              <p>
+                Congratulations! Your profile has been approved. You now have
+                full access to the dashboard.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* ⚠️ Pending Registration Banner */}
         {(userData?.status === "Pending Registeration" ||
           userData?.status === "Pending") &&
           userType !== "admin" && (
@@ -499,5 +524,4 @@ const DashboardLayout = ({ children }) => {
     </div>
   );
 };
-
 export default withAuthCheck(DashboardLayout);
