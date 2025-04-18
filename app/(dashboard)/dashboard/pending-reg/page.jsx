@@ -29,6 +29,7 @@ export default function PendingRegistrations() {
   const [tableData, setTableData] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentUser, setCurrentUser] = useState(null)
+  const [iswebcode, setIsWebCode] = useState('');
 
   // Fetch current user data
   useEffect(() => {
@@ -36,8 +37,9 @@ export default function PendingRegistrations() {
       try {
         const response = await fetch("/api/auth/user")
         const data = await response.json()
-        if (data.authenticated) {
-          setCurrentUser(data.userData)
+        const userwebcode = data?.userData?.webcode;
+        if (userwebcode) {
+          setIsWebCode(userwebcode);
         }
       } catch (error) {
         console.error("Error fetching user data:", error)
@@ -46,6 +48,41 @@ export default function PendingRegistrations() {
 
     fetchCurrentUser()
   }, [])
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (!iswebcode) return;
+
+        const formdata = new FormData();
+        formdata.append("code", iswebcode);
+
+        const response = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/profile/",
+          {
+            method: "POST",
+            body: formdata,
+          }
+        );
+        const json_data = await response.json();
+        const userData = json_data?.Registeration?.[0];
+        console.log("User data in pending reg :", userData);
+        if (userData) {
+          setCurrentUser(userData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [iswebcode]);
+
+
+
+
 
   // Fetch registration data from API
   useEffect(() => {
