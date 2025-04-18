@@ -3,20 +3,20 @@ import { cookies } from "next/headers";
 
 export async function GET() {
   const cookieStore = await cookies();
-  const userId = cookieStore.get("userId");
-  const userType = cookieStore.get("userType");
-  const userBody = cookieStore.get("userBody");
+  const userWebcode = cookieStore.get("webcode");
+  // const userType = cookieStore.get("userType");
+  // const userBody = cookieStore.get("userBody");
 
-  if (!userId || !userType) {
+  if (!userWebcode ) {
     return Response.json({ authenticated: false }, { status: 401 });
   }
 
   // Optional: You could fetch additional user data here based on the ID
   // const userData = await fetchUserData(userId);
   const userData = {
-    id: userId.value,
-    type: userType.value,
-    body: userBody.value,
+    webcode: userWebcode.value,
+    // type: userType.value,
+    // body: userBody.value,
   };
   return Response.json({
     authenticated: true,
@@ -26,9 +26,8 @@ export async function GET() {
 
 export async function DELETE() {
   const cookieStore = await cookies();
-  cookieStore.delete("userId");
+  cookieStore.delete("webcode");
   cookieStore.delete("userType");
-  cookieStore.delete("userBody");
 
   return Response.json({
     success: true,

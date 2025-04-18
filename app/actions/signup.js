@@ -32,21 +32,16 @@ export async function Register(data) {
 
     if (result.Registeration && result.Registeration[0] && result.Registeration[0].id) {
       const registrationData = result.Registeration[0]
-      cookieStore.set("userId", registrationData.id.toString(), {
+      cookieStore.set("webcode", registrationData.code, {
         path: "/",
         httpOnly: true,
         maxAge: 60 * 60 * 24 * 7, // 1 week
       })
-      cookieStore.set("userType", registrationData.type.replace(/\s+/g, "_"), {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7,
-      })
-      cookieStore.set("userBody", registrationData.status, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7, // 1 week
-      })
+      // cookieStore.set("userType", registrationData.type.replace(/\s+/g, "_"), {
+      //   path: "/",
+      //   httpOnly: true,
+      //   maxAge: 60 * 60 * 24 * 7,
+      // })
       return { success: true, data: registrationData }
     } else {
       return { success: false, error: "Invalid response from server" }

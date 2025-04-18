@@ -75,40 +75,40 @@ export async function LOGIN(formdata) {
 
 
     // Set cookies with user data
-    cookieStore.set("userId", userData.id, {
+    cookieStore.set("webcode", userData.code, {
       path: "/",
       httpOnly: true,
       maxAge: 60 * 60 * 24 * 7, // 1 week
     });
 
-    cookieStore.set("userType", userData.type, {
-      path: "/",
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    });
+    // cookieStore.set("userType", userData.type, {
+    //   path: "/",
+    //   httpOnly: true,
+    //   maxAge: 60 * 60 * 24 * 7, // 1 week
+    // });
 
-    cookieStore.set("userBody", userData.body, {
-      path: "/",
-      httpOnly: true,
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    });
+    // cookieStore.set("userBody", userData.body, {
+    //   path: "/",
+    //   httpOnly: true,
+    //   maxAge: 60 * 60 * 24 * 7, // 1 week
+    // });
 
     // If there's additional data in the admin response, you might want to store it
-    if (userData.status) {
-      cookieStore.set("userStatus", userData.status, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
+    // if (userData.status) {
+    //   cookieStore.set("userStatus", userData.status, {
+    //     path: "/",
+    //     httpOnly: true,
+    //     maxAge: 60 * 60 * 24 * 7,
+    //   });
+    // }
 
-    if (userData.email) {
-      cookieStore.set("userEmail", userData.email, {
-        path: "/",
-        httpOnly: true,
-        maxAge: 60 * 60 * 24 * 7,
-      });
-    }
+    // if (userData.email) {
+    //   cookieStore.set("userEmail", userData.email, {
+    //     path: "/",
+    //     httpOnly: true,
+    //     maxAge: 60 * 60 * 24 * 7,
+    //   });
+    // }
     return { success: true, data: userData };
 
   } catch (error) {

@@ -17,6 +17,8 @@ import { IoChevronDown } from "react-icons/io5";
 import Link from "next/link";
 import SearchBar from "./Search";
 import { usePathname, useRouter } from "next/navigation";
+import trade_logo from '../../../../../public/ttlogo.png'
+import Image from "next/image";
 
 const Navbar = () => {
   const [isMenuOpen, setisMenuOpen] = useState(false);
@@ -28,6 +30,7 @@ const Navbar = () => {
       try {
         const response = await fetch("/api/auth/user");
         const data = await response.json();
+        console.log("Data: ", data);
 
         if (data.userData) {
           setUserData(data.userData);
@@ -59,11 +62,12 @@ const Navbar = () => {
           {isMenuOpen && <SideMenu onclose={() => setisMenuOpen(false)} />}
 
           <Link href={"/"}>
-            <h1
+            {/* <h1
               className={`text-white ${fonts.montserrat} text-[18px] lg:text-xl font-bold`}
             >
-              Trade
-            </h1>
+              
+            </h1> */}
+            <Image src={trade_logo} alt="logo" width={95} height={95}/>
           </Link>
         </div>
         {/* Search bar */}
@@ -79,7 +83,7 @@ const Navbar = () => {
 
           {/* signup/signin buttons */}
           <div className="flex gap-4">
-            <Link href={userData?.id ? "/dashboard" : "/signin"}>
+            <Link href={userData?.webcode ? "/dashboard" : "/signin"}>
               <button
                 className={`
             text-sm font-bold px-5 text-white ${
@@ -93,13 +97,13 @@ const Navbar = () => {
             hover:scale-105
           `}
               >
-                {userData?.id ? "Dashboard" : "Sign in"}
+                {userData?.webcode ? "Dashboard" : "Sign in"}
               </button>
             </Link>
-            <Link href={userData?.id ? "" : "/signup"}>
+            <Link href={userData?.webcode ? "" : "/signup"}>
               <button
                 onClick={
-                  userData?.id
+                  userData?.webcode
                     ? async () => {
                         await fetch("/api/auth/user", { method: "DELETE" });
                         window.location.href = window.location.pathname;
@@ -120,7 +124,7 @@ const Navbar = () => {
       hover:scale-105 hover:bg-[#081023CC]
     `}
               >
-                {userData?.id ? "sign out" : "Sign up"}
+                {userData?.webcode ? "sign out" : "Sign up"}
               </button>
             </Link>
           </div>

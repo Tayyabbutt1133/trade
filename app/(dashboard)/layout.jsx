@@ -135,9 +135,9 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
   const Icon = item.icon;
   const router = useRouter();
 
-  // Check if user is pending registration
   const isPending =
-    userData?.body === "Pending Registeration" || userData?.body === "Pending";
+    userData?.status === "Pending Registeration" ||
+    userData?.status === "Pending";
 
   // Check if this item should be locked for pending users
   const isLocked = isPending && item.requiresApproval;
@@ -217,6 +217,13 @@ const SidebarItem = ({ item, isActive, isCollapsed, onClick, userData }) => {
 const DesktopSidebar = ({ items, isCollapsed, onToggleCollapse, userData }) => {
   const pathname = usePathname();
 
+  // Cleaned and normalized userType and status
+  const userType = userData?.type?.trim().toLowerCase() || "";
+  const status = userData?.status?.trim().toLowerCase() || "";
+
+  // Determine if the user is in a pending state
+  const isPending = status === "pending" || status === "pending registeration";
+
   return (
     <aside
       className={cn(
@@ -227,7 +234,6 @@ const DesktopSidebar = ({ items, isCollapsed, onToggleCollapse, userData }) => {
     >
       {/* Sidebar Header */}
       <div className="flex items-center justify-between p-4 border-b border-white/10">
-        {/* "Go Main" link is inside sidebar for desktop */}
         {!isCollapsed && (
           <Link
             href="/"
@@ -249,15 +255,13 @@ const DesktopSidebar = ({ items, isCollapsed, onToggleCollapse, userData }) => {
         </Button>
       </div>
 
-      {/* Display pending status if applicable */}
-      {(userData?.body === "Pending Registeration" ||
-        userData?.body === "Pending") &&
-        !isCollapsed && (
-          <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
-            <AlertCircle className="h-4 w-4 mr-2" />
-            <span>Pending approval. Only Profile is accessible.</span>
-          </div>
-        )}
+      {/* Only show for non-admin and if status is pending */}
+      {isPending && userType !== "admin" && !isCollapsed && (
+        <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
+          <AlertCircle className="h-4 w-4 mr-2" />
+          <span>Pending approval. Only Profile is accessible.</span>
+        </div>
+      )}
 
       {/* Sidebar Navigation */}
       <ScrollArea className="flex-1 px-3">
@@ -281,6 +285,13 @@ const DesktopSidebar = ({ items, isCollapsed, onToggleCollapse, userData }) => {
 const MobileSidebar = ({ items, userData }) => {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+
+  // Normalize values
+  const userType = userData?.type?.trim().toLowerCase() || "";
+  const status = userData?.status?.trim().toLowerCase() || "";
+  const isPending =
+    (status === "pending" || status === "pending registeration") &&
+    userType !== "admin";
 
   return (
     <>
@@ -318,9 +329,8 @@ const MobileSidebar = ({ items, userData }) => {
             </Button>
           </div>
 
-          {/* Display pending status if applicable */}
-          {(userData?.body === "Pending Registeration" ||
-            userData?.body === "Pending") && (
+          {/* Show "Pending approval" message if conditions met */}
+          {isPending && (
             <div className="mx-3 mt-3 p-2 bg-yellow-600/30 rounded-md text-yellow-200 text-sm flex items-center">
               <AlertCircle className="h-4 w-4 mr-2" />
               <span>Pending approval. Only Profile is accessible.</span>
@@ -353,19 +363,51 @@ const MobileSidebar = ({ items, userData }) => {
 const DashboardLayout = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userWebcode, setUserWebcode] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
 
+  // 1️⃣ Fetch webcode from cookies (/api/auth/user)
   useEffect(() => {
-    // Fetch user data
-    const fetchUserData = async () => {
+    const fetchWebcodeFromCookie = async () => {
       try {
         const response = await fetch("/api/auth/user");
         const data = await response.json();
-        if (data.userData) {
-          setUserData(data.userData);
+        const webcode = data?.userData?.webcode;
+
+        if (webcode) {
+          setUserWebcode(webcode);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user webcode:", error);
+      }
+    };
+    fetchWebcodeFromCookie();
+  }, []);
+
+  // 2️⃣ Fetch full user data using webcode
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        if (!userWebcode) return;
+
+        const formdata = new FormData();
+        formdata.append("code", userWebcode);
+
+        const response = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/profile/",
+          {
+            method: "POST",
+            body: formdata,
+          }
+        );
+        const json_data = await response.json();
+        const userData = json_data?.Registeration?.[0];
+
+        if (userData) {
+          setUserData(userData);
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -373,9 +415,11 @@ const DashboardLayout = ({ children }) => {
         setIsLoading(false);
       }
     };
-    fetchUserData();
-  }, []);
 
+    fetchUserData();
+  }, [userWebcode]);
+
+  // 3️⃣ Show loading state
   if (isLoading || !userData) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -384,15 +428,13 @@ const DashboardLayout = ({ children }) => {
     );
   }
 
-  // Determine which sidebar items to show
-  let sidebarItems;
-  const userType = userData.type?.toLowerCase() || "";
-
-  // Decode and normalize the userType for comparison
+  // 4️⃣ Determine sidebar items based on user type
+  const userType = userData?.type?.toLowerCase() || "";
   const normalizedUserType = decodeURIComponent(userType)
     .toLowerCase()
     .replace(/\s+/g, "_");
 
+  let sidebarItems = [];
   if (userType === "admin") {
     sidebarItems = adminSidebarItems;
   } else if (normalizedUserType === "industrial_manufacturer") {
@@ -401,16 +443,11 @@ const DashboardLayout = ({ children }) => {
     sidebarItems = tradingCompaniesItems;
   } else if (normalizedUserType === "buyer") {
     sidebarItems = buyerSidebarItems;
-  } else {
-    sidebarItems = [];
   }
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* 
-        1) Desktop Sidebar (≥1024px) 
-        "Go Main" is inside the sidebar header.
-      */}
+      {/* 1) Desktop Sidebar (≥1024px) */}
       <DesktopSidebar
         items={sidebarItems}
         isCollapsed={isCollapsed}
@@ -418,45 +455,41 @@ const DashboardLayout = ({ children }) => {
         userData={userData}
       />
 
-      {/* 
-        2) Main Content Area 
-      */}
+      {/* 2) Main Content */}
       <div className="flex flex-col flex-1">
-        {/* 
-          Mobile Header (<1024px)
-          - Hamburger (left side)
-          - "Go Main" link (right side)
-        */}
+        {/* Mobile Header */}
         <div className="lg:hidden flex items-center justify-between p-4 bg-teal-700">
-          {/* Hamburger + mobile sidebar drawer on the left */}
           <MobileSidebar items={sidebarItems} userData={userData} />
-
-          {/* "Go Main" link on the right */}
           <Link
             href="/"
             className="flex items-center gap-2 bg-gradient-to-r from-green-800 to-green-950 
                        hover:scale-105 transition-all px-4 py-2 rounded-lg shadow-md hover:shadow-lg"
           >
             <FaHome className="text-2xl text-yellow-400" />
-            <h2 className={`text-lg ${fonts.montserrat} font-bold text-white`}>
+            <h2
+              className={`text-lg ${
+                fonts?.montserrat || ""
+              } font-bold text-white`}
+            >
               Go Main
             </h2>
           </Link>
         </div>
 
-        {/* Pending registration warning banner - show on all pages */}
-        {(userData?.body === "Pending Registeration" ||
-          userData?.body === "Pending") && (
-          <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-            <div className="flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2 text-yellow-500" />
-              <p>
-                Your registration is pending approval. Only your Profile page is
-                accessible until approved.
-              </p>
+        {/* Pending Registration Banner */}
+        {(userData?.status === "Pending Registeration" ||
+          userData?.status === "Pending") &&
+          userType !== "admin" && (
+            <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+              <div className="flex items-center">
+                <AlertCircle className="h-5 w-5 mr-2 text-yellow-500" />
+                <p>
+                  Your registration is pending approval. Only your Profile page
+                  is accessible until approved.
+                </p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">

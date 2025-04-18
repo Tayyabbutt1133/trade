@@ -3,6 +3,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Twitter, Facebook, Linkedin, Instagram } from "lucide-react";
 import Container from "./container";
+import logo from '../public/ttlogo.png'
 
 const footerLinks = {
   customers: {
@@ -89,7 +90,7 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-gray-200">
             <div className="flex flex-col justify-between items-start space-y-4 md:space-y-6">
               <section className="flex items-center space-x-4 mb-4">
-                <div className="text-xl font-semibold text-gray-900">Logo</div>
+                <Image src={logo} alt="logo" width={95} height={95}/>
                 <span className="text-sm text-gray-500">
                   © 2025 TradeTropper. All Rights Reserved.
                 </span>

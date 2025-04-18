@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { fonts } from "@/components/ui/font";
-import { SocialSignInButtons } from "./SocialSignInButtons";
 import { LOGIN } from "@/app/actions/signin";
 import { useRouter } from "next/navigation";
-import roleAccessStore from "@/store/role-access-permission";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -18,7 +16,6 @@ export function SignInForm() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const setRole = roleAccessStore((state) => state.setRole);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -32,6 +29,7 @@ export function SignInForm() {
       const loginToSubmit = new FormData(e.target);
       // calling server side login function
       const server_response = await LOGIN(loginToSubmit);
+      console.log("Login response :", server_response);
       console.log("Response from Server : ", server_response);
       setLoading(false);
 
@@ -45,13 +43,6 @@ export function SignInForm() {
           server_response.data.type &&
           typeof server_response.data.type === "string"
         ) {
-          // Safely convert the role type to lowercase
-          const roleType = server_response.data.type.toLowerCase();
-          console.log(roleType);
-          setRole({
-            id: server_response.data.id,
-            type: roleType,
-          });
         } else {
           setErrorMessage("Invalid server response: Missing user information.");
           return;
@@ -133,8 +124,6 @@ export function SignInForm() {
           <span className="w-full border-t" />
         </div>
       </div>
-
-      {/* <SocialSignInButtons /> */}
     </div>
   );
 }

@@ -8,7 +8,11 @@ const countryCodes = [
   // Add more country codes as needed
 ]
 
-export function ContactInput({ id, value, onChange }) {
+export function ContactInput({ id, value, onChange, countryCodes }) {
+
+  const uniqueCountryCodes = [...new Set(countryCodes)];
+
+
   return (
     <div className="flex">
       <Select value={value?.countryCode} onValueChange={(code) => onChange(id, { ...value, countryCode: code })}>
@@ -16,9 +20,9 @@ export function ContactInput({ id, value, onChange }) {
           <SelectValue placeholder="Code" />
         </SelectTrigger>
         <SelectContent>
-          {countryCodes.map((country) => (
-            <SelectItem key={country.code} value={country.code}>
-              {country.code} ({country.country})
+          {uniqueCountryCodes.map((code) => (
+            <SelectItem key={code} value={code}>
+              {code}
             </SelectItem>
           ))}
         </SelectContent>
