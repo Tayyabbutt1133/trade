@@ -35,6 +35,7 @@ export function ProfileForm({
   const [isPending, startTransition] = useTransition();
 
   const router = useRouter();
+  console.log("Industries coming from profile :", industries);
 
   // Fetch user data and set webcode only once
   useEffect(() => {
