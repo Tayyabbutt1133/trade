@@ -56,62 +56,19 @@ export function ProfileForm({
         const getprofileData = await GETPROFILE(iswebcode);
 
         if (getprofileData) {
-          // For company contact
-          const companyContact = getprofileData.company || "";
-          let companyCountryCode = "";
-          let companyNumber = "";
+          // For company contact - now we're expecting separate fields
+          const companyCountryCode = getprofileData.ccode || "";
+          const companyNumber = getprofileData.ccontact || "";
 
-          // For countries with standard codes (assuming most start with 1-3 digits)
-          if (companyContact) {
-            // Try to find the country code in your list
-            for (const code of countryCodes) {
-              if (companyContact.startsWith(code)) {
-                companyCountryCode = code;
-                companyNumber = companyContact.substring(code.length);
-                break;
-              }
-            }
-
-            // If no match found, use a fallback approach
-            if (!companyCountryCode) {
-              // Default to first 2 digits or whatever makes sense for your data
-              companyCountryCode = companyContact.substring(
-                0,
-                Math.min(2, companyContact.length)
-              );
-              companyNumber = companyContact.substring(
-                Math.min(2, companyContact.length)
-              );
-            }
-          }
-
-          // Same for POC contact
-          const pocContact = getprofileData.poccontact || "";
-          let pocCountryCode = "";
-          let pocNumber = "";
-
-          if (pocContact) {
-            for (const code of countryCodes) {
-              if (pocContact.startsWith(code)) {
-                pocCountryCode = code;
-                pocNumber = pocContact.substring(code.length);
-                break;
-              }
-            }
-
-            if (!pocCountryCode) {
-              pocCountryCode = pocContact.substring(
-                0,
-                Math.min(2, pocContact.length)
-              );
-              pocNumber = pocContact.substring(Math.min(2, pocContact.length));
-            }
-          }
+          // For POC contact - now we're expecting separate fields
+          const pocCountryCode = getprofileData.poccode || "";
+          const pocNumber = getprofileData.poccontact || "";
 
           setFormData((prev) => ({
             ...prev,
             name: getprofileData.name || "",
             email: getprofileData.email || "",
+            company: getprofileData.company || "",
             country: getprofileData.country || "",
             industry: getprofileData.industry || "",
             designation: getprofileData.designation || "",
@@ -236,6 +193,7 @@ export function ProfileForm({
     const requiredFields = [
       "name",
       "email",
+      "company",
       "address",
       "country",
       "industry",
@@ -278,10 +236,6 @@ export function ProfileForm({
     setShowRouteLoader(true); // Start showing the loader before the submission process
 
     try {
-      // Format phone numbers with country codes
-      const companyContact = `${formData["company-contact"].countryCode}${formData["company-contact"].number}`;
-      const pocContact = `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`;
-
       // Create FormData object for submission
       const profileData = new FormData();
 
@@ -289,14 +243,21 @@ export function ProfileForm({
       profileData.append("code", iswebcode);
       profileData.append("name", formData.name);
       profileData.append("email", formData.email);
+      profileData.append("company", formData.company); // Add company field
       profileData.append("country", formData.country);
       profileData.append("industry", formData.industry);
       profileData.append("designation", formData.designation);
       profileData.append("caddress", formData.address);
       profileData.append("pocname", formData.pocname);
       profileData.append("intro", formData.intro);
-      profileData.append("company", companyContact);
-      profileData.append("pocontact", pocContact);
+      
+      // Submit separate country code and contact number for company
+      profileData.append("ccode", formData["company-contact"].countryCode);
+      profileData.append("ccontact", formData["company-contact"].number);
+      
+      // Submit separate country code and contact number for POC
+      profileData.append("poccode", formData["poc-contact"].countryCode);
+      profileData.append("pocontact", formData["poc-contact"].number);
 
       // Handle documents if any
       if (formData.document && formData.document.length > 0) {
@@ -377,6 +338,21 @@ export function ProfileForm({
               type="email"
               value={formData["email"] || ""}
               onChange={(e) => handleInputChange("email", e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Company Name - New Field */}
+          <div className="grid gap-2">
+            <Label htmlFor="company">
+              Company Name <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="company"
+              name="company"
+              type="text"
+              value={formData["company"] || ""}
+              onChange={(e) => handleInputChange("company", e.target.value)}
               required
             />
           </div>

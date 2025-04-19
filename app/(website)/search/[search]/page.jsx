@@ -5,8 +5,8 @@ import CategoryFilters from "../../[category]/components/CategoryFilter";
 import Container from "@/components/container";
 import { Suspense } from "react";
 
-const ProductsGrid = lazy(() =>
-  import("../../[category]/components/ProductsGrid")
+const SearchProductsGrid = lazy(() =>
+  import("../components/SearchProductGrid")
 );
 
 export default async function Page({ params }) {
@@ -31,12 +31,7 @@ export default async function Page({ params }) {
         />
         <CategoryFilters catid={final_search} />
         <Suspense fallback={"Loading...."}>
-          <ProductsGrid
-            catid={final_search}
-            maincatid={maincatid}
-            subcatid={subcatid}
-            totalProducts={search_result_length}
-          />
+         <SearchProductsGrid totalProducts={search_result_length} searchTerm={final_search}/>
         </Suspense>
       </Container>
     </>
