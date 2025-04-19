@@ -21,7 +21,7 @@ import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 
 export function ProfileForm({
   countries = [],
-  industries = [],
+  industries = [], // We'll still accept this prop but won't use it
   designations = [],
   countrycodes = [], // Make sure this matches parent component
 }) {
@@ -33,9 +33,9 @@ export function ProfileForm({
   const [countryCodes, setCountryCodes] = useState(countrycodes || []); // Use the prop as initial state
   const [ShowRouteLoader, setShowRouteLoader] = useState();
   const [isPending, startTransition] = useTransition();
+  const [fetchedIndustries, setFetchedIndustries] = useState([]); // New state for fetched industries
 
   const router = useRouter();
-  console.log("Industries coming from profile :", industries);
 
   // Fetch user data and set webcode only once
   useEffect(() => {
@@ -55,6 +55,37 @@ export function ProfileForm({
     };
     fetchUserData();
   }, []);
+
+  // Fetch industry data directly from API
+  useEffect(() => {
+    const fetchIndustryData = async () => {
+      try {
+        const response = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/industry/"
+        );
+        const data = await response.json();
+        console.log("Fetched industry data:", data);
+
+        if (data && Array.isArray(data.Industry)) {
+          setFetchedIndustries(data.Industry);
+        } else {
+          console.error("Unexpected industry data format:", data);
+          // Fallback to prop data if available
+          if (industries && industries.length > 0) {
+            setFetchedIndustries(industries);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching industry data:", error);
+        // Fallback to prop data if available
+        if (industries && industries.length > 0) {
+          setFetchedIndustries(industries);
+        }
+      }
+    };
+
+    fetchIndustryData();
+  }, [industries]); // Add industries as dependency to fallback if fetch fails
 
   // Once iswebcode is set, then fetch profile
   useEffect(() => {
@@ -467,7 +498,7 @@ export function ProfileForm({
             )}
           </div>
 
-          {/* Industry */}
+          {/* Industry - Now using fetchedIndustries instead of the prop */}
           <div className="grid gap-2">
             <Label htmlFor="industry">
               Industry <span className="text-red-500">*</span>
@@ -482,8 +513,8 @@ export function ProfileForm({
                 <SelectValue placeholder="Select Industry" />
               </SelectTrigger>
               <SelectContent>
-                {industries && industries.length > 0 ? (
-                  industries.map((industry) => (
+                {fetchedIndustries && fetchedIndustries.length > 0 ? (
+                  fetchedIndustries.map((industry) => (
                     <SelectItem
                       key={industry.industry}
                       value={industry.industry}
