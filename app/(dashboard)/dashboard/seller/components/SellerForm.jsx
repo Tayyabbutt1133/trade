@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ContactInput } from "../../../../../components/ContactInput";
 import { fonts } from "@/components/ui/font";
@@ -15,7 +21,11 @@ import { useParams, useRouter } from "next/navigation";
 // Static options for the status field.
 const statusOptions = ["Active", "Inactive"];
 
-export function SellerForm({ countries = [], industries = [], designations = [] }) {
+export function SellerForm({
+  countries = [],
+  industries = [],
+  designations = [],
+}) {
   const [formData, setFormData] = useState({
     "seller-company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
@@ -53,17 +63,17 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
         try {
           const response = await GETSELLER({ id: params.sellerId });
           console.log("Response from get seller:", response);
-          
+
           if (response.success && response.seller) {
             // Handle the seller data properly based on the API response structure
             const sellerData = response.seller;
-            
+
             // Set appropriate status based on what's coming from the API
             let statusValue = "Inactive";
             if (sellerData.status === "Approved") {
               statusValue = "Active";
             }
-            
+
             // Set form data properly
             setFormData({
               sellername: sellerData.name || "",
@@ -71,7 +81,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
               company: sellerData.company || "",
               "seller-company-contact": {
                 countryCode: sellerData.ccode || "",
-                number: sellerData.ccontact || ""
+                number: sellerData.ccontact || "",
               },
               address: sellerData.caddress || "",
               country: sellerData.country?.trim() || "",
@@ -80,10 +90,10 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
               pocname: sellerData.pocname || "",
               "poc-contact": {
                 countryCode: sellerData.poccode || "",
-                number: sellerData.poccontact || ""
+                number: sellerData.poccontact || "",
               },
               status: statusValue,
-              blocked: sellerData.status?.toLowerCase() === "blocked"
+              blocked: sellerData.status?.toLowerCase() === "blocked",
             });
           }
         } catch (error) {
@@ -95,92 +105,27 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     }
   }, [params?.sellerId]);
 
-  // Validation function for each field.
-  const validateField = (id, value) => {
-    let error = "";
-    if (id === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
-      error = "Invalid email address";
-    }
-    if ((id === "seller-company-contact" || id === "poc-contact") && value) {
-      const phoneNumber = typeof value === "object" ? value.number : value;
-      if (!phoneNumber) {
-        error = "This field is required";
-      } else if (/\D/.test(phoneNumber)) {
-        error = "Only numbers allowed";
-      } else if (phoneNumber.length > 10) {
-        error = "Maximum 10 digits allowed";
-      }
-    }
-    return error;
-  };
-
-  // Handle input changes.
+  // Handle input changes - now only for status field
   const handleInputChange = (id, value) => {
-    if (id === "seller-company-contact" || id === "poc-contact") {
-      setFormData((prev) => ({ ...prev, [id]: value }));
-    } else {
+    // Only allow status changes, ignore other fields
+    if (id === "status") {
       setFormData((prev) => ({ ...prev, [id]: value }));
     }
-
-    const error = validateField(id, value);
-    setErrors((prev) => ({ ...prev, [id]: error }));
   };
 
   // Handle form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validate all fields before submission
-    let formIsValid = true;
-    const newErrors = {};
-
-    // Required fields validation
-    const requiredFields = [
-      "sellername",
-      "email",
-      "company",
-      "address",
-      "country",
-      "industry",
-      "designation",
-      "pocname",
-      "status"
-    ];
-
-    requiredFields.forEach((field) => {
-      if (!formData[field]) {
-        formIsValid = false;
-        newErrors[field] = "This field is required";
-      }
-    });
-
-    // Special validation for contact fields
-    if (!formData["seller-company-contact"]?.number) {
-      formIsValid = false;
-      newErrors["seller-company-contact"] = "Company contact is required";
-    }
-
-    if (!formData["poc-contact"]?.number) {
-      formIsValid = false;
-      newErrors["poc-contact"] = "POC contact is required";
-    }
-
-    // Email validation
-    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
-      formIsValid = false;
-      newErrors.email = "Invalid email address";
-    }
-
-    setErrors(newErrors);
-
-    if (!formIsValid) {
-      setSubmissionError("Please fix the errors before submitting");
+    // No need to validate other fields as they're read-only
+    if (!formData.status) {
+      setSubmissionError("Please select a status");
       return;
     }
 
     const formDataToSubmit = new FormData();
 
-    // Append form fields using the keys expected by your API.
+    // Append all form fields (including read-only fields)
     formDataToSubmit.append("sellername", formData.sellername || "");
     formDataToSubmit.append("email", formData.email || "");
     formDataToSubmit.append("company", formData.company || "");
@@ -189,18 +134,31 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     formDataToSubmit.append("industry", formData.industry || "");
     formDataToSubmit.append("designation", formData.designation || "");
     formDataToSubmit.append("pocname", formData.pocname || "");
-    
+
     // Append the company contact details separately
-    formDataToSubmit.append("ccode", formData["seller-company-contact"].countryCode || "");
-    formDataToSubmit.append("ccontact", formData["seller-company-contact"].number || "");
-    
+    formDataToSubmit.append(
+      "ccode",
+      formData["seller-company-contact"].countryCode || ""
+    );
+    formDataToSubmit.append(
+      "ccontact",
+      formData["seller-company-contact"].number || ""
+    );
+
     // Append the POC contact details separately
-    formDataToSubmit.append("poccode", formData["poc-contact"].countryCode || "");
+    formDataToSubmit.append(
+      "poccode",
+      formData["poc-contact"].countryCode || ""
+    );
     formDataToSubmit.append("pocontact", formData["poc-contact"].number || "");
-    
+
+    // Status is the only editable field
     formDataToSubmit.append("status", formData.status || "");
     // Convert the blocked boolean back to the string the API expects.
-    formDataToSubmit.append("blocked", formData.blocked ? "Blocked" : "Pending");
+    formDataToSubmit.append(
+      "blocked",
+      formData.blocked ? "Blocked" : "Pending"
+    );
 
     // If in edit mode, pass the seller id from params as regid.
     if (params?.sellerId && params.sellerId !== "new") {
@@ -226,183 +184,133 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
   return (
     <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
       <div className="grid gap-4">
-        {/* Seller Name */}
+        {/* Seller Name - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-name">
-            Name <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="seller-name">Name</Label>
           <Input
             id="seller-name"
             name="sellername"
             type="text"
             value={formData.sellername || ""}
-            onChange={(e) => handleInputChange("sellername", e.target.value)}
-            required
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Seller Email */}
+        {/* Seller Email - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-email">
-            Email <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="seller-email">Email</Label>
           <Input
             id="seller-email"
             name="email"
             type="email"
             value={formData.email || ""}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            required
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Company Name */}
+        {/* Company Name - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="company">
-            Company Name <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="company">Company Name</Label>
           <Input
             id="company"
             name="company"
             type="text"
             value={formData.company || ""}
-            onChange={(e) => handleInputChange("company", e.target.value)}
-            required
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Company Contact */}
+        {/* Company Contact - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-company-contact">
-            Company Contact <span className="text-red-500">*</span>
-          </Label>
-          <ContactInput
-            id="seller-company-contact"
-            name="seller-company-contact"
-            value={formData["seller-company-contact"]}
-            onChange={handleInputChange}
-            countryCodes={countryCodes}
-          />
+          <Label htmlFor="seller-company-contact">Company Contact</Label>
+          <div className="flex gap-2">
+            <div className="w-24 bg-gray-100 border rounded p-2 text-sm">
+              {formData["seller-company-contact"]?.countryCode || ""}
+            </div>
+            <div className="flex-1 bg-gray-100 border rounded p-2 text-sm">
+              {formData["seller-company-contact"]?.number || ""}
+            </div>
+          </div>
         </div>
 
-        {/* Address */}
+        {/* Address - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-address">
-            Address <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="seller-address">Address</Label>
           <Textarea
             id="seller-address"
             name="address"
             value={formData.address || ""}
-            onChange={(e) => handleInputChange("address", e.target.value)}
-            required
-            maxLength={199}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Country */}
+        {/* Country - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-country">
-            Country <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={formData.country}
-            onValueChange={(value) => handleInputChange("country", value)}
-            required
-            name="country"
-          >
-            <SelectTrigger id="seller-country">
-              <SelectValue placeholder="Select Country" />
-            </SelectTrigger>
-            <SelectContent>
-              {countries.map((country) => (
-                <SelectItem key={country.country} value={country.country}>
-                  {country.country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-country">Country</Label>
+          <Input
+            id="seller-country-display"
+            type="text"
+            value={formData.country || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* Industry */}
+        {/* Industry - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-industry">
-            Industry <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={formData.industry}
-            onValueChange={(value) => handleInputChange("industry", value)}
-            required
-            name="industry"
-          >
-            <SelectTrigger id="seller-industry">
-              <SelectValue placeholder="Select Industry" />
-            </SelectTrigger>
-            <SelectContent>
-              {industries.map((industry) => (
-                <SelectItem key={industry.industry} value={industry.industry}>
-                  {industry.industry}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-industry">Industry</Label>
+          <Input
+            id="seller-industry-display"
+            type="text"
+            value={formData.industry || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* Designation */}
+        {/* Designation - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="seller-designation">
-            Designation <span className="text-red-500">*</span>
-          </Label>
-          <Select
-            value={formData.designation}
-            onValueChange={(value) => handleInputChange("designation", value)}
-            required
-            name="designation"
-          >
-            <SelectTrigger id="seller-designation">
-              <SelectValue placeholder="Select Designation" />
-            </SelectTrigger>
-            <SelectContent>
-              {designations.map((designation) => (
-                <SelectItem key={designation.designation} value={designation.designation}>
-                  {designation.designation}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-designation">Designation</Label>
+          <Input
+            id="seller-designation-display"
+            type="text"
+            value={formData.designation || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* POC Name */}
+        {/* POC Name - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="poc-name">
-            POC Name <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="poc-name">POC Name</Label>
           <Input
             id="poc-name"
             name="pocname"
             type="text"
             value={formData.pocname || ""}
-            onChange={(e) => handleInputChange("pocname", e.target.value)}
-            required
-            maxLength={99}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* POC Contact */}
+        {/* POC Contact - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="poc-contact">
-            POC Contact <span className="text-red-500">*</span>
-          </Label>
-          <ContactInput
-            id="poc-contact"
-            name="poc-contact"
-            value={formData["poc-contact"]}
-            onChange={handleInputChange}
-            countryCodes={countryCodes}
-          />
+          <Label htmlFor="poc-contact">POC Contact</Label>
+          <div className="flex gap-2">
+            <div className="w-24 bg-gray-100 border rounded p-2 text-sm">
+              {formData["poc-contact"]?.countryCode || ""}
+            </div>
+            <div className="flex-1 bg-gray-100 border rounded p-2 text-sm">
+              {formData["poc-contact"]?.number || ""}
+            </div>
+          </div>
         </div>
 
-        {/* Status */}
+        {/* Status - Editable */}
         <div className="grid gap-2">
           <Label htmlFor="status">
             Status <span className="text-red-500">*</span>
@@ -425,24 +333,14 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
             </SelectContent>
           </Select>
         </div>
-
-        {/* Blocked
-        <div className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            id="blocked"
-            name="blocked"
-            checked={formData.blocked || false}
-            onChange={(e) => handleInputChange("blocked", e.target.checked)}
-          />
-          <Label htmlFor="blocked">Blocked</Label>
-        </div> */}
       </div>
       <Button type="submit" className="w-fit">
-        {params?.sellerId && params.sellerId !== "new" ? "Update Seller" : "Save Seller"}
+        Update Status
       </Button>
       {submissionError && <p className="text-red-500">{submissionError}</p>}
-      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
+      {submissionSuccess && (
+        <p className="text-green-500">{submissionSuccess}</p>
+      )}
     </form>
   );
 }
