@@ -18,32 +18,13 @@ import { useRouter } from "next/navigation";
 import { GETPROFILE } from "@/app/actions/getprofiledata";
 import { POSTPROFILE } from "@/app/actions/postprofiledata";
 import RouteTransitionLoader from "@/components/RouteTransitionLoader";
-// Static options for the status field.
-const statusOptions = ["Active", "Inactive"];
-
-// Add this near the top of the file, with other constants
-const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB in bytes
-
-// Function to convert file to base64
-const fileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-};
 
 export function ProfileForm({
   countries = [],
   industries = [],
   designations = [],
 }) {
-  const [formData, setFormData] = useState({
-    "company-contact": { countryCode: "", number: "" },
-    "poc-contact": { countryCode: "", number: "" },
-    document: [],
-  });
+  const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
@@ -72,11 +53,61 @@ export function ProfileForm({
 
     const getdata = async () => {
       try {
-        // console.log("User state web code from profile:", iswebcode);
         const getprofileData = await GETPROFILE(iswebcode);
 
-        // Populate fields/updating states
         if (getprofileData) {
+          // For company contact
+          const companyContact = getprofileData.company || "";
+          let companyCountryCode = "";
+          let companyNumber = "";
+
+          // For countries with standard codes (assuming most start with 1-3 digits)
+          if (companyContact) {
+            // Try to find the country code in your list
+            for (const code of countryCodes) {
+              if (companyContact.startsWith(code)) {
+                companyCountryCode = code;
+                companyNumber = companyContact.substring(code.length);
+                break;
+              }
+            }
+
+            // If no match found, use a fallback approach
+            if (!companyCountryCode) {
+              // Default to first 2 digits or whatever makes sense for your data
+              companyCountryCode = companyContact.substring(
+                0,
+                Math.min(2, companyContact.length)
+              );
+              companyNumber = companyContact.substring(
+                Math.min(2, companyContact.length)
+              );
+            }
+          }
+
+          // Same for POC contact
+          const pocContact = getprofileData.poccontact || "";
+          let pocCountryCode = "";
+          let pocNumber = "";
+
+          if (pocContact) {
+            for (const code of countryCodes) {
+              if (pocContact.startsWith(code)) {
+                pocCountryCode = code;
+                pocNumber = pocContact.substring(code.length);
+                break;
+              }
+            }
+
+            if (!pocCountryCode) {
+              pocCountryCode = pocContact.substring(
+                0,
+                Math.min(2, pocContact.length)
+              );
+              pocNumber = pocContact.substring(Math.min(2, pocContact.length));
+            }
+          }
+
           setFormData((prev) => ({
             ...prev,
             name: getprofileData.name || "",
@@ -86,19 +117,24 @@ export function ProfileForm({
             designation: getprofileData.designation || "",
             address: getprofileData.caddress || "",
             pocname: getprofileData.pocname || "",
-            poccontact: getprofileData.poccontact || "",
             intro: getprofileData.intro || "",
+            "company-contact": {
+              countryCode: companyCountryCode,
+              number: companyNumber,
+            },
+            "poc-contact": {
+              countryCode: pocCountryCode,
+              number: pocNumber,
+            },
           }));
         }
-
-        // console.log("Profile response from server:", getprofileData);
       } catch (error) {
         console.log(error);
       }
     };
 
     getdata();
-  }, [iswebcode]);
+  }, [iswebcode, countryCodes]);
 
   useEffect(() => {
     const fetchCountryCodes = async () => {
@@ -242,6 +278,10 @@ export function ProfileForm({
     setShowRouteLoader(true); // Start showing the loader before the submission process
 
     try {
+      // Format phone numbers with country codes
+      const companyContact = `${formData["company-contact"].countryCode}${formData["company-contact"].number}`;
+      const pocContact = `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`;
+
       // Create FormData object for submission
       const profileData = new FormData();
 
@@ -254,14 +294,9 @@ export function ProfileForm({
       profileData.append("designation", formData.designation);
       profileData.append("caddress", formData.address);
       profileData.append("pocname", formData.pocname);
-
-      // Format phone numbers with country codes
-      const companyContact = `${formData["company-contact"].countryCode}${formData["company-contact"].number}`;
-      const pocContact = `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`;
-
-      profileData.append("ccontact", companyContact);
-      profileData.append("pocontact", pocContact);
       profileData.append("intro", formData.intro);
+      profileData.append("company", companyContact);
+      profileData.append("pocontact", pocContact);
 
       // Handle documents if any
       if (formData.document && formData.document.length > 0) {
@@ -276,6 +311,7 @@ export function ProfileForm({
       console.log(result);
       if (result && result.success) {
         setSubmissionSuccess("Profile updated successfully!");
+        console.log("Form data :", formData);
         // Navigate to dashboard after successful submission
         startTransition(() => {
           router.push("/dashboard");
