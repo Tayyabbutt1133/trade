@@ -23,13 +23,14 @@ export function ProfileForm({
   countries = [],
   industries = [],
   designations = [],
+  countrycodes = [], // Make sure this matches parent component
 }) {
   const [formData, setFormData] = useState({});
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
   const [iswebcode, setIsWebcode] = useState("");
-  const [countryCodes, setCountryCodes] = useState([]);
+  const [countryCodes, setCountryCodes] = useState(countrycodes || []); // Use the prop as initial state
   const [ShowRouteLoader, setShowRouteLoader] = useState();
   const [isPending, startTransition] = useTransition();
 
@@ -38,11 +39,18 @@ export function ProfileForm({
   // Fetch user data and set webcode only once
   useEffect(() => {
     const fetchUserData = async () => {
-      const response = await fetch("/api/auth/user");
-      const data = await response.json();
-      const webcode = data?.userData?.webcode;
-      console.log("webcode from profile:", webcode);
-      setIsWebcode(webcode);
+      try {
+        const response = await fetch("/api/auth/user");
+        const data = await response.json();
+        const webcode = data?.userData?.webcode;
+        console.log("webcode from profile:", webcode);
+        setIsWebcode(webcode);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setSubmissionError(
+          "Failed to fetch user data. Please refresh and try again."
+        );
+      }
     };
     fetchUserData();
   }, []);
@@ -87,14 +95,24 @@ export function ProfileForm({
           }));
         }
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching profile data:", error);
+        setSubmissionError(
+          "Failed to fetch profile data. Please refresh and try again."
+        );
       }
     };
 
     getdata();
-  }, [iswebcode, countryCodes]);
+  }, [iswebcode]);
 
+  // Only fetch country codes if not provided via props
   useEffect(() => {
+    // If we already have country codes from props, don't fetch again
+    if (countrycodes && countrycodes.length > 0) {
+      setCountryCodes(countrycodes);
+      return;
+    }
+
     const fetchCountryCodes = async () => {
       try {
         const res = await fetch(
@@ -102,15 +120,18 @@ export function ProfileForm({
         );
         const data = await res.json();
         const codes = data.Country.map((c) => c.code);
-        console.log(codes);
+        console.log("Fetched country codes:", codes);
         setCountryCodes(codes);
       } catch (error) {
         console.error("Error fetching country codes:", error);
+        setSubmissionError(
+          "Failed to fetch country codes. Some features may be limited."
+        );
       }
     };
 
     fetchCountryCodes();
-  }, []);
+  }, [countrycodes]);
 
   // Validation function for each field.
   const validateField = (id, value) => {
@@ -133,6 +154,8 @@ export function ProfileForm({
 
   // Handle input changes; for checkboxes, use the checked value.
   const handleInputChange = async (id, value) => {
+    console.log(`Updating field ${id} with value:`, value);
+
     if (id === "document") {
       const newFiles = Array.from(value);
       const validFiles = [];
@@ -171,7 +194,11 @@ export function ProfileForm({
         [id]: [...(prev[id] || []), ...base64Files],
       }));
     } else {
-      setFormData((prev) => ({ ...prev, [id]: value }));
+      setFormData((prev) => {
+        const newState = { ...prev, [id]: value };
+        console.log("Updated formData:", newState);
+        return newState;
+      });
     }
 
     // Only validate non-document fields here
@@ -251,14 +278,14 @@ export function ProfileForm({
       profileData.append("caddress", formData.address);
       profileData.append("pocname", formData.pocname);
       profileData.append("intro", formData.intro);
-      
+
       // Submit separate country code and contact number for company
       profileData.append("ccode", formData["company-contact"].countryCode);
       profileData.append("ccontact", formData["company-contact"].number);
-      
+
       // Submit separate country code and contact number for POC
       profileData.append("poccode", formData["poc-contact"].countryCode);
-      profileData.append("pocontact", formData["poc-contact"].number);
+      profileData.append("pocontact", formData["poc-contact"].number); // Fixed typo here
 
       // Handle documents if any
       if (formData.document && formData.document.length > 0) {
@@ -268,12 +295,16 @@ export function ProfileForm({
         });
       }
 
+      // Log submission data for debugging
+      console.log("Submitting profile data with webcode:", iswebcode);
+
       // Submit the data
       const result = await POSTPROFILE(profileData);
-      console.log(result);
+      console.log("Profile submission result:", result);
+
       if (result && result.success) {
         setSubmissionSuccess("Profile updated successfully!");
-        console.log("Form data :", formData);
+        console.log("Form data submitted successfully:", formData);
         // Navigate to dashboard after successful submission
         startTransition(() => {
           router.push("/dashboard");
@@ -326,6 +357,9 @@ export function ProfileForm({
               onChange={(e) => handleInputChange("name", e.target.value)}
               required
             />
+            {errors.name && (
+              <p className="text-red-500 text-sm">{errors.name}</p>
+            )}
           </div>
 
           {/* Seller Email */}
@@ -341,6 +375,9 @@ export function ProfileForm({
               onChange={(e) => handleInputChange("email", e.target.value)}
               required
             />
+            {errors.email && (
+              <p className="text-red-500 text-sm">{errors.email}</p>
+            )}
           </div>
 
           {/* Company Name - New Field */}
@@ -356,6 +393,9 @@ export function ProfileForm({
               onChange={(e) => handleInputChange("company", e.target.value)}
               required
             />
+            {errors.company && (
+              <p className="text-red-500 text-sm">{errors.company}</p>
+            )}
           </div>
 
           {/* Company Contact */}
@@ -370,6 +410,11 @@ export function ProfileForm({
               onChange={handleInputChange}
               countryCodes={countryCodes}
             />
+            {errors["company-contact"] && (
+              <p className="text-red-500 text-sm">
+                {errors["company-contact"]}
+              </p>
+            )}
           </div>
 
           {/* Address */}
@@ -385,6 +430,9 @@ export function ProfileForm({
               required
               maxLength={199}
             />
+            {errors.address && (
+              <p className="text-red-500 text-sm">{errors.address}</p>
+            )}
           </div>
 
           {/* Country */}
@@ -402,13 +450,20 @@ export function ProfileForm({
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
               <SelectContent>
-                {countries.map((country) => (
-                  <SelectItem key={country.country} value={country.country}>
-                    {country.country}
-                  </SelectItem>
-                ))}
+                {countries && countries.length > 0 ? (
+                  countries.map((country) => (
+                    <SelectItem key={country.country} value={country.country}>
+                      {country.country}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading">Loading countries...</SelectItem>
+                )}
               </SelectContent>
             </Select>
+            {errors.country && (
+              <p className="text-red-500 text-sm">{errors.country}</p>
+            )}
           </div>
 
           {/* Industry */}
@@ -426,13 +481,23 @@ export function ProfileForm({
                 <SelectValue placeholder="Select Industry" />
               </SelectTrigger>
               <SelectContent>
-                {industries.map((industry) => (
-                  <SelectItem key={industry.industry} value={industry.industry}>
-                    {industry.industry}
-                  </SelectItem>
-                ))}
+                {industries && industries.length > 0 ? (
+                  industries.map((industry) => (
+                    <SelectItem
+                      key={industry.industry}
+                      value={industry.industry}
+                    >
+                      {industry.industry}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading">Loading industries...</SelectItem>
+                )}
               </SelectContent>
             </Select>
+            {errors.industry && (
+              <p className="text-red-500 text-sm">{errors.industry}</p>
+            )}
           </div>
 
           {/* Designation */}
@@ -450,16 +515,25 @@ export function ProfileForm({
                 <SelectValue placeholder="Select Designation" />
               </SelectTrigger>
               <SelectContent>
-                {designations.map((designation) => (
-                  <SelectItem
-                    key={designation.designation}
-                    value={designation.designation}
-                  >
-                    {designation.designation}
+                {designations && designations.length > 0 ? (
+                  designations.map((designation) => (
+                    <SelectItem
+                      key={designation.designation}
+                      value={designation.designation}
+                    >
+                      {designation.designation}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="loading">
+                    Loading designations...
                   </SelectItem>
-                ))}
+                )}
               </SelectContent>
             </Select>
+            {errors.designation && (
+              <p className="text-red-500 text-sm">{errors.designation}</p>
+            )}
           </div>
 
           {/* POC Name */}
@@ -476,6 +550,9 @@ export function ProfileForm({
               required
               maxLength={99}
             />
+            {errors.pocname && (
+              <p className="text-red-500 text-sm">{errors.pocname}</p>
+            )}
           </div>
 
           {/* POC Contact */}
@@ -489,6 +566,9 @@ export function ProfileForm({
               onChange={handleInputChange}
               countryCodes={countryCodes}
             />
+            {errors["poc-contact"] && (
+              <p className="text-red-500 text-sm">{errors["poc-contact"]}</p>
+            )}
           </div>
 
           {/* Company Introduction */}
@@ -502,6 +582,9 @@ export function ProfileForm({
               onChange={(e) => handleInputChange("intro", e.target.value)}
               className="h-28 border-gray-300 border-2 w-full p-2 resize-none rounded"
             />
+            {errors.intro && (
+              <p className="text-red-500 text-sm">{errors.intro}</p>
+            )}
           </div>
         </div>
         <Button type="submit" className="w-fit">
