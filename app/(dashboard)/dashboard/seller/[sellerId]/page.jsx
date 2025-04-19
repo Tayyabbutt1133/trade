@@ -1,5 +1,4 @@
 import { SellerForm } from "../components/SellerForm";
-import { SellerHeader } from "./sellerheader";
 
 export async function addSellerToDatabase(data) {
   // Create a FormData object
@@ -22,18 +21,18 @@ export async function addSellerToDatabase(data) {
   return response.json();
 }
 
-
-
-
 const SellerDetailClient = async ({ params }) => {
   const sellerId = (await params).sellerId;
   console.log("Seller ID:", sellerId);
+  const isNewSeller = sellerId === "new";
 
   try {
     const [countryRes, industryRes, designationRes] = await Promise.all([
       fetch("https://tradetoppers.esoftideas.com/esi-api/responses/country"),
       fetch("https://tradetoppers.esoftideas.com/esi-api/responses/industry"),
-      fetch("https://tradetoppers.esoftideas.com/esi-api/responses/designation"),
+      fetch(
+        "https://tradetoppers.esoftideas.com/esi-api/responses/designation"
+      ),
     ]);
 
     if (!countryRes.ok || !industryRes.ok || !designationRes.ok) {
@@ -51,13 +50,14 @@ const SellerDetailClient = async ({ params }) => {
     const countries = countriesData?.Country || [];
     const industries = industriesData?.Industry || [];
     const designations = designationsData?.Designations || [];
-  
+
     const countryCodes = countries.map((item) => item.code);
 
     return (
       <div className="container mx-auto py-10">
-        {/* Use the client header component that determines the title */}
-        <SellerHeader sellerId={sellerId} />
+        <h1 className="text-3xl font-bold mb-6 capitalize">
+          {isNewSeller ? "Add Seller" : "Edit Seller"}
+        </h1>
         <SellerForm
           countries={countries}
           industries={industries}
@@ -71,6 +71,5 @@ const SellerDetailClient = async ({ params }) => {
     return <div>Failed to load seller data. Please try again.</div>;
   }
 };
-
 
 export default SellerDetailClient;

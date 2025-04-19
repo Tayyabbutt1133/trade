@@ -54,6 +54,7 @@ export function ProfileForm({
     const getdata = async () => {
       try {
         const getprofileData = await GETPROFILE(iswebcode);
+        console.log("Profile data:", getprofileData);
 
         if (getprofileData) {
           // For company contact - now we're expecting separate fields

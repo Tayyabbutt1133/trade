@@ -15,38 +15,36 @@ import { useParams, useRouter } from "next/navigation";
 // Static options for the status field.
 const statusOptions = ["Active", "Inactive"];
 
-// Maximum file size constant (3MB).
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
-
-// Function to convert file to base64.
-const fileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-// Helper function to convert a raw phone string to an object.
-const parsePhoneNumber = (phoneStr) => {
-  if (!phoneStr) return { countryCode: "", number: "" };
-  // For now, assume the entire string is the number.
-  return { countryCode: "", number: phoneStr };
-};
-
 export function SellerForm({ countries = [], industries = [], designations = [] }) {
   const [formData, setFormData] = useState({
     "seller-company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
-    document: [],
   });
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
+  const [countryCodes, setCountryCodes] = useState([]);
 
   const params = useParams();
   const router = useRouter();
+
+  // Fetch country codes
+  useEffect(() => {
+    const fetchCountryCodes = async () => {
+      try {
+        const res = await fetch(
+          "https://tradetoppers.esoftideas.com/esi-api/responses/country/"
+        );
+        const data = await res.json();
+        const codes = data.Country.map((c) => c.code);
+        setCountryCodes(codes);
+      } catch (error) {
+        console.error("Error fetching country codes:", error);
+      }
+    };
+
+    fetchCountryCodes();
+  }, []);
 
   // In edit mode (when sellerId exists and is not "new"), fetch the existing seller data.
   useEffect(() => {
@@ -55,26 +53,37 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
         try {
           const response = await GETSELLER({ id: params.sellerId });
           console.log("Response from get seller:", response);
+          
           if (response.success && response.seller) {
+            // Handle the seller data properly based on the API response structure
             const sellerData = response.seller;
+            
+            // Set appropriate status based on what's coming from the API
+            let statusValue = "Inactive";
+            if (sellerData.status === "Approved") {
+              statusValue = "Active";
+            }
+            
+            // Set form data properly
             setFormData({
-              sellername: sellerData.sname || "",
+              sellername: sellerData.name || "",
               email: sellerData.email || "",
-              "seller-company-contact": sellerData.compcontact
-                ? { countryCode: "", number: sellerData.compcontact }
-                : { countryCode: "", number: "" },
-              address: sellerData.saddress || "",
-              country: sellerData.country || "",
+              company: sellerData.company || "",
+              "seller-company-contact": {
+                countryCode: sellerData.ccode || "",
+                number: sellerData.ccontact || ""
+              },
+              address: sellerData.caddress || "",
+              country: sellerData.country?.trim() || "",
               industry: sellerData.industry || "",
               designation: sellerData.designation || "",
               pocname: sellerData.pocname || "",
-              "poc-contact": sellerData.poccontact
-                ? { countryCode: "", number: sellerData.poccontact }
-                : { countryCode: "", number: "" },
-              status: sellerData.sstatus === 1 ? "Active" : "Inactive",
-              // For blocked, we convert to boolean (if sellerData.blocked equals "Blocked" then true; otherwise false).
-              blocked: sellerData.blocked.toLowerCase() === "blocked",
-              document: [], // Documents are not returned by the API for edit.
+              "poc-contact": {
+                countryCode: sellerData.poccode || "",
+                number: sellerData.poccontact || ""
+              },
+              status: statusValue,
+              blocked: sellerData.status?.toLowerCase() === "blocked"
             });
           }
         } catch (error) {
@@ -106,80 +115,93 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
   };
 
   // Handle input changes.
-  const handleInputChange = async (id, value) => {
-    if (id === "document") {
-      const newFiles = Array.from(value);
-      const validFiles = [];
-      const invalidFiles = [];
-
-      for (const file of newFiles) {
-        if (file.size > MAX_FILE_SIZE) {
-          invalidFiles.push(file.name);
-        } else {
-          validFiles.push(file);
-        }
-      }
-
-      if (invalidFiles.length > 0) {
-        setErrors((prev) => ({
-          ...prev,
-          document: `The following files exceed the 3MB limit: ${invalidFiles.join(", ")}`,
-        }));
-      } else {
-        setErrors((prev) => ({ ...prev, document: "" }));
-      }
-
-      const base64Files = await Promise.all(
-        validFiles.map(async (file) => ({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          base64: await fileToBase64(file),
-        }))
-      );
-
-      setFormData((prev) => ({ ...prev, document: [...(prev.document || []), ...base64Files] }));
+  const handleInputChange = (id, value) => {
+    if (id === "seller-company-contact" || id === "poc-contact") {
+      setFormData((prev) => ({ ...prev, [id]: value }));
     } else {
       setFormData((prev) => ({ ...prev, [id]: value }));
     }
 
-    if (id !== "document") {
-      const error = validateField(id, value);
-      setErrors((prev) => ({ ...prev, [id]: error }));
-    }
+    const error = validateField(id, value);
+    setErrors((prev) => ({ ...prev, [id]: error }));
   };
 
   // Handle form submission.
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // Validate all fields before submission
+    let formIsValid = true;
+    const newErrors = {};
+
+    // Required fields validation
+    const requiredFields = [
+      "sellername",
+      "email",
+      "company",
+      "address",
+      "country",
+      "industry",
+      "designation",
+      "pocname",
+      "status"
+    ];
+
+    requiredFields.forEach((field) => {
+      if (!formData[field]) {
+        formIsValid = false;
+        newErrors[field] = "This field is required";
+      }
+    });
+
+    // Special validation for contact fields
+    if (!formData["seller-company-contact"]?.number) {
+      formIsValid = false;
+      newErrors["seller-company-contact"] = "Company contact is required";
+    }
+
+    if (!formData["poc-contact"]?.number) {
+      formIsValid = false;
+      newErrors["poc-contact"] = "POC contact is required";
+    }
+
+    // Email validation
+    if (formData.email && !/\S+@\S+\.\S+/.test(formData.email)) {
+      formIsValid = false;
+      newErrors.email = "Invalid email address";
+    }
+
+    setErrors(newErrors);
+
+    if (!formIsValid) {
+      setSubmissionError("Please fix the errors before submitting");
+      return;
+    }
+
     const formDataToSubmit = new FormData();
 
     // Append form fields using the keys expected by your API.
     formDataToSubmit.append("sellername", formData.sellername || "");
     formDataToSubmit.append("email", formData.email || "");
-    if (formData["seller-company-contact"]) {
-      formDataToSubmit.set(
-        "ccontact",
-        `${formData["seller-company-contact"].countryCode}${formData["seller-company-contact"].number}`
-      );
-    }
+    formDataToSubmit.append("company", formData.company || "");
     formDataToSubmit.append("address", formData.address || "");
     formDataToSubmit.append("country", formData.country || "");
     formDataToSubmit.append("industry", formData.industry || "");
     formDataToSubmit.append("designation", formData.designation || "");
     formDataToSubmit.append("pocname", formData.pocname || "");
-    if (formData["poc-contact"]) {
-      formDataToSubmit.set(
-        "poccontact",
-        `${formData["poc-contact"].countryCode}${formData["poc-contact"].number}`
-      );
-    }
+    
+    // Append the company contact details separately
+    formDataToSubmit.append("ccode", formData["seller-company-contact"].countryCode || "");
+    formDataToSubmit.append("ccontact", formData["seller-company-contact"].number || "");
+    
+    // Append the POC contact details separately
+    formDataToSubmit.append("poccode", formData["poc-contact"].countryCode || "");
+    formDataToSubmit.append("pocontact", formData["poc-contact"].number || "");
+    
     formDataToSubmit.append("status", formData.status || "");
     // Convert the blocked boolean back to the string the API expects.
     formDataToSubmit.append("blocked", formData.blocked ? "Blocked" : "Pending");
 
-    // **Key Update Pattern:**
     // If in edit mode, pass the seller id from params as regid.
     if (params?.sellerId && params.sellerId !== "new") {
       formDataToSubmit.append("regid", params.sellerId);
@@ -187,13 +209,6 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
     } else {
       formDataToSubmit.append("regid", 0);
       formDataToSubmit.append("mode", "New");
-    }
-
-    // Append document files (if any).
-    if (formData.document.length > 0) {
-      formData.document.forEach((file) => {
-        formDataToSubmit.append("document", JSON.stringify(file));
-      });
     }
 
     const result = await createSeller(formDataToSubmit);
@@ -241,6 +256,21 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
           />
         </div>
 
+        {/* Company Name */}
+        <div className="grid gap-2">
+          <Label htmlFor="company">
+            Company Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="company"
+            name="company"
+            type="text"
+            value={formData.company || ""}
+            onChange={(e) => handleInputChange("company", e.target.value)}
+            required
+          />
+        </div>
+
         {/* Company Contact */}
         <div className="grid gap-2">
           <Label htmlFor="seller-company-contact">
@@ -251,6 +281,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
             name="seller-company-contact"
             value={formData["seller-company-contact"]}
             onChange={handleInputChange}
+            countryCodes={countryCodes}
           />
         </div>
 
@@ -367,51 +398,8 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
             name="poc-contact"
             value={formData["poc-contact"]}
             onChange={handleInputChange}
+            countryCodes={countryCodes}
           />
-        </div>
-
-        {/* Document Upload */}
-        <div className="grid gap-2">
-          <Label htmlFor="document">
-            Document <span className="text-red-500">*</span>
-          </Label>
-          <div className="flex flex-col gap-2">
-            <Input
-              id="document"
-              name="doc"
-              type="file"
-              onChange={(e) => handleInputChange("document", e.target.files)}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.bmp,.tiff"
-              multiple
-            />
-            <p className="text-gray-500 text-sm">
-              Accepted file types: pdf, doc, docx, xls, xlsx, jpg, jpeg, png, bmp, tiff (Max size: 3MB per file)
-            </p>
-            {errors.document && <p className="text-red-500 text-sm">{errors.document}</p>}
-            {formData.document && formData.document.length > 0 && (
-              <div className="mt-2">
-                <h4 className="text-sm font-medium mb-1">Uploaded files:</h4>
-                <ul className="list-disc pl-5">
-                  {formData.document.map((file, index) => (
-                    <li key={index} className="text-sm flex items-center justify-between">
-                      <span>{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newFiles = formData.document.filter((_, i) => i !== index);
-                          setFormData((prev) => ({ ...prev, document: newFiles }));
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
         </div>
 
         {/* Status */}
@@ -438,7 +426,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
           </Select>
         </div>
 
-        {/* Blocked */}
+        {/* Blocked
         <div className="flex items-center gap-2">
           <input
             type="checkbox"
@@ -448,7 +436,7 @@ export function SellerForm({ countries = [], industries = [], designations = [] 
             onChange={(e) => handleInputChange("blocked", e.target.checked)}
           />
           <Label htmlFor="blocked">Blocked</Label>
-        </div>
+        </div> */}
       </div>
       <Button type="submit" className="w-fit">
         {params?.sellerId && params.sellerId !== "new" ? "Update Seller" : "Save Seller"}

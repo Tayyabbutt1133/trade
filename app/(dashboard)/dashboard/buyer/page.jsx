@@ -69,12 +69,12 @@ export default function BuyersPage() {
     fetchBuyerData();
   }, []);
 
-  const handleClick = () => {
-    setShowRouteLoader(true); // show loading
-    startTransition(() => {
-      router.push("/dashboard/seller/new");
-    });
-  };
+  // const handleClick = () => {
+  //   setShowRouteLoader(true); // show loading
+  //   startTransition(() => {
+  //     router.push("/dashboard/seller/new");
+  //   });
+  // };
 
   return (
     <>
@@ -86,7 +86,7 @@ export default function BuyersPage() {
           >
             Buyers
           </h1>
-          <Link href="/dashboard/buyer/new">
+          {/* <Link href="/dashboard/buyer/new">
             <button
               onClick={handleClick}
               disabled={isPending}
@@ -95,7 +95,7 @@ export default function BuyersPage() {
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Buyer
             </button>
-          </Link>
+          </Link> */}
         </div>
 
         {/* Show spinner when loading */}

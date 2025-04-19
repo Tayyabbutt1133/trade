@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { PlusCircle } from "lucide-react";
 import { fonts } from "@/components/ui/font";
 import { DataTable } from "@/components/data-table";
 import TableActionBtn from "@/components/table-action-btn";
@@ -63,12 +62,12 @@ export default function SellerPage() {
     fetchSellerData();
   }, []);
 
-  const handleClick = () => {
-    setShowRouteLoader(true); // show loading
-    startTransition(() => {
-      router.push("/dashboard/seller/new");
-    });
-  };
+  // const handleClick = () => {
+  //   setShowRouteLoader(true); // show loading
+  //   startTransition(() => {
+  //     router.push("/dashboard/seller/new");
+  //   });
+  // };
 
   return (
   <>
@@ -79,7 +78,7 @@ export default function SellerPage() {
           Seller
         </h1>
 
-        <Link href="/dashboard/seller/new/">
+        {/* <Link href="/dashboard/seller/new/">
           <button
             onClick={handleClick}
             disabled={isPending}
@@ -88,7 +87,7 @@ export default function SellerPage() {
             <PlusCircle className="mr-2 h-4 w-4" />
             Add Seller
           </button>
-        </Link>
+        </Link> */}
       </div>
 
       {/* Show spinner when loading */}
