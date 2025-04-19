@@ -88,41 +88,39 @@ export function ProfileForm({
   }, [industries]); // Add industries as dependency to fallback if fetch fails
 
   // Once iswebcode is set, then fetch profile
+  // Modify your effect where you process the profile data
   useEffect(() => {
     if (!iswebcode) return;
 
     const getdata = async () => {
       try {
         const getprofileData = await GETPROFILE(iswebcode);
-        console.log("Profile data:", getprofileData);
 
         if (getprofileData) {
-          // For company contact - now we're expecting separate fields
-          const companyCountryCode = getprofileData.ccode || "";
-          const companyNumber = getprofileData.ccontact || "";
-
-          // For POC contact - now we're expecting separate fields
-          const pocCountryCode = getprofileData.poccode || "";
-          const pocNumber = getprofileData.poccontact || "";
+          // Create a helper function to safely process strings
+          const safeString = (str) => (str ? String(str).trim() : "");
 
           setFormData((prev) => ({
             ...prev,
-            name: getprofileData.name || "",
-            email: getprofileData.email || "",
-            company: getprofileData.company || "",
-            country: getprofileData.country || "",
-            industry: getprofileData.industry || "",
-            designation: getprofileData.designation || "",
-            address: getprofileData.caddress || "",
-            pocname: getprofileData.pocname || "",
-            intro: getprofileData.intro || "",
+            name: safeString(getprofileData.name),
+            email: safeString(getprofileData.email),
+            company: safeString(getprofileData.company),
+            // Apply trim to the country string to remove any trailing spaces
+            country: safeString(getprofileData.country),
+            industry: safeString(getprofileData.industry),
+            designation: safeString(getprofileData.designation),
+            address: safeString(getprofileData.caddress),
+            pocname: safeString(getprofileData.pocname),
+            intro: safeString(getprofileData.intro),
             "company-contact": {
-              countryCode: companyCountryCode,
-              number: companyNumber,
+              countryCode: safeString(getprofileData.ccode),
+              number: safeString(getprofileData.ccontact),
             },
             "poc-contact": {
-              countryCode: pocCountryCode,
-              number: pocNumber,
+              countryCode: safeString(getprofileData.poccode),
+              number: safeString(
+                getprofileData.poccontact || getprofileData.pocontact
+              ),
             },
           }));
         }
