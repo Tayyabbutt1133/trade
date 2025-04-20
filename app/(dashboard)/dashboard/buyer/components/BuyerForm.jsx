@@ -4,7 +4,13 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ContactInput } from "../../../../../components/ContactInput";
 import { fonts } from "@/components/ui/font";
@@ -15,31 +21,15 @@ import { useParams, useRouter } from "next/navigation";
 // Static options for the status field.
 const statusOptions = ["Active", "Inactive"];
 
-// Maximum file size constant (3MB).
-const MAX_FILE_SIZE = 3 * 1024 * 1024;
-
-// Function to convert a file to base64.
-const fileToBase64 = (file) => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = (error) => reject(error);
-  });
-};
-
-// Helper function to convert a raw phone string to an object.
-const parsePhoneNumber = (phoneStr) => {
-  if (!phoneStr) return { countryCode: "", number: "" };
-  // For now, assume the entire string is the number.
-  return { countryCode: "", number: phoneStr };
-};
-
-export function BuyerForm({ countries = [], industries = [], designations = [] }) {
+export function BuyerForm({
+  countries = [],
+  industries = [],
+  codes = [],
+  designations = [],
+}) {
   const [formData, setFormData] = useState({
-    ccontact: { countryCode: "", number: "" },
-    poccontact: { countryCode: "", number: "" },
-    document: [],
+    "seller-company-contact": { countryCode: "", number: "" },
+    "poc-contact": { countryCode: "", number: "" },
   });
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
@@ -57,21 +47,35 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           const response = await GETBUYER({ id: params.buyerId });
           console.log("Response from get buyer:", response);
           if (response.success && response.buyer) {
+            // Handle the Buyer data properly based on the API response structure
             const buyerData = response.buyer;
-            // Map the API's fields to our form fields.
+
+            // Set appropriate status based on what's coming from the API
+            let statusValue = "Inactive";
+            if (buyerData.status === "Approved") {
+              statusValue = "Active";
+            }
+
+            // Set form data properly
             setFormData({
-              buyername: buyerData.bname || "",
+              sellername: buyerData.name || "",
               email: buyerData.email || "",
-              ccontact: parsePhoneNumber(buyerData.compcontact),
-              address: buyerData.saddress || "",
-              pocname: buyerData.pocname || "",
-              poccontact: parsePhoneNumber(buyerData.poccontact),
-              status: buyerData.sstatus === 1 ? "Active" : "Inactive",
-              blocked: buyerData.blocked === "Blocked",
-              country: buyerData.country || "",
-              designation: buyerData.designation || "",
+              company: buyerData.company || "",
+              "seller-company-contact": {
+                countryCode: buyerData.ccode || "",
+                number: buyerData.ccontact || "",
+              },
+              address: buyerData.caddress || "",
+              country: buyerData.country?.trim() || "",
               industry: buyerData.industry || "",
-              document: [], // Documents are not returned by the API for edit.
+              designation: buyerData.designation || "",
+              pocname: buyerData.pocname || "",
+              "poc-contact": {
+                countryCode: buyerData.poccode || "",
+                number: buyerData.poccontact || "",
+              },
+              status: statusValue,
+              blocked: buyerData.status?.toLowerCase() === "blocked",
             });
           }
         } catch (error) {
@@ -82,33 +86,6 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
       fetchBuyer();
     }
   }, [params?.buyerId]);
-
-  // Validation function for fields.
-  const validateField = (id, value) => {
-    let error = "";
-    if (id === "email" && value && !/\S+@\S+\.\S+/.test(value)) {
-      error = "Invalid email address";
-    }
-    if (id === "ccontact" && value) {
-      const phoneNumber = typeof value === "object" ? value.number : value;
-      if (!phoneNumber) {
-        error = "This field is required";
-      } else if (/\D/.test(phoneNumber)) {
-        error = "Only numbers allowed";
-      } else if (phoneNumber.length > 10) {
-        error = "Maximum 10 digits allowed";
-      }
-    }
-    if (id === "poccontact" && value && value.number) {
-      const phoneNumber = typeof value === "object" ? value.number : value;
-      if (/\D/.test(phoneNumber)) {
-        error = "Only numbers allowed";
-      } else if (phoneNumber.length > 10) {
-        error = "Maximum 10 digits allowed";
-      }
-    }
-    return error;
-  };
 
   // Handle input changes.
   const handleInputChange = async (id, value) => {
@@ -126,20 +103,17 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
       if (invalidFiles.length > 0) {
         setErrors((prev) => ({
           ...prev,
-          document: `The following files exceed the 3MB limit: ${invalidFiles.join(", ")}`,
+          document: `The following files exceed the 3MB limit: ${invalidFiles.join(
+            ", "
+          )}`,
         }));
       } else {
         setErrors((prev) => ({ ...prev, document: "" }));
       }
-      const base64Files = await Promise.all(
-        validFiles.map(async (file) => ({
-          name: file.name,
-          type: file.type,
-          size: file.size,
-          base64: await fileToBase64(file),
-        }))
-      );
-      setFormData((prev) => ({ ...prev, document: [...(prev.document || []), ...base64Files] }));
+      setFormData((prev) => ({
+        ...prev,
+        document: [...(prev.document || []), ...base64Files],
+      }));
     } else {
       setFormData((prev) => ({ ...prev, [id]: value }));
     }
@@ -153,36 +127,48 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formDataToSubmit = new FormData();
-    formDataToSubmit.append("buyername", formData.buyername || "");
+    // Append all form fields (including read-only fields)
+    formDataToSubmit.append("sellername", formData.sellername || "");
     formDataToSubmit.append("email", formData.email || "");
-    formDataToSubmit.append("ccontact", `${formData.ccontact.countryCode}${formData.ccontact.number}`);
+    formDataToSubmit.append("company", formData.company || "");
     formDataToSubmit.append("address", formData.address || "");
-    if (formData.pocname) {
-      formDataToSubmit.append("pocname", formData.pocname);
-    }
-    if (formData.poccontact && formData.poccontact.number) {
-      formDataToSubmit.append("poccontact", `${formData.poccontact.countryCode}${formData.poccontact.number}`);
-    }
-    formDataToSubmit.append("status", formData.status || "");
-    formDataToSubmit.append("blocked", formData.blocked ? "Blocked" : "Pending");
     formDataToSubmit.append("country", formData.country || "");
-    formDataToSubmit.append("designation", formData.designation || "");
     formDataToSubmit.append("industry", formData.industry || "");
+    formDataToSubmit.append("designation", formData.designation || "");
+    formDataToSubmit.append("pocname", formData.pocname || "");
 
-    // **Key Update Pattern:**
-    // In edit mode, pass the buyer id from params as regid; in new mode, regid is 0.
-    if (params?.buyerId && params.buyerId !== "new") {
-      formDataToSubmit.append("regid", params.buyerId);
+    // Append the company contact details separately
+    formDataToSubmit.append(
+      "ccode",
+      formData["seller-company-contact"].countryCode || ""
+    );
+    formDataToSubmit.append(
+      "ccontact",
+      formData["seller-company-contact"].number || ""
+    );
+
+    // Append the POC contact details separately
+    formDataToSubmit.append(
+      "poccode",
+      formData["poc-contact"].countryCode || ""
+    );
+    formDataToSubmit.append("pocontact", formData["poc-contact"].number || "");
+
+    // Status is the only editable field
+    formDataToSubmit.append("status", formData.status || "");
+    // Convert the blocked boolean back to the string the API expects.
+    formDataToSubmit.append(
+      "blocked",
+      formData.blocked ? "Blocked" : "Pending"
+    );
+
+    // If in edit mode, pass the seller id from params as regid.
+    if (params?.sellerId && params.sellerId !== "new") {
+      formDataToSubmit.append("regid", params.sellerId);
       formDataToSubmit.append("mode", "Edit");
     } else {
       formDataToSubmit.append("regid", 0);
       formDataToSubmit.append("mode", "New");
-    }
-
-    if (formData.document.length > 0) {
-      formData.document.forEach((file) => {
-        formDataToSubmit.append("document", JSON.stringify(file));
-      });
     }
 
     const result = await createBuyer(formDataToSubmit);
@@ -199,127 +185,107 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
   return (
     <form onSubmit={handleSubmit} className={`grid ${fonts.montserrat} gap-6`}>
       <div className="grid gap-4">
-        {/* Buyer Name */}
+        {/* Seller Name - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="buyer-name">
-            Name <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="seller-name">Name</Label>
           <Input
-            id="buyer-name"
-            name="buyername"
+            id="seller-name"
+            name="sellername"
             type="text"
-            value={formData.buyername || ""}
-            onChange={(e) => handleInputChange("buyername", e.target.value)}
-            required
+            value={formData.sellername || ""}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Email */}
+        {/* Seller Email - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="email">
-            Email <span className="text-red-500">*</span>
-          </Label>
+          <Label htmlFor="seller-email">Email</Label>
           <Input
-            id="email"
+            id="seller-email"
             name="email"
             type="email"
             value={formData.email || ""}
-            onChange={(e) => handleInputChange("email", e.target.value)}
-            required
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Company Contact */}
+        {/* Company Name - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="ccontact">Company Contact <span className="text-red-500">*</span></Label>
-          <ContactInput
-            id="ccontact"
-            name="ccontact"
-            value={formData.ccontact}
-            onChange={handleInputChange}
+          <Label htmlFor="company">Company Name</Label>
+          <Input
+            id="company"
+            name="company"
+            type="text"
+            value={formData.company || ""}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Address */}
+        {/* Company Contact - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="address">Address <span className="text-red-500">*</span></Label>
+          <Label htmlFor="seller-company-contact">Company Contact</Label>
+          <div className="flex gap-2">
+            <div className="w-24 bg-gray-100 border rounded p-2 text-sm">
+              {formData["seller-company-contact"]?.countryCode || ""}
+            </div>
+            <div className="flex-1 bg-gray-100 border rounded p-2 text-sm">
+              {formData["seller-company-contact"]?.number || ""}
+            </div>
+          </div>
+        </div>
+
+        {/* Address - Read-only */}
+        <div className="grid gap-2">
+          <Label htmlFor="seller-address">Address</Label>
           <Textarea
-            id="address"
+            id="seller-address"
             name="address"
             value={formData.address || ""}
-            onChange={(e) => handleInputChange("address", e.target.value)}
-            required
-            maxLength={199}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* Country */}
+        {/* Country - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="country">Country <span className="text-red-500">*</span></Label>
-          <Select
-            value={formData.country}
-            onValueChange={(value) => handleInputChange("country", value)}
-            required
-            name="country"
-          >
-            <SelectTrigger id="country">
-              <SelectValue placeholder="Select Country" />
-            </SelectTrigger>
-            <SelectContent>
-              {countries.map((country) => (
-                <SelectItem key={country.country} value={country.country}>
-                  {country.country}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-country">Country</Label>
+          <Input
+            id="seller-country-display"
+            type="text"
+            value={formData.country || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* Industry */}
+        {/* Industry - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="industry">Industry <span className="text-red-500">*</span></Label>
-          <Select
-            value={formData.industry}
-            onValueChange={(value) => handleInputChange("industry", value)}
-            required
-            name="industry"
-          >
-            <SelectTrigger id="industry">
-              <SelectValue placeholder="Select Industry" />
-            </SelectTrigger>
-            <SelectContent>
-              {industries.map((industry) => (
-                <SelectItem key={industry.industry} value={industry.industry}>
-                  {industry.industry}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-industry">Industry</Label>
+          <Input
+            id="seller-industry-display"
+            type="text"
+            value={formData.industry || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* Designation */}
+        {/* Designation - Read-only */}
         <div className="grid gap-2">
-          <Label htmlFor="designation">Designation <span className="text-red-500">*</span></Label>
-          <Select
-            value={formData.designation}
-            onValueChange={(value) => handleInputChange("designation", value)}
-            required
-            name="designation"
-          >
-            <SelectTrigger id="designation">
-              <SelectValue placeholder="Select Designation" />
-            </SelectTrigger>
-            <SelectContent>
-              {designations.map((designation) => (
-                <SelectItem key={designation.designation} value={designation.designation}>
-                  {designation.designation}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label htmlFor="seller-designation">Designation</Label>
+          <Input
+            id="seller-designation-display"
+            type="text"
+            value={formData.designation || ""}
+            disabled
+            className="bg-gray-100"
+          />
         </div>
 
-        {/* POC Name (Optional) */}
+        {/* POC Name - Read-only */}
         <div className="grid gap-2">
           <Label htmlFor="poc-name">POC Name</Label>
           <Input
@@ -327,67 +293,29 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
             name="pocname"
             type="text"
             value={formData.pocname || ""}
-            onChange={(e) => handleInputChange("pocname", e.target.value)}
-            maxLength={99}
+            disabled
+            className="bg-gray-100"
           />
         </div>
 
-        {/* POC Contact (Optional) */}
+        {/* POC Contact - Read-only */}
         <div className="grid gap-2">
           <Label htmlFor="poc-contact">POC Contact</Label>
-          <ContactInput
-            id="poc-contact"
-            name="poccontact"
-            value={formData.poccontact}
-            onChange={handleInputChange}
-          />
-        </div>
-
-        {/* Document Upload (Optional) */}
-        <div className="grid gap-2">
-          <Label htmlFor="document">Document</Label>
-          <div className="flex flex-col gap-2">
-            <Input
-              id="document"
-              name="doc"
-              type="file"
-              onChange={(e) => handleInputChange("document", e.target.files)}
-              accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.bmp,.tiff"
-              multiple
-            />
-            <p className="text-gray-500 text-sm">
-              Accepted file types: pdf, doc, docx, xls, xlsx, jpg, jpeg, png, bmp, tiff (Max size: 3MB per file)
-            </p>
-            {errors.document && <p className="text-red-500 text-sm">{errors.document}</p>}
-            {formData.document && formData.document.length > 0 && (
-              <div className="mt-2">
-                <h4 className="text-sm font-medium mb-1">Uploaded files:</h4>
-                <ul className="list-disc pl-5">
-                  {formData.document.map((file, index) => (
-                    <li key={index} className="text-sm flex items-center justify-between">
-                      <span>{file.name}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          const newFiles = formData.document.filter((_, i) => i !== index);
-                          setFormData((prev) => ({ ...prev, document: newFiles }));
-                        }}
-                      >
-                        Remove
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
+          <div className="flex gap-2">
+            <div className="w-24 bg-gray-100 border rounded p-2 text-sm">
+              {formData["poc-contact"]?.countryCode || ""}
+            </div>
+            <div className="flex-1 bg-gray-100 border rounded p-2 text-sm">
+              {formData["poc-contact"]?.number || ""}
+            </div>
           </div>
         </div>
 
-        {/* Status */}
+        {/* Status - Editable */}
         <div className="grid gap-2">
-          <Label htmlFor="status">Status <span className="text-red-500">*</span></Label>
+          <Label htmlFor="status">
+            Status <span className="text-red-500">*</span>
+          </Label>
           <Select
             value={formData.status}
             onValueChange={(value) => handleInputChange("status", value)}
@@ -419,12 +347,13 @@ export function BuyerForm({ countries = [], industries = [], designations = [] }
           <Label htmlFor="blocked">Blocked</Label>
         </div>
       </div>
-
       <Button type="submit" className="w-fit">
-        {params?.buyerId && params.buyerId !== "new" ? "Update Buyer" : "Save Buyer"}
+        Update Status
       </Button>
       {submissionError && <p className="text-red-500">{submissionError}</p>}
-      {submissionSuccess && <p className="text-green-500">{submissionSuccess}</p>}
+      {submissionSuccess && (
+        <p className="text-green-500">{submissionSuccess}</p>
+      )}
     </form>
   );
 }

@@ -22,7 +22,7 @@ const Buyer = async ({ params }) => {
           {isNewBuyer ? "Add Buyer" : "Edit Buyer"}
         </h1>
         <div>
-          <BuyerForm countries={countries.Country} industries={industries.Industry} designations={designations.Designations} />
+          <BuyerForm codes={countries.codes} countries={countries.Country} industries={industries.Industry} designations={designations.Designations} />
         </div>
       </div>
     );

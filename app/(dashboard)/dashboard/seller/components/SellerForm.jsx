@@ -26,10 +26,12 @@ export function SellerForm({
   industries = [],
   designations = [],
 }) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState(
+    {
     "seller-company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
-  });
+    }
+  );
   const [errors, setErrors] = useState({});
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
@@ -332,6 +334,18 @@ export function SellerForm({
               ))}
             </SelectContent>
           </Select>
+        </div>
+
+        {/* Blocked */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="blocked"
+            name="blocked"
+            checked={formData.blocked || false}
+            onChange={(e) => handleInputChange("blocked", e.target.checked)}
+          />
+          <Label htmlFor="blocked">Blocked</Label>
         </div>
       </div>
       <Button type="submit" className="w-fit">

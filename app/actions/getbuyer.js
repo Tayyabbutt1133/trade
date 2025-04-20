@@ -27,9 +27,9 @@ export async function GETBUYER(data) {
     }
 
     // Check if we got valid data in the "Buyers" array
-    if (json.Buyers && json.Buyers.length > 0) {
+    if (json.Registeration && json.Registeration.length > 0) {
       // Return the first buyer record
-      return { success: true, buyer: json.Buyers[0] };
+      return { success: true, buyer: json.Registeration[0] };
     } else {
       // "No Record" or empty array
       return { success: false, error: "No record found for that ID." };
