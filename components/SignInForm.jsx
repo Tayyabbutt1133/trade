@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { fonts } from "@/components/ui/font";
 import { LOGIN } from "@/app/actions/signin";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export function SignInForm() {
   const [email, setEmail] = useState("");
@@ -103,9 +104,11 @@ export function SignInForm() {
             </Button>
           </div>
           <div className="text-sm text-center mt-4">
+            <Link href={'/forgot-password'}>
             <span className="text-[#37bfb1] hover:text-[#2ea89b] cursor-pointer">
-              Reset password
-            </span>
+              Forgot password ?
+              </span>
+              </Link>
           </div>
         </form>
       </div>
