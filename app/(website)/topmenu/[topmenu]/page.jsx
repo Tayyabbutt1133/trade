@@ -37,7 +37,7 @@ const ProductContent = async ({ topMenu }) => {
 
   return (
     <>
-      <ProductCategoryHeader category={decodedcategory} />
+      <ProductCategoryHeader category={decodedcategory} totalProducts={totalCount} />
       <TopCategoryFilter />
     </>
   );
