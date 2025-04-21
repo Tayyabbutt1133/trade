@@ -41,8 +41,9 @@ export default function ProductsPage() {
       setLoading(true);
 
       try {
-        const userRes = await fetch("/api/auth/user");
-        const { id, type } = (await userRes.json()).userData;
+        const response = await fetch("/api/auth/user");
+        const response_json = await response.json();
+        const user_token = response_json.userData.webcode
 
         const formData = new FormData();
         formData.append("productid", "");
@@ -50,11 +51,8 @@ export default function ProductsPage() {
         formData.append("catid", "");
         formData.append("subcatid", "");
         formData.append("size", "250"); // for now giving static count to fetch static no.of products
-        formData.append("Page", "");
-        formData.append(
-          "logby",
-          type === "Seller" || type === "buyer" ? id : 0
-        );
+        formData.append("page", "");
+        formData.append("webcode", user_token)
 
         const res = await fetch(
           "https://tradetoppers.esoftideas.com/esi-api/responses/products/",
@@ -62,6 +60,7 @@ export default function ProductsPage() {
         );
 
         const data = await res.json();
+        console.log(data);
 
         // Get total count from the response
         const totalRecords = data?.["Total Records"]?.[0]?.records || 0;
@@ -109,7 +108,11 @@ export default function ProductsPage() {
             Products ({totalCount})
           </h1>
           <Link href="/dashboard/products/new">
-            <Button onClick={handleClick} disabled={isPending} className={`flex items-center ${fonts.montserrat}`}>
+            <Button
+              onClick={handleClick}
+              disabled={isPending}
+              className={`flex items-center ${fonts.montserrat}`}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Product
             </Button>

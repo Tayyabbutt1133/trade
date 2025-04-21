@@ -16,13 +16,13 @@ const HomePage = () => {
       <Hero />
       {/* <TabsMenu /> */}
       <TradeStory/>
-      <FeaturesSection />
-      <SuppliersSection />
+      {/* <FeaturesSection /> */}
+      {/* <SuppliersSection /> */}
       {/* <FeaturedSuppliers /> */}
       <Whychem />
-      <TestimonialCarousel />
+      {/* <TestimonialCarousel /> */}
       <ActivityFeed />
-      <InsightsAndInnovations />
+      {/* <InsightsAndInnovations /> */}
     </>
   );
 };

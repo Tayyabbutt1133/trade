@@ -4,6 +4,7 @@ import React from "react";
 import Image from "next/image";
 import TabsMenu from "../tabs/TabsMenu";
 import advertisement from "./../../../../../public/grow_ads.png";
+import Link from "next/link";
 
 const Hero = () => {
   return (
@@ -31,6 +32,10 @@ const Hero = () => {
                 all in one place.
               </span>
             </p>
+            <Link href={'/contact-us'}>
+              <p className="underline font-extrabold">Ask us about your biggest sourcing challenge?</p>
+              </Link>
+
           </div>
         </div>
       </Container>

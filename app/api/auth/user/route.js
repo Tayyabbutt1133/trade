@@ -4,8 +4,6 @@ import { cookies } from "next/headers";
 export async function GET() {
   const cookieStore = await cookies();
   const userWebcode = cookieStore.get("webcode");
-  // const userType = cookieStore.get("userType");
-  // const userBody = cookieStore.get("userBody");
 
   if (!userWebcode ) {
     return Response.json({ authenticated: false }, { status: 401 });
@@ -15,8 +13,6 @@ export async function GET() {
   // const userData = await fetchUserData(userId);
   const userData = {
     webcode: userWebcode.value,
-    // type: userType.value,
-    // body: userBody.value,
   };
   return Response.json({
     authenticated: true,

@@ -26,8 +26,7 @@ const CategoryPage = async ({ category }) => {
     initialSize,
     initialPage
   );
-  // console.log("Sidemenu response :", initialFetch);
-
+  console.log("Sidemenu response :", initialFetch);
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
   
   return (

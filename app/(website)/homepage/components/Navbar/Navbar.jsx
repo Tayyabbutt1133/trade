@@ -6,6 +6,7 @@ import { useState } from "react";
 import { Menubar } from "./Menubar";
 import { RxHamburgerMenu } from "react-icons/rx";
 import SideMenu from "./SideMenu/SideMenu";
+
 import { fonts } from "@/components/ui/font";
 import {
   DropdownMenu,
@@ -17,8 +18,9 @@ import { IoChevronDown } from "react-icons/io5";
 import Link from "next/link";
 import SearchBar from "./Search";
 import { usePathname, useRouter } from "next/navigation";
-import trade_logo from '../../../../../public/ttlogo.png'
+import trade_logo from "../../../../../public/ttlogo.png";
 import Image from "next/image";
+import ProfileDropdown from "./ProfileDropdown";
 
 const Navbar = () => {
   const [isMenuOpen, setisMenuOpen] = useState(false);
@@ -67,7 +69,7 @@ const Navbar = () => {
             >
               
             </h1> */}
-            <Image src={trade_logo} alt="logo" width={95} height={95}/>
+            <Image src={trade_logo} alt="logo" width={95} height={95} />
           </Link>
         </div>
         {/* Search bar */}
@@ -86,13 +88,13 @@ const Navbar = () => {
             <Link href={userData?.webcode ? "/dashboard" : "/signin"}>
               <button
                 className={`
-            text-sm font-bold px-5 text-white ${
+            text-[15px] font-bold px-5 text-white ${
               fonts.montserrat
             } py-2 rounded-md transition-all
             ${
               pathname === "/signin"
                 ? "bg-green-600"
-                : "bg-transparent hover:bg-[#081023CC]"
+                : "bg-transparent hover:bg-[#3a7791cc]"
             } 
             hover:scale-105
           `}
@@ -102,14 +104,14 @@ const Navbar = () => {
             </Link>
             <Link href={userData?.webcode ? "" : "/signup"}>
               <button
-                onClick={
-                  userData?.webcode
-                    ? async () => {
-                        await fetch("/api/auth/user", { method: "DELETE" });
-                        window.location.href = window.location.pathname;
-                      }
-                    : null
-                }
+                // onClick={
+                //   userData?.webcode
+                //     ? async () => {
+                //         await fetch("/api/auth/user", { method: "DELETE" });
+                //         window.location.href = window.location.pathname;
+                //       }
+                //     : null
+                // }
                 className={`
       text-sm text-white ${
         fonts.montserrat
@@ -119,12 +121,12 @@ const Navbar = () => {
           ? "bg-transparent"
           : pathname === "/signup"
           ? "bg-green-600"
-          : "bg-[#081023CC]"
+          : "hover:hover:bg-[#3a7791cc]"
       }
-      hover:scale-105 hover:bg-[#081023CC]
+      hover:scale-105 hover:hover:bg-[#3a7791cc]
     `}
               >
-                {userData?.webcode ? "sign out" : "Sign up"}
+                {userData?.webcode ? <ProfileDropdown /> : "Sign up"}
               </button>
             </Link>
           </div>

@@ -55,6 +55,11 @@ export default function ProductCard({ product }) {
                 <p className="text-sm">{product.formula}</p>
               </div>
 
+              <div>
+                <p className="text-sm text-gray-600">Applications:</p>
+                <p className="text-sm">{product.application}</p>
+              </div>
+
               {product.category && (
                 <div>
                   <p className="text-sm text-gray-600">Category:</p>

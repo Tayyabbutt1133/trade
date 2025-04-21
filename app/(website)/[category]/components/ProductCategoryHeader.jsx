@@ -15,9 +15,9 @@ export default function ProductCategoryHeader({ category, totalProducts }) {
         </div>
 
         <p className="text-gray-800 text-sm font-medium max-w-3xl">
-          Tradetoppers has a wide range of products essential for the
-          agriculture and feed industries including adjuvents, fertilizers, crop
-          protection, feed ingredients, and more.
+          Trade Toppers provide comprehensive range of ingredients used in Paint
+          and Coatings, Inks, Adhesive and Sealants and similar product line.
+          These ingredients are classified help user find a right product.
         </p>
       </section>
     </div>

@@ -102,6 +102,11 @@ export default function ProductDetails({ productdata }) {
                   <strong>Formula:</strong> {singleproduct.formula}
                 </li>
               )}
+              {singleproduct.formula && (
+                <li>
+                  <strong>Applications:</strong> {singleproduct.application}
+                </li>
+              )}
               {singleproduct.brand && (
                 <li>
                   <strong>Brand:</strong> {singleproduct.brand}
