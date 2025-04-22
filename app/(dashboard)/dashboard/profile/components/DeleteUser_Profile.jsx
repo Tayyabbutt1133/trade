@@ -1,10 +1,17 @@
 "use client";
 import React, { useState } from "react";
 import { DELETEUSER } from "@/app/actions/deleteuser";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const DeleteUser_Profile = ({ webcode }) => {
-  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -15,58 +22,65 @@ const DeleteUser_Profile = ({ webcode }) => {
       formdata.append("code", webcode);
 
       const response = await DELETEUSER(formdata);
-      // console.log("User deleted:", response);
 
-      if (response?.body == 'Success') {
+      if (response?.body === "Success") {
+        // Delete the user session and redirect to home page
         await fetch("/api/auth/user", { method: "DELETE" });
         window.location.href = "/"; // Force logout & redirect
+      } else {
+        // Handle error case
+        console.error("Failed to delete user:", response);
+        setLoading(false);
+        setIsModalOpen(false);
       }
     } catch (error) {
       console.error("Error deleting user:", error);
-    } finally {
       setLoading(false);
+      setIsModalOpen(false);
     }
   };
 
   return (
     <>
-      <button
+      <Button
         onClick={() => setIsModalOpen(true)}
         className="w-32 font-medium text-sm rounded-md h-10 bg-black text-white"
+        type="button" // Important: set type to button to prevent form submission
       >
         Delete Profile
-      </button>
+      </Button>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-lg w-[90%] max-w-md p-6 text-center">
-            <h2 className="text-lg font-semibold text-red-600 mb-4">
-              Confirm Deletion
-            </h2>
-            <p className="text-gray-700 mb-6">
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
               Are you sure you want to delete your profile? This action is
               <strong> irreversible</strong> and your data will be removed from
               the platform.
-            </p>
-
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 text-sm text-gray-700 rounded-md border"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                disabled={loading}
-                className="px-4 py-2 text-sm bg-red-600 text-white rounded-md"
-              >
-                {loading ? "Deleting..." : "Confirm Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-between">
+            <Button
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              disabled={loading}
+              type="button"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={loading}
+              type="button"
+              className="bg-green-600 hover:bg-green-900"
+            >
+              {loading ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
