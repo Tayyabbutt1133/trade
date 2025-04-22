@@ -1,12 +1,11 @@
 "use client";
 
-import React from "react";
-
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
-import { KeyRound, Check, Eye, EyeOff } from "lucide-react";
+import { KeyRound, Check, Eye, EyeOff, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -16,9 +15,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useEmailStore, useVerificationStore } from "../../../store/user-email";
+import { RESETPASS } from "@/app/actions/reset_password";
 
 export default function ResetPasswordPage() {
   const [formData, setFormData] = useState({
+    verificationCode: "",
     newPassword: "",
     confirmPassword: "",
   });
@@ -27,6 +29,11 @@ export default function ResetPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+
+  const { email } = useEmailStore();
+  const { code } = useVerificationStore();
+  const router = useRouter();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -37,34 +44,59 @@ export default function ResetPasswordPage() {
     setError("");
   };
 
-  const validatePassword = () => {
+  const validateForm = () => {
+    if (!formData.verificationCode.trim()) {
+      setError("Verification code is required");
+      return false;
+    }
     if (formData.newPassword.length < 8) {
       setError("Password must be at least 8 characters long");
       return false;
     }
-
     if (formData.newPassword !== formData.confirmPassword) {
       setError("Passwords do not match");
       return false;
     }
-
     return true;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateForm()) return;
 
-    if (!validatePassword()) {
+    if (formData.verificationCode !== code) {
+      setError("Verification code is incorrect");
       return;
     }
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const payload = new FormData();
+      payload.append("userid", 0);
+      payload.append("email", email);
+      payload.append("password", formData.newPassword);
+
+      const res = await RESETPASS(payload);
+      console.log("response from reset password:", res);
+      const success = res?.Password?.[0]?.body === "Success";
+
+      if (success) {
+        setIsSubmitted(true);
+        setSuccessMessage("Your password has been reset successfully!");
+
+        setTimeout(() => {
+          router.push("/signin");
+        }, 1000);
+      } else {
+        setError(res.message || "Something went wrong. Please try again.");
+      }
+    } catch (err) {
+      console.error("Reset password error:", err);
+      setError("Server error. Please try again.");
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1500);
+    }
   };
 
   const togglePasswordVisibility = (field) => {
@@ -81,7 +113,7 @@ export default function ResetPasswordPage() {
         <CardHeader className="space-y-1 bg-[#3cbfb1] text-white">
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
           <CardDescription className="text-gray-100">
-            Create a new password for your account
+            Enter the code sent to your email and create a new password.
           </CardDescription>
         </CardHeader>
 
@@ -98,7 +130,41 @@ export default function ResetPasswordPage() {
                       <AlertDescription>{error}</AlertDescription>
                     </Alert>
                   )}
+                  {successMessage && (
+                    <Alert
+                      variant="default"
+                      className="border-green-300 bg-green-50 text-green-800"
+                    >
+                      <AlertDescription>{successMessage}</AlertDescription>
+                    </Alert>
+                  )}
 
+                  {/* Verification Code */}
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="verificationCode"
+                      className="text-sm font-medium"
+                    >
+                      Verification Code
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <ShieldCheck className="h-5 w-5 text-gray-400" />
+                      </div>
+                      <Input
+                        id="verificationCode"
+                        name="verificationCode"
+                        type="text"
+                        placeholder="Enter code"
+                        className="pl-10"
+                        value={formData.verificationCode}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* New Password */}
                   <div className="space-y-2">
                     <label
                       htmlFor="newPassword"
@@ -137,6 +203,7 @@ export default function ResetPasswordPage() {
                     </p>
                   </div>
 
+                  {/* Confirm Password */}
                   <div className="space-y-2">
                     <label
                       htmlFor="confirmPassword"
@@ -205,7 +272,7 @@ export default function ResetPasswordPage() {
             </p>
             <Button
               className="w-full bg-[#3cbfb1] hover:bg-[#35a99c]"
-              onClick={() => (window.location.href = "/login")}
+              onClick={() => router.push("/signin")}
             >
               Back to login
             </Button>

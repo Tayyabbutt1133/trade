@@ -127,11 +127,6 @@ export default function ProductDetails({ productdata }) {
                   <strong>Subcategory:</strong> {singleproduct.subcategory}
                 </li>
               )}
-              {singleproduct.chemical && (
-                <li>
-                  <strong>Applications:</strong> {singleproduct.chemical}
-                </li>
-              )}
               {singleproduct.cas && (
                 <li>
                   <strong>CAS:</strong> {singleproduct.cas}

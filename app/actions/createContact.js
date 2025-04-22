@@ -1,15 +1,12 @@
 "use server"
 
-export async function CONTACT(data) {
-    console.log("Data Received at Server:", data);
+export async function CONTACT(formdata) {
+    console.log("Data Received at Server:", formdata);
   
     try {
       const response = await fetch("https://tradetoppers.esoftideas.com/esi-api/requests/contactus/", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: data,
+        body: formdata,
       });
   
       const responseData = await response.json();

@@ -1,7 +1,7 @@
+// Client Component - app/forgot-password/page.js
 "use client";
 
 import React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { Mail } from "lucide-react";
@@ -16,26 +16,82 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { FORGOTPASS } from "@/app/actions/forgotemail_code";
+import {useEmailStore, useVerificationStore} from '../../../store/user-email'
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSubmitted, setIsSubmitted] = useState(false);
-    
-    const router = useRouter();
-
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  
+  const router = useRouter();
+  
+  // Use email from Zustand store
+  const { email, setEmail } = useEmailStore();
+  const { code, setCode } = useVerificationStore();
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
-      setIsSubmitting(true);
-      router.push('/reset-password')
-
-    // Simulate API call
-    setTimeout(() => {
+    setIsSubmitting(true);
+    setError("");
+    
+    try {
+      // Call the FORGOTPASS server action
+      const response = await FORGOTPASS(email);
+      console.log("response from forgot password:", response);
+      const verification_code = response?.Password?.[0]?.code
+      if (verification_code) {
+        setCode(verification_code);
+      }
+      
+      // Check response status
+      if (response.Response === 'Email not registered') {
+        setError(response.message || "Failed to send reset link or Maybe Email Not Registered. Please try again.");
+      } else {
+        // Store email in Zustand store for access in next page
+        setEmail(email);
+        setSuccess(true);
+        // Optional: redirect after short delay
+        setTimeout(() => {
+          router.push("/reset-password");
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setError("An unexpected error occurred. Please try again later.");
+    } finally {
       setIsSubmitting(false);
-      setIsSubmitted(true);
-    }, 1500);
+    }
   };
-
+  
+  if (success) {
+    return (
+      <div className="flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md my-16">
+          <CardHeader className="space-y-1 bg-green-600 text-white">
+            <CardTitle className="text-2xl font-bold">Email Sent</CardTitle>
+            <CardDescription className="text-gray-100">
+              We've sent a password reset code to your email
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <p className="text-center mb-4">
+              Please check your inbox at <strong>{email}</strong> and follow the instructions.
+            </p>
+            <p className="text-xs text-gray-500 text-center">
+              Redirecting you to the reset page...
+            </p>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <Link href="/signin">
+              <Button variant="outline">Return to Login</Button>
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md my-16">
@@ -67,26 +123,30 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
                 <p className="text-xs text-gray-500">
-                  We'll send a password reset link to this email
+                  We'll send a password reset code to this email
                 </p>
               </div>
+              
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+                  <p className="text-sm text-red-600">{error}</p>
+                </div>
+              )}
+              
+              <Button
+                type="submit"
+                className="w-full bg-[#3cbfb1] hover:bg-[#35a99c]"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Sending..." : "Proceed"}
+              </Button>
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col space-y-4">
-          <Button
-            type="submit"
-            className="w-full bg-[#3cbfb1] hover:bg-[#35a99c]"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Sending..." : "Proceed"}
-          </Button>
-          <div className="text-center text-sm">
-            <Link href={"/signin"} className="text-[#3cbfb1] hover:underline">
-              Back to login
-            </Link>
-          </div>
+        <CardFooter className="flex justify-center">
+          <Link href="/signin" className="text-[#3cbfb1] hover:underline text-sm">
+            Back to login
+          </Link>
         </CardFooter>
       </Card>
     </div>

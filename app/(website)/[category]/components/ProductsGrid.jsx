@@ -139,7 +139,7 @@ export default function ProductsGrid({ catid, totalProducts, maincatid, subcatid
   return (
     <div className={fonts.montserrat}>
       <h1 className="text-3xl md:text-4xl font-bold mb-8">
-        Browse All Products ({totalProducts})
+        Browse All Products
       </h1>
 
       {loading ? (

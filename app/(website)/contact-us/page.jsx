@@ -46,10 +46,16 @@ export default function ContactUsPage() {
     e.preventDefault();
     setStatus("loading");
 
-    console.log("Submitting form data:", formData);
+    const payload = new FormData();
+    payload.append("name", formData.name);
+    payload.append("email", formData.email);
+    payload.append("contact", formData.contact);
+    payload.append("designation", formData.designation);
+    payload.append("remarks", formData.remarks);
 
     try {
-      const response = await CONTACT(JSON.stringify(formData));
+      const response = await CONTACT(payload);
+      console.log("response from contact server:", response);
 
       if (response.success) {
         setStatus("success");
@@ -73,7 +79,9 @@ export default function ContactUsPage() {
     <Container>
       <div className="container mx-auto px-4 py-16">
         <h1 className="text-3xl font-bold mb-4">Contact Us</h1>
-        <p className="mb-6">Please fill out the form below to get in touch with us.</p>
+        <p className="mb-6">
+          Please fill out the form below to get in touch with us.
+        </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -108,7 +116,7 @@ export default function ContactUsPage() {
               >
                 <option value="">Select your designation</option>
                 {designations.map((designation) => (
-                  <option key={designation.id} value={designation.id}>
+                  <option key={designation.id} value={designation.value}>
                     {designation.designation}
                   </option>
                 ))}
@@ -174,7 +182,9 @@ export default function ContactUsPage() {
             <p className="text-green-600 mt-2">Message sent successfully!</p>
           )}
           {status === "error" && (
-            <p className="text-red-600 mt-2">Something went wrong. Try again.</p>
+            <p className="text-red-600 mt-2">
+              Something went wrong. Try again.
+            </p>
           )}
         </form>
       </div>
