@@ -1,8 +1,63 @@
-import React, { useState, useEffect, useRef } from "react";
-import { CgProfile } from "react-icons/cg";
+"use client";
+import React, { useState, useEffect, useRef, useCallback, memo } from "react";
 import { createPortal } from "react-dom";
+import { FaSignOutAlt } from "react-icons/fa";
+import { CgProfile } from "react-icons/cg";
+import { IoIosArrowDown } from "react-icons/io";
+import { fonts } from "@/components/ui/font";
+import Link from "next/link";
+import { GETPROFILE } from "@/app/actions/getprofiledata";
 
-const ProfileDropdown = () => {
+// Memoized dropdown menu component to prevent unnecessary re-renders
+const DropdownMenu = memo(
+  ({
+    isOpen,
+    portalElement,
+    dropdownRef,
+    dropdownPosition,
+    isusertype,
+    handleLogout,
+  }) => {
+    if (!isOpen || !portalElement) return null;
+
+    return createPortal(
+      <ul
+        ref={dropdownRef}
+        className="fixed shadow-md bg-white py-1 w-40 rounded-md max-h-96 overflow-auto"
+        style={{
+          top: `${dropdownPosition.top}px`,
+          right: `${dropdownPosition.right}px`,
+          zIndex: 9999,
+        }}
+      >
+        {/* Only render View Profile when user is not admin */}
+        {isusertype !== "admin" && (
+          <Link href={"/dashboard/profile/"}>
+            <li
+              className={`py-2 ${fonts.montserrat} hover:scale-95 transition px-3 flex items-center gap-2 hover:bg-slate-100 text-slate-800 text-sm cursor-pointer`}
+            >
+              <CgProfile />
+              View Profile
+            </li>
+          </Link>
+        )}
+        <li
+          className={`py-2 ${fonts.montserrat} px-3 hover:scale-95 transition flex items-center gap-2 hover:bg-slate-100 text-slate-800 text-sm cursor-pointer`}
+          onClick={handleLogout}
+        >
+          <FaSignOutAlt />
+          Sign out
+        </li>
+      </ul>,
+      portalElement
+    );
+  }
+);
+
+// Ensure displayName is set for React DevTools
+DropdownMenu.displayName = "DropdownMenu";
+
+const ProfileDropdown = memo(({ webcode }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const buttonRef = useRef(null);
@@ -11,9 +66,10 @@ const ProfileDropdown = () => {
     right: 0,
   });
   const [portalElement, setPortalElement] = useState(null);
+  const [isusertype, setIsUserType] = useState("");
 
-  // Function to handle logout
-  const handleLogout = async () => {
+  // Memoize logout handler to prevent recreation on each render
+  const handleLogout = useCallback(async () => {
     try {
       // Send request to logout API endpoint
       await fetch("/api/auth/user", { method: "DELETE" });
@@ -22,7 +78,12 @@ const ProfileDropdown = () => {
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  };
+  }, []);
+
+  // Memoize toggle function to prevent recreation on each render
+  const toggleDropdown = useCallback(() => {
+    setIsOpen((prevState) => !prevState);
+  }, []);
 
   // Setup portal element on mount
   useEffect(() => {
@@ -31,17 +92,29 @@ const ProfileDropdown = () => {
 
   // Update dropdown position when button ref is available
   useEffect(() => {
-    if (buttonRef.current && isOpen) {
+    if (!buttonRef.current || !isOpen) return;
+
+    const updatePosition = () => {
       const rect = buttonRef.current.getBoundingClientRect();
       setDropdownPosition({
         top: rect.bottom + window.scrollY + 4,
         right: window.innerWidth - rect.right,
       });
-    }
+    };
+
+    updatePosition();
+
+    // Add resize listener to handle window resizing
+    window.addEventListener("resize", updatePosition);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+    };
   }, [isOpen]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
+    if (!isOpen) return;
+
     const handleClickOutside = (event) => {
       if (
         buttonRef.current &&
@@ -57,68 +130,51 @@ const ProfileDropdown = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, []);
+  }, [isOpen]);
 
-  // Dropdown component to be rendered in portal
-  const DropdownMenu = () => {
-    if (!isOpen || !portalElement) return null;
+  // Implementing user type check for conditional rendering of UI
+  useEffect(() => {
+    if (!webcode) return;
 
-    return createPortal(
-      <ul
-        ref={dropdownRef}
-        className="fixed shadow-md bg-white py-1 w-40 rounded-md max-h-96 overflow-auto"
-        style={{
-          top: `${dropdownPosition.top}px`,
-          right: `${dropdownPosition.right}px`,
-          zIndex: 9999,
-        }}
-      >
-        <li
-          className="py-2 px-3 flex items-center hover:bg-slate-100 text-slate-800 text-sm cursor-pointer"
-          onClick={handleLogout}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="currentColor"
-            className="w-4 h-4 mr-2.5"
-            viewBox="0 0 6.35 6.35"
-          >
-            <path
-              d="M3.172.53a.265.266 0 0 0-.262.268v2.127a.265.266 0 0 0 .53 0V.798A.265.266 0 0 0 3.172.53zm1.544.532a.265.266 0 0 0-.026 0 .265.266 0 0 0-.147.47c.459.391.749.973.749 1.626 0 1.18-.944 2.131-2.116 2.131A2.12 2.12 0 0 1 1.06 3.16c0-.65.286-1.228.74-1.62a.265.266 0 1 0-.344-.404A2.667 2.667 0 0 0 .53 3.158a2.66 2.66 0 0 0 2.647 2.663a2.657 2.657 0 0 0 2.645-2.663c0-.812-.363-1.542-.936-2.03a.265.266 0 0 0-.17-.066z"
-              data-original="#000000"
-            ></path>
-          </svg>
-          Logout
-        </li>
-      </ul>,
-      portalElement
-    );
-  };
+    const checkType = async () => {
+      try {
+        const userData_response = await GETPROFILE(webcode);
+        const userType = userData_response?.type?.toLowerCase();
+
+        if (userType) {
+          setIsUserType(userType);
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    checkType();
+  }, [webcode]);
 
   return (
     <div className="relative">
       <div
         ref={buttonRef}
-        className="flex items-center rounded-full text-white text-sm font-medium outline-none cursor-pointer"
-        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 justify-center rounded-full text-white text-sm font-medium outline-none cursor-pointer"
+        onClick={toggleDropdown}
       >
         <CgProfile size={20} />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="w-3 fill-white inline ml-2"
-          viewBox="0 0 24 24"
-        >
-          <path
-            fillRule="evenodd"
-            d="M11.99997 18.1669a2.38 2.38 0 0 1-1.68266-.69733l-9.52-9.52a2.38 2.38 0 1 1 3.36532-3.36532l7.83734 7.83734 7.83734-7.83734a2.38 2.38 0 1 1 3.36532 3.36532l-9.52 9.52a2.38 2.38 0 0 1-1.68266.69734z"
-            clipRule="evenodd"
-            data-original="#000000"
-          />
-        </svg>
+        <IoIosArrowDown size={20} />
       </div>
-      <DropdownMenu />
+      <DropdownMenu
+        isOpen={isOpen}
+        portalElement={portalElement}
+        dropdownRef={dropdownRef}
+        dropdownPosition={dropdownPosition}
+        isusertype={isusertype}
+        handleLogout={handleLogout}
+      />
     </div>
   );
-};
+});
+
+// Ensure displayName is set for React DevTools
+ProfileDropdown.displayName = "ProfileDropdown";
 
 export default ProfileDropdown;

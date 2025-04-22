@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useEffect } from "react";
-
-import { useState } from "react";
-import { Menubar } from "./Menubar";
+import React, { useEffect, useState, useCallback, useMemo, memo } from "react";
 import { RxHamburgerMenu } from "react-icons/rx";
+import { IoChevronDown } from "react-icons/io5";
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname, useRouter } from "next/navigation";
+
+import { Menubar } from "./Menubar";
 import SideMenu from "./SideMenu/SideMenu";
+import SearchBar from "./Search";
+import ProfileDropdown from "./ProfileDropdown";
 
 import { fonts } from "@/components/ui/font";
 import {
@@ -14,28 +19,163 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IoChevronDown } from "react-icons/io5";
-import Link from "next/link";
-import SearchBar from "./Search";
-import { usePathname, useRouter } from "next/navigation";
+
 import trade_logo from "../../../../../public/ttlogo.png";
-import Image from "next/image";
-import ProfileDropdown from "./ProfileDropdown";
+
+// Memoized authentication buttons component
+const AuthButtons = memo(({ userData, pathname, webcode }) => {
+  if (userData?.webcode) {
+    return (
+      <>
+        <Link href="/dashboard">
+          <button
+            className={`
+              text-[15px] font-bold px-5 text-white ${
+                fonts.montserrat
+              } py-2 rounded-md transition-all
+              ${
+                pathname === "/signin"
+                  ? "bg-green-600"
+                  : "bg-transparent hover:bg-[#3a7791cc]"
+              } 
+              hover:scale-105
+            `}
+          >
+            Dashboard
+          </button>
+        </Link>
+        <Link href="">
+          <button
+            className={`
+              text-sm text-white ${
+                fonts.montserrat
+              } px-5 py-2 rounded-md border border-white hover:border-none font-bold transition-all capitalize
+              ${
+                pathname === "/signin"
+                  ? "bg-transparent"
+                  : pathname === "/signup"
+                  ? "bg-green-600"
+                  : "hover:hover:bg-[#3a7791cc]"
+              }
+              hover:scale-105 hover:hover:bg-[#3a7791cc]
+            `}
+          >
+            <ProfileDropdown webcode={webcode} />
+          </button>
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link href="/signin">
+        <button
+          className={`
+            text-[15px] font-bold px-5 text-white ${
+              fonts.montserrat
+            } py-2 rounded-md transition-all
+            ${
+              pathname === "/signin"
+                ? "bg-green-600"
+                : "bg-transparent hover:bg-[#3a7791cc]"
+            } 
+            hover:scale-105
+          `}
+        >
+          Sign in
+        </button>
+      </Link>
+      <Link href="/signup">
+        <button
+          className={`
+            text-sm text-white ${
+              fonts.montserrat
+            } px-5 py-2 rounded-md border border-white hover:border-none font-bold transition-all capitalize
+            ${
+              pathname === "/signin"
+                ? "bg-transparent"
+                : pathname === "/signup"
+                ? "bg-green-600"
+                : "hover:hover:bg-[#3a7791cc]"
+            }
+            hover:scale-105 hover:hover:bg-[#3a7791cc]
+          `}
+        >
+          Sign up
+        </button>
+      </Link>
+    </>
+  );
+});
+
+// Ensure displayName is set for React DevTools
+AuthButtons.displayName = "AuthButtons";
+
+// Memoized supplier dropdown for mobile view
+const SupplierDropdown = memo(() => (
+  <div className="md:block hidden">
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          className={`flex ${fonts.montserrat} items-center gap-1 text-white px-3 py-2 focus:outline-none text-sm`}
+        >
+          Knowde for Suppliers
+          <IoChevronDown className="h-4 w-4 opacity-50" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48 bg-[#1B2637] border-gray-700"
+      >
+        <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
+          Supplier Dashboard
+        </DropdownMenuItem>
+        <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
+          Analytics
+        </DropdownMenuItem>
+        <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
+          Settings
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
+));
+
+// Ensure displayName is set for React DevTools
+SupplierDropdown.displayName = "SupplierDropdown";
 
 const Navbar = () => {
-  const [isMenuOpen, setisMenuOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [userData, setUserData] = useState(null);
+  const [iswebcode, setIsWebcode] = useState("");
+
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Memoize toggle function to prevent recreation on each render
+  const handleToggle = useCallback(() => {
+    setIsMenuOpen((prevState) => !prevState);
+  }, []);
+
+  // Memoize close menu function
+  const handleCloseMenu = useCallback(() => {
+    setIsMenuOpen(false);
+  }, []);
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchUserData = async () => {
       try {
         const response = await fetch("/api/auth/user");
         const data = await response.json();
-        console.log("Data: ", data);
+
+        if (!isMounted) return;
 
         if (data.userData) {
           setUserData(data.userData);
+          setIsWebcode(data?.userData?.webcode || "");
         }
       } catch (error) {
         console.error("Failed to fetch user data:", error);
@@ -43,13 +183,17 @@ const Navbar = () => {
     };
 
     fetchUserData();
+
+    // Cleanup function to prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const handleToggle = () => {
-    setisMenuOpen(!isMenuOpen);
-  };
-
-  const pathname = usePathname();
+  // Only render the SideMenu when it's open to save on render costs
+  const sideMenuComponent = useMemo(() => {
+    return isMenuOpen ? <SideMenu onclose={handleCloseMenu} /> : null;
+  }, [isMenuOpen, handleCloseMenu]);
 
   return (
     <header className="bg-[#37bfb1] sticky top-0 z-50">
@@ -61,17 +205,13 @@ const Navbar = () => {
             className="lg:hidden block text-white"
             onClick={handleToggle}
           />
-          {isMenuOpen && <SideMenu onclose={() => setisMenuOpen(false)} />}
+          {sideMenuComponent}
 
           <Link href={"/"}>
-            {/* <h1
-              className={`text-white ${fonts.montserrat} text-[18px] lg:text-xl font-bold`}
-            >
-              
-            </h1> */}
             <Image src={trade_logo} alt="logo" width={95} height={95} />
           </Link>
         </div>
+
         {/* Search bar */}
         <div className="lg:block hidden w-[65%] lg:w-[70%]">
           <SearchBar />
@@ -79,94 +219,26 @@ const Navbar = () => {
 
         {/* Auth buttons + Cart */}
         <div className="flex items-center gap-0 md:gap-2">
-          {/* <button className="text-white sm:block transition hidden hover:scale-110">
-            <MdShoppingCart size={25} />
-          </button> */}
-
-          {/* signup/signin buttons */}
           <div className="flex gap-4">
-            <Link href={userData?.webcode ? "/dashboard" : "/signin"}>
-              <button
-                className={`
-            text-[15px] font-bold px-5 text-white ${
-              fonts.montserrat
-            } py-2 rounded-md transition-all
-            ${
-              pathname === "/signin"
-                ? "bg-green-600"
-                : "bg-transparent hover:bg-[#3a7791cc]"
-            } 
-            hover:scale-105
-          `}
-              >
-                {userData?.webcode ? "Dashboard" : "Sign in"}
-              </button>
-            </Link>
-            <Link href={userData?.webcode ? "" : "/signup"}>
-              <button
-                // onClick={
-                //   userData?.webcode
-                //     ? async () => {
-                //         await fetch("/api/auth/user", { method: "DELETE" });
-                //         window.location.href = window.location.pathname;
-                //       }
-                //     : null
-                // }
-                className={`
-      text-sm text-white ${
-        fonts.montserrat
-      } px-5 py-2 rounded-md font-bold transition-all capitalize
-      ${
-        pathname === "/signin"
-          ? "bg-transparent"
-          : pathname === "/signup"
-          ? "bg-green-600"
-          : "hover:hover:bg-[#3a7791cc]"
-      }
-      hover:scale-105 hover:hover:bg-[#3a7791cc]
-    `}
-              >
-                {userData?.webcode ? <ProfileDropdown /> : "Sign up"}
-              </button>
-            </Link>
+            <AuthButtons
+              userData={userData}
+              pathname={pathname}
+              webcode={iswebcode}
+            />
           </div>
         </div>
       </div>
+
       {/* Menu bar */}
       <Menubar />
 
       {/* Mobile */}
       <div className="lg:hidden flex px-2">
-        <div className=" w-full mx-2 my-2">
+        <div className="w-full mx-2 my-2">
           <SearchBar />
         </div>
         {/* suppliers content */}
-        <div className="md:block hidden">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={`flex ${fonts.montserrat} items-center gap-1 text-white px-3 py-2 focus:outline-none text-sm`}
-              >
-                Knowde for Suppliers
-                <IoChevronDown className="h-4 w-4 opacity-50" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              align="end"
-              className="w-48 bg-[#1B2637] border-gray-700"
-            >
-              <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
-                Supplier Dashboard
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
-                Analytics
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-gray-200 focus:text-white focus:bg-gray-700">
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <SupplierDropdown />
       </div>
     </header>
   );

@@ -16,6 +16,7 @@ export default function ContactUsPage() {
   });
   const [status, setStatus] = useState(null);
 
+  // Fetch designation list
   useEffect(() => {
     const fetchDesignations = async () => {
       try {
@@ -35,33 +36,35 @@ export default function ContactUsPage() {
     fetchDesignations();
   }, []);
 
-  // Handle input changes
+  // Handle all form field changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle designation selection
-  const handleDesignationChange = (e) => {
-    const selectedId = e.target.value;
-    const selectedDesignation = designations.find((d) => d.id === parseInt(selectedId));
-    setFormData({ ...formData, designation: selectedDesignation?.designation || "" });
-  };
-
-  // Handle form submission
+  // Handle form submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("loading");
+
+    console.log("Submitting form data:", formData);
 
     try {
       const response = await CONTACT(JSON.stringify(formData));
 
       if (response.success) {
         setStatus("success");
-        setFormData({ name: "", email: "", contact: "", designation: "", remarks: "" });
+        setFormData({
+          name: "",
+          email: "",
+          contact: "",
+          designation: "",
+          remarks: "",
+        });
       } else {
         setStatus("error");
       }
     } catch (error) {
+      console.error("Submission error:", error);
       setStatus("error");
     }
   };
@@ -87,6 +90,7 @@ export default function ContactUsPage() {
               required
             />
           </div>
+
           <div>
             <label htmlFor="designation" className="block mb-2 font-semibold">
               Designation *
@@ -97,7 +101,8 @@ export default function ContactUsPage() {
               <select
                 id="designation"
                 name="designation"
-                onChange={handleDesignationChange}
+                value={formData.designation}
+                onChange={handleChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 required
               >
@@ -110,6 +115,7 @@ export default function ContactUsPage() {
               </select>
             )}
           </div>
+
           <div>
             <label htmlFor="email" className="block mb-2 font-semibold">
               Email *
@@ -124,6 +130,7 @@ export default function ContactUsPage() {
               required
             />
           </div>
+
           <div>
             <label htmlFor="contact" className="block mb-2 font-semibold">
               Contact No *
@@ -138,6 +145,7 @@ export default function ContactUsPage() {
               required
             />
           </div>
+
           <div>
             <label htmlFor="remarks" className="block mb-2 font-semibold">
               Message *
@@ -153,6 +161,7 @@ export default function ContactUsPage() {
               required
             ></textarea>
           </div>
+
           <button
             type="submit"
             className="w-fit bg-black text-white py-2 px-4 rounded-md hover:bg-gray-800 transition duration-300"
@@ -161,8 +170,12 @@ export default function ContactUsPage() {
             {status === "loading" ? "Submitting..." : "Submit"}
           </button>
 
-          {status === "success" && <p className="text-green-600 mt-2">Message sent successfully!</p>}
-          {status === "error" && <p className="text-red-600 mt-2">Something went wrong. Try again.</p>}
+          {status === "success" && (
+            <p className="text-green-600 mt-2">Message sent successfully!</p>
+          )}
+          {status === "error" && (
+            <p className="text-red-600 mt-2">Something went wrong. Try again.</p>
+          )}
         </form>
       </div>
     </Container>
