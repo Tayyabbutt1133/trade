@@ -16,14 +16,14 @@ const columns = [
 ];
 
 const data = [
-  {
-    id: "1",
-    name: "John Doe",
-    email: "john@example.com",
-    phone: "+1234567890",
-    address: "123 Main St",
-    country: "USA",
-  },
+  // {
+  //   id: "1",
+  //   name: "John Doe",
+  //   email: "john@example.com",
+  //   phone: "+1234567890",
+  //   address: "123 Main St",
+  //   country: "USA",
+  // },
 ];
 
 export default function BuyersPage() {

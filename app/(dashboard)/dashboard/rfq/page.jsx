@@ -36,14 +36,14 @@ const statuses = [
 
 export default function RFQ() {
   const [tableData, setTableData] = useState([
-    {
-      id: "1",
-      quotationNumber: "QUO-001",
-      customer: "John Doe",
-      total: "$299.99",
-      date: "2024-03-20",
-      status: "on-track",
-    },
+    // {
+    //   id: "1",
+    //   quotationNumber: "QUO-001",
+    //   customer: "John Doe",
+    //   total: "$299.99",
+    //   date: "2024-03-20",
+    //   status: "on-track",
+    // },
   ])
 
   const columns = [
