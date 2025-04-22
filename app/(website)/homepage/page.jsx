@@ -1,3 +1,4 @@
+// "use client"
 import React from "react";
 import Hero from "./components/hero/Hero";
 import TabsMenu from "./components/tabs/TabsMenu";
@@ -9,10 +10,12 @@ import TestimonialCarousel from "./components/testimonial/Testimonial";
 import SuppliersSection from "./components/suppliers/suppliers";
 import InsightsAndInnovations from "./components/insightsAndInnovations/InsightsAndInnovations";
 import TradeStory from "./components/TradeStory";
+import WelcomeIntro from "./components/WelcomeIntro";
 
 const HomePage = () => {
   return (
     <>
+      <WelcomeIntro/>
       <Hero />
       {/* <TabsMenu /> */}
       <TradeStory/>

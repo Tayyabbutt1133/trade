@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
     try {
       // Call the FORGOTPASS server action
       const response = await FORGOTPASS(email);
-      console.log("response from forgot password:", response);
+      // console.log("response from forgot password:", response);
       const verification_code = response?.Password?.[0]?.code
       if (verification_code) {
         setCode(verification_code);
