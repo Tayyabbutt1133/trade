@@ -78,7 +78,7 @@ export default function ResetPasswordPage() {
       payload.append("password", formData.newPassword);
 
       const res = await RESETPASS(payload);
-      console.log("response from reset password:", res);
+      // console.log("response from reset password:", res);
       const success = res?.Password?.[0]?.body === "Success";
 
       if (success) {
@@ -87,7 +87,7 @@ export default function ResetPasswordPage() {
 
         setTimeout(() => {
           router.push("/signin");
-        }, 1000);
+        }, 2000);
       } else {
         setError(res.message || "Something went wrong. Please try again.");
       }
@@ -112,9 +112,6 @@ export default function ResetPasswordPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1 bg-[#3cbfb1] text-white">
           <CardTitle className="text-2xl font-bold">Reset Password</CardTitle>
-          <CardDescription className="text-gray-100">
-            Enter the code sent to your email and create a new password.
-          </CardDescription>
         </CardHeader>
 
         {!isSubmitted ? (

@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { FORGOTPASS } from "@/app/actions/forgotemail_code";
 import {useEmailStore, useVerificationStore} from '../../../store/user-email'
+import { fonts } from "@/components/ui/font";
 
 export default function ForgotPasswordPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,6 +52,7 @@ export default function ForgotPasswordPage() {
         // Store email in Zustand store for access in next page
         setEmail(email);
         setSuccess(true);
+        setEmail("") // after storing in global state, set it to null
         // Optional: redirect after short delay
         setTimeout(() => {
           router.push("/reset-password");
@@ -76,10 +78,10 @@ export default function ForgotPasswordPage() {
           </CardHeader>
           <CardContent className="pt-6">
             <p className="text-center mb-4">
-              Please check your inbox at <strong>{email}</strong> and follow the instructions.
+              Please check your inbox
             </p>
             <p className="text-xs text-gray-500 text-center">
-              Redirecting you to the reset page...
+              <span className={`${fonts.lexendDeca}`}>Hold on</span> Redirecting you to the Reset Password page...
             </p>
           </CardContent>
           <CardFooter className="flex justify-center">

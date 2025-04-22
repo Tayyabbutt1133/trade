@@ -37,11 +37,21 @@ const subHeadlineVariant = {
 };
 
 const WelcomeIntro = () => {
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => setShowIntro(false), 4000);
-    return () => clearTimeout(timer);
+    const hasVisited = localStorage.getItem("hasVisited");
+
+    if (!hasVisited) {
+      setShowIntro(true);
+      localStorage.setItem("hasVisited", "true");
+
+      const timer = setTimeout(() => {
+        setShowIntro(false);
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   const words = ["Welcome", "to", "TradeToppers"];
@@ -75,7 +85,6 @@ const WelcomeIntro = () => {
             ))}
           </div>
 
-          {/* Subheadline */}
           <motion.p
             initial="hidden"
             animate="visible"

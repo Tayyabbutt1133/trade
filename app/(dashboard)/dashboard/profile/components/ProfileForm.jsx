@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { GETPROFILE } from "@/app/actions/getprofiledata";
 import { POSTPROFILE } from "@/app/actions/postprofiledata";
 import RouteTransitionLoader from "@/components/RouteTransitionLoader";
+import DeleteUser_Profile from "./DeleteUser_Profile";
 
 // Simple loading spinner component
 const LoadingSpinner = () => (
@@ -58,6 +59,7 @@ export function ProfileForm({
     industries: [],
     countryCodes: countrycodes || [],
   });
+  const [isUserStatus, setIsUserStatus] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [showRouteLoader, setShowRouteLoader] = useState(false);
 
@@ -98,7 +100,9 @@ export function ProfileForm({
             : { Country: countrycodes.map((code) => ({ code })) },
         ]);
 
-        console.log("Profile data:",profileData)
+        // console.log("Profile data:", profileData);
+        const userstatus = profileData?.status;
+        setIsUserStatus(userstatus);
         // Process industry data
         const industries = industryData?.Industry || [];
 
@@ -340,11 +344,17 @@ export function ProfileForm({
             error: null,
             success: "Profile updated successfully!",
           });
-
-          // Navigate to dashboard after successful submission
-          startTransition(() => {
-            router.push("/dashboard");
-          });
+          // console.log("User status right above time out:", isUserStatus);
+          if (isUserStatus == "Pending") {
+            startTransition(() => {
+              router.push("/dashboard/profile");
+            });
+          } else {
+            // Navigate to dashboard after successful submission
+            startTransition(() => {
+              router.push("/dashboard");
+            });
+          }
         } else {
           setSubmissionStatus({
             error:
@@ -639,9 +649,16 @@ export function ProfileForm({
             )}
           </div>
         </div>
-        <Button type="submit" className="w-fit">
-          Save Profile
-        </Button>
+
+        <div className="flex justify-between">
+          {/* Save Profile */}
+          <Button type="submit" className="w-fit">
+            Save Profile
+          </Button>
+
+          {/* Update Profile */}
+          <DeleteUser_Profile webcode={iswebcode} />
+        </div>
         {submissionStatus.error && (
           <p className="text-red-500">{submissionStatus.error}</p>
         )}
