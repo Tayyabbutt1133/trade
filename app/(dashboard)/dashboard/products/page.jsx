@@ -50,7 +50,7 @@ export default function ProductsPage() {
         formData.append("maincatid", "");
         formData.append("catid", "");
         formData.append("subcatid", "");
-        formData.append("size", "250"); // for now giving static count to fetch static no.of products
+        formData.append("size", "100"); // for now giving static count to fetch static no.of products
         formData.append("page", "");
         formData.append("webcode", user_token)
 

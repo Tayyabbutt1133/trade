@@ -132,11 +132,14 @@ export function ProductForm({
   useEffect(() => {
     const fetchUserData = async () => {
       const response = await fetch("/api/auth/user");
-      const data = (await response.json()).userData;
+      const data = (await response.json()).userData.webcode;
+      // console.log("user data:", data);
       setUserData(data);
     };
     fetchUserData();
   }, []);
+
+  // console.log("User data form :", userData);
 
   // Fetch options function
   const fetchOptionForType = async (type) => {
@@ -282,15 +285,18 @@ export function ProductForm({
     formDataToSubmit.append("cas", formData.cas || "");
     formDataToSubmit.append("cinum", formData.cinum || "");
     formDataToSubmit.append("logo", formData.logo || "");
+    formDataToSubmit.append("webcode", userData)
 
-    if (userData.type !== "Seller" && userData.type !== "buyer") {
-      formDataToSubmit.append("logby", "0");
-    } else if (
-      userData.type?.toLowerCase() === "seller" ||
-      userData.type?.toLowerCase() === "buyer"
-    ) {
-      formDataToSubmit.append("logby", userData.id);
-    }
+
+
+    // if (userData.type !== "Seller" && userData.type !== "buyer") {
+    //   formDataToSubmit.append("logby", "0");
+    // } else if (
+    //   userData.type?.toLowerCase() === "seller" ||
+    //   userData.type?.toLowerCase() === "buyer"
+    // ) {
+    //   formDataToSubmit.append("logby", userData.id);
+    // }
 
     // Append mode based on whether this is a new product or an edit
     if (isEditMode) {
@@ -319,7 +325,8 @@ export function ProductForm({
 
     try {
       const result = await createProduct(formDataToSubmit, imageDataToSubmit);
-      if (result.success) {
+      console.log("Response from product api :", result);
+      if (result?.success) {
         setSubmissionSuccess(result.message);
         setSubmissionError(null);
 
@@ -330,7 +337,7 @@ export function ProductForm({
 
         // Wait a moment before redirecting so user can see success message
         setTimeout(() => {
-          redirect(`/dashboard/products/${result.data.id}`);
+          redirect(`/dashboard/products/`);
         }, 1000);
       } else {
         setSubmissionError(result.message);
@@ -485,16 +492,15 @@ export function ProductForm({
           setImages={(newImages) => handleInputChange("images", newImages)}
         />
 
-        <CompanyLogoUpload
+        {/* <CompanyLogoUpload
           logo={formData.logo}
           setLogo={(newLogo) => handleInputChange("logo", newLogo)}
-        />
+        /> */}
       </div>
 
       <Button className="w-fit" type="submit">
         {isEditMode ? "Update" : "Save"} Chemical Product
       </Button>
-
       {submissionError && <p className="text-red-500">{submissionError}</p>}
       {submissionSuccess && (
         <p className="text-green-500">{submissionSuccess}</p>

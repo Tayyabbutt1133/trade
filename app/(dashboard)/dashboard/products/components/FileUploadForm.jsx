@@ -61,8 +61,10 @@ export function FileUploadForm() {
     try {
       const response = await fetch("/api/auth/user");
       const data = await response.json();
+      const webcode = data?.userData?.webcode;
+      // console.log("User webcode :", webcode)
       if (data?.userData) {
-        setUserData(data.userData);
+        setUserData(webcode);
         console.log("Fetched user data:", data.userData);
       }
     } catch (err) {
@@ -186,16 +188,16 @@ export function FileUploadForm() {
           throw new Error("Product Certification files must be in image format (png, jpg, jpeg, gif, bmp, webp).");
         }
 
-        // Use user id as logby
-        const logby = userData?.id || "UnknownUser";
-        console.log("Using logby:", logby);
+        // // Use user id as logby
+        // const logby = userData?.id || "UnknownUser";
+        // console.log("Using logby:", logby);
 
         const formData = new FormData();
         formData.append("productid", productId || "");
         formData.append("file", base64);
         formData.append("filename", filenameLabel);
         formData.append("ext", extension);
-        formData.append("logby", logby);
+        formData.append("webcode", userData);
         formData.append("filetype", filetype);
 
         // Log FormData entries

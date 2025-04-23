@@ -61,7 +61,7 @@ export default async function ProductDetail({ params }) {
       <h1 className="text-3xl font-bold mb-6">
         {isNewProduct ? "Add Product" : "Edit Product"}
       </h1>
-      <Tabs defaultValue="product" className="w-full">
+      <Tabs defaultValue="Add product" className="w-full">
         <TabsList className="flex w-full">
           <TabsTrigger value="Add product" className="flex-1 min-w-[80px]">
             <span className="hidden sm:inline">Add Product (Manual)</span>

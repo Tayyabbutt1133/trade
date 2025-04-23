@@ -36,6 +36,7 @@ export function SellerForm({
   const [submissionError, setSubmissionError] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(null);
   const [countryCodes, setCountryCodes] = useState([]);
+  const [iswebcode, setIsWebcode] = useState();
 
   const params = useParams();
   const router = useRouter();
@@ -49,6 +50,11 @@ export function SellerForm({
         );
         const data = await res.json();
         const codes = data.Country.map((c) => c.code);
+        const response = await fetch("/api/auth/user");
+        const response_formatting = await response.json();
+        const webcode = response_formatting?.userData?.webcode
+        console.log("webcode in seller form :", webcode);
+        setIsWebcode(setIsWebcode);
         setCountryCodes(codes);
       } catch (error) {
         console.error("Error fetching country codes:", error);
@@ -65,7 +71,8 @@ export function SellerForm({
         try {
           const response = await GETSELLER({ id: params.sellerId });
           console.log("Response from get seller:", response);
-
+          
+          
           if (response.success && response.seller) {
             // Handle the seller data properly based on the API response structure
             const sellerData = response.seller;
@@ -162,12 +169,11 @@ export function SellerForm({
       formData.blocked ? "Blocked" : "Pending"
     );
 
+    formDataToSubmit.append("webcode", iswebcode)
     // If in edit mode, pass the seller id from params as regid.
     if (params?.sellerId && params.sellerId !== "new") {
-      formDataToSubmit.append("regid", params.sellerId);
       formDataToSubmit.append("mode", "Edit");
     } else {
-      formDataToSubmit.append("regid", 0);
       formDataToSubmit.append("mode", "New");
     }
 
