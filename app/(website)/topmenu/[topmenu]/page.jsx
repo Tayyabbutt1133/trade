@@ -30,7 +30,7 @@ const ProductContent = async ({ topMenu }) => {
     initialSize,
     initialPage
   );
-  console.log("Topmenu response :", initialFetch);
+  // console.log("Topmenu response :", initialFetch);
 
   const totalCount = initialFetch?.data?.["Total Records"]?.[0]?.records || 0;
 

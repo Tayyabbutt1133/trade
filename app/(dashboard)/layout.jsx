@@ -366,6 +366,8 @@ const DashboardLayout = ({ children }) => {
   const [userWebcode, setUserWebcode] = useState("");
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [showApprovalMessage, setShowApprovalMessage] = useState(false);
+  // Add this new state right here
+  const [showConstructionAlert, setShowConstructionAlert] = useState(false);
 
   const router = useRouter();
   const pathname = usePathname();
@@ -434,6 +436,19 @@ const DashboardLayout = ({ children }) => {
 
     fetchUserData();
   }, [userWebcode]);
+
+  // Add this effect after the existing useEffect hooks
+  useEffect(() => {
+    // Check if the current route is RFQ or Inquiries
+    const isConstructionPage =
+      pathname.includes("/rfq") || pathname.includes("/inquiries");
+
+    // Only show for non-admin users
+    const isAdmin = userData?.type?.toLowerCase() === "admin";
+
+    // Set the state to control alert visibility
+    setShowConstructionAlert(isConstructionPage && !isAdmin);
+  }, [pathname, userData]);
 
   // 3️⃣ Show loading state
   if (isLoading || !userData) {
@@ -515,6 +530,19 @@ const DashboardLayout = ({ children }) => {
               </div>
             </div>
           )}
+
+        {/* Construction Alert - Add this here */}
+        {showConstructionAlert && (
+          <div className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4">
+            <div className="flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2 text-blue-500" />
+              <p>
+                <strong>Please note:</strong> Some features will not respond as
+                long as website is under development/construction stage.
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto">

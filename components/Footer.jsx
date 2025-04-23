@@ -1,9 +1,10 @@
+"use client";
 import { fonts } from "@/components/ui/font";
 import Link from "next/link";
 import Image from "next/image";
 import { Twitter, Facebook, Linkedin, Instagram } from "lucide-react";
 import Container from "./container";
-import logo from '../public/ttlogo.png'
+import logo from "../public/ttlogo.png";
 
 const footerLinks = {
   customers: {
@@ -29,7 +30,7 @@ const footerLinks = {
     links: [
       { text: "About us", href: "#" },
       { text: "Careers", href: "#" },
-      { text: "Contact Us", href: "/contact-us" },
+      { text: "Contact Us", href: "/contact-us" }, // ← we will exclude this from alert
       { text: "Events", href: "#" },
       { text: "News", href: "#" },
     ],
@@ -58,6 +59,14 @@ const socialLinks = [
   { icon: Instagram, href: "#", label: "Instagram" },
 ];
 
+const showAlert = (href) => {
+  if (href !== "/contact-us") {
+    alert(
+      "This website is in development and data uploading stage. Proper launching will be in a few months."
+    );
+  }
+};
+
 export default function Footer() {
   return (
     <Container>
@@ -76,6 +85,7 @@ export default function Footer() {
                     <li key={link.text}>
                       <Link
                         href={link.href}
+                        onClick={() => showAlert(link.href)}
                         className="text-gray-600 hover:text-gray-900 text-sm"
                       >
                         {link.text}
@@ -90,7 +100,7 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-gray-200">
             <div className="flex flex-col justify-between items-start space-y-4 md:space-y-6">
               <section className="flex items-center space-x-4 mb-4">
-                <Image src={logo} alt="logo" width={95} height={95}/>
+                <Image src={logo} alt="logo" width={95} height={95} />
                 <span className="text-sm text-gray-500">
                   © 2025 TradeTropper. All Rights Reserved.
                 </span>
@@ -104,6 +114,7 @@ export default function Footer() {
                       <Link
                         key={social.label}
                         href={social.href}
+                        onClick={() => showAlert(social.href)}
                         className="text-gray-400 hover:text-gray-600"
                         aria-label={social.label}
                       >
@@ -114,17 +125,18 @@ export default function Footer() {
                 </div>
 
                 <div className="flex space-x-4 text-sm text-gray-500">
-                  <Link href="#" className="hover:text-gray-700">
-                    Terms of Use
-                  </Link>
-                  <span>|</span>
-                  <Link href="#" className="hover:text-gray-700">
-                    Cookies
-                  </Link>
-                  <span>|</span>
-                  <Link href="#" className="hover:text-gray-700">
-                    Cookie settings
-                  </Link>
+                  {["Terms of Use", "Cookies", "Cookie settings"].map(
+                    (text) => (
+                      <Link
+                        key={text}
+                        href="#"
+                        onClick={() => showAlert("#")}
+                        className="hover:text-gray-700"
+                      >
+                        {text}
+                      </Link>
+                    )
+                  )}
                 </div>
               </section>
             </div>
