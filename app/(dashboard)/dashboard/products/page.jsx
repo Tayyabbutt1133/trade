@@ -33,7 +33,7 @@ export default function ProductsPage() {
   ];
 
   const sortedProductData = useMemo(() => {
-    return productData?.sort((a, b) => a.id - b.id);
+    return productData;
   }, [productData]);
 
   useEffect(() => {
@@ -43,7 +43,7 @@ export default function ProductsPage() {
       try {
         const response = await fetch("/api/auth/user");
         const response_json = await response.json();
-        const user_token = response_json.userData.webcode
+        const user_token = response_json.userData.webcode;
 
         const formData = new FormData();
         formData.append("productid", "");
@@ -52,7 +52,7 @@ export default function ProductsPage() {
         formData.append("subcatid", "");
         formData.append("size", "100"); // for now giving static count to fetch static no.of products
         formData.append("page", "");
-        formData.append("webcode", user_token)
+        formData.append("webcode", user_token);
 
         const res = await fetch(
           "https://tradetoppers.esoftideas.com/esi-api/responses/products/",

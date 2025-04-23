@@ -287,17 +287,6 @@ export function ProductForm({
     formDataToSubmit.append("logo", formData.logo || "");
     formDataToSubmit.append("webcode", userData)
 
-
-
-    // if (userData.type !== "Seller" && userData.type !== "buyer") {
-    //   formDataToSubmit.append("logby", "0");
-    // } else if (
-    //   userData.type?.toLowerCase() === "seller" ||
-    //   userData.type?.toLowerCase() === "buyer"
-    // ) {
-    //   formDataToSubmit.append("logby", userData.id);
-    // }
-
     // Append mode based on whether this is a new product or an edit
     if (isEditMode) {
       formDataToSubmit.append("Mode", "Edit");

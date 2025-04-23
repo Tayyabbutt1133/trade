@@ -22,7 +22,7 @@ export function FileUploadForm() {
   const productId = params.productId;
   console.log("Product ID:", productId);
 
-  // Store user data (includes id, type, etc.)
+  // Store user webcode directly (no longer expecting an object with id)
   const [userData, setUserData] = useState(null);
 
   // Separate states for TDS and SDS files
@@ -52,7 +52,9 @@ export function FileUploadForm() {
     success: false,
     result: null,
   }));
-  const [productCertUploads, setProductCertUploads] = useState(initialProductCertState);
+  const [productCertUploads, setProductCertUploads] = useState(
+    initialProductCertState
+  );
 
   // ─────────────────────────────────────────────────────────────
   // 1. Fetch User Data
@@ -63,9 +65,9 @@ export function FileUploadForm() {
       const data = await response.json();
       const webcode = data?.userData?.webcode;
       // console.log("User webcode :", webcode)
-      if (data?.userData) {
+      if (webcode) {
         setUserData(webcode);
-        console.log("Fetched user data:", data.userData);
+        console.log("Fetched user webcode:", webcode);
       }
     } catch (err) {
       console.error("Error fetching user data:", err);
@@ -125,7 +127,12 @@ export function FileUploadForm() {
   const removeProductCertFile = useCallback((index) => {
     setProductCertUploads((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], file: null, error: null, success: false };
+      updated[index] = {
+        ...updated[index],
+        file: null,
+        error: null,
+        success: false,
+      };
       return updated;
     });
   }, []);
@@ -180,17 +187,26 @@ export function FileUploadForm() {
 
         // Enforce restrictions:
         // For TDS and SDS, only allow Pdf or Doc formats.
-        if ((filenameLabel === "TDS" || filenameLabel === "SDS") && !["pdf", "doc", "docx"].includes(extension)) {
-          throw new Error(`${filenameLabel} file must be in PDF, DOC, or DOCX format.`);
+        if (
+          (filenameLabel === "TDS" || filenameLabel === "SDS") &&
+          !["pdf", "doc", "docx"].includes(extension)
+        ) {
+          throw new Error(
+            `${filenameLabel} file must be in PDF, DOC, or DOCX format.`
+          );
         }
         // For Product Certification, only allow images.
-        if (filenameLabel.startsWith("Product Certification") && filetype !== "Image") {
-          throw new Error("Product Certification files must be in image format (png, jpg, jpeg, gif, bmp, webp).");
+        if (
+          filenameLabel.startsWith("Product Certification") &&
+          filetype !== "Image"
+        ) {
+          throw new Error(
+            "Product Certification files must be in image format (png, jpg, jpeg, gif, bmp, webp)."
+          );
         }
 
-        // // Use user id as logby
-        // const logby = userData?.id || "UnknownUser";
-        // console.log("Using logby:", logby);
+        // adding logby because api is expecting, but we don't have anything dynamic in it
+        const logby = 0;
 
         const formData = new FormData();
         formData.append("productid", productId || "");
@@ -199,6 +215,7 @@ export function FileUploadForm() {
         formData.append("ext", extension);
         formData.append("webcode", userData);
         formData.append("filetype", filetype);
+        formData.append("logby", logby);
 
         // Log FormData entries
         console.log("FormData payload:");
@@ -237,7 +254,8 @@ export function FileUploadForm() {
         return {
           success: false,
           file: file.name,
-          message: error instanceof Error ? error.message : "Unknown error occurred",
+          message:
+            error instanceof Error ? error.message : "Unknown error occurred",
         };
       }
     },
@@ -254,11 +272,13 @@ export function FileUploadForm() {
       return;
     }
     if (!productId) {
-      setErrorTDS("Product ID is missing. Please ensure you're on the correct page.");
+      setErrorTDS(
+        "Product ID is missing. Please ensure you're on the correct page."
+      );
       return;
     }
-    if (!userData?.id) {
-      setErrorTDS("User ID not found. Please ensure you're logged in.");
+    if (!userData) {
+      setErrorTDS("Webcode not found. Please ensure you're logged in.");
       return;
     }
     setIsUploadingTDS(true);
@@ -276,7 +296,9 @@ export function FileUploadForm() {
         setErrorTDS(`File failed to upload: ${result.message}`);
       }
     } catch (err) {
-      setErrorTDS(err instanceof Error ? err.message : "An unknown error occurred");
+      setErrorTDS(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
     } finally {
       setIsUploadingTDS(false);
     }
@@ -292,11 +314,13 @@ export function FileUploadForm() {
       return;
     }
     if (!productId) {
-      setErrorSDS("Product ID is missing. Please ensure you're on the correct page.");
+      setErrorSDS(
+        "Product ID is missing. Please ensure you're on the correct page."
+      );
       return;
     }
-    if (!userData?.id) {
-      setErrorSDS("User ID not found. Please ensure you're logged in.");
+    if (!userData) {
+      setErrorSDS("Webcode not found. Please ensure you're logged in.");
       return;
     }
     setIsUploadingSDS(true);
@@ -314,7 +338,9 @@ export function FileUploadForm() {
         setErrorSDS(`File failed to upload: ${result.message}`);
       }
     } catch (err) {
-      setErrorSDS(err instanceof Error ? err.message : "An unknown error occurred");
+      setErrorSDS(
+        err instanceof Error ? err.message : "An unknown error occurred"
+      );
     } finally {
       setIsUploadingSDS(false);
     }
@@ -329,7 +355,9 @@ export function FileUploadForm() {
     if (!cert.file) {
       setProductCertUploads((prev) => {
         const updated = [...prev];
-        updated[index].error = `Please upload Product Certification ${index + 1} file.`;
+        updated[index].error = `Please upload Product Certification ${
+          index + 1
+        } file.`;
         return updated;
       });
       return;
@@ -342,10 +370,11 @@ export function FileUploadForm() {
       });
       return;
     }
-    if (!userData?.id) {
+    if (!userData) {
       setProductCertUploads((prev) => {
         const updated = [...prev];
-        updated[index].error = "User ID not found.";
+        updated[index].error =
+          "Webcode not found. Please ensure you're logged in.";
         return updated;
       });
       return;
@@ -360,7 +389,10 @@ export function FileUploadForm() {
       return updated;
     });
     try {
-      const result = await uploadFile(cert.file, `Product Certification ${index + 1}`);
+      const result = await uploadFile(
+        cert.file,
+        `Product Certification ${index + 1}`
+      );
       setProductCertUploads((prev) => {
         const updated = [...prev];
         updated[index].progress = 100;
@@ -374,7 +406,8 @@ export function FileUploadForm() {
     } catch (err) {
       setProductCertUploads((prev) => {
         const updated = [...prev];
-        updated[index].error = err instanceof Error ? err.message : "An unknown error occurred";
+        updated[index].error =
+          err instanceof Error ? err.message : "An unknown error occurred";
         return updated;
       });
     } finally {
@@ -550,7 +583,9 @@ export function FileUploadForm() {
                 />
                 {cert.file && (
                   <div className="flex items-center justify-between p-2 border rounded-md">
-                    <span className="truncate max-w-[80%]">{cert.file.name}</span>
+                    <span className="truncate max-w-[80%]">
+                      {cert.file.name}
+                    </span>
                     <Button
                       type="button"
                       variant="ghost"
