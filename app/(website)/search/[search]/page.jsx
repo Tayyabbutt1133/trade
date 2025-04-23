@@ -11,11 +11,7 @@ const SearchProductsGrid = lazy(() =>
 
 export default async function Page({ params }) {
   // Extract the search query string from the dynamic params
-  const final_search = decodeURIComponent(params.search); // ✅ decode manually
-  console.log("Final search", final_search);
-
-  const maincatid = "";
-  const subcatid = "";
+  const final_search = decodeURIComponent(params.search);
 
   // Call the SEARCH function on the server side using the query
   const results = await SEARCH(final_search);
@@ -30,8 +26,16 @@ export default async function Page({ params }) {
           totalProducts={search_result_length}
         />
         <CategoryFilters catid={final_search} />
-        <Suspense fallback={"Loading...."}>
-         <SearchProductsGrid totalProducts={search_result_length} searchTerm={final_search}/>
+        <Suspense
+          fallback={
+            <div className="text-center py-10">Loading search results...</div>
+          }
+        >
+          <SearchProductsGrid
+            totalProducts={search_result_length}
+            searchTerm={final_search}
+            initialProducts={searchResults} // Pass the already-fetched products
+          />
         </Suspense>
       </Container>
     </>
