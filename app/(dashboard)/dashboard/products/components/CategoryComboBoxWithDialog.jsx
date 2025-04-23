@@ -170,9 +170,9 @@ export function CategoryComboBoxWithDialog({
           disabled={disabled}
           placeholder={`Select ${label.toLowerCase()}...`}
         />
-        <Button type="button" variant="outline" onClick={openDialog}>
+        {/* <Button type="button" variant="outline" onClick={openDialog}>
           {buttonText}
-        </Button>
+        </Button> */}
         <Button 
           type="button" 
           variant="outline" 
