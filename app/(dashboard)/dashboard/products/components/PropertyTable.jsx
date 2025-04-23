@@ -1,107 +1,154 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Plus, Trash2, Save, Loader2, CheckCircle, AlertCircle } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { useParams } from "next/navigation"
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Plus,
+  Trash2,
+  Save,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useParams } from "next/navigation";
 
-export default function PropertyTable({initialData}) {
-  const {productId} = useParams()
-  const [rows, setRows] = useState(() => { 
+export default function PropertyTable({ initialData }) {
+  const { productId } = useParams();
+  const isEditMode = productId && productId !== "new";
+  const [rows, setRows] = useState(() => {
     if (initialData && initialData.length > 0) {
-      return initialData.map(data => ({
+      return initialData.map((data) => ({
         id: data.id,
         property: data.property || "",
         value: data.value || "",
-        description: data.description || ""
+        description: data.description || "",
       }));
     }
     return [{ id: 1, property: "", value: "", description: "" }];
   });
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState(null) // null, "success", "error"
-  const [statusMessage, setStatusMessage] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // null, "success", "error"
+  const [statusMessage, setStatusMessage] = useState("");
+  const [iswebcode, setIsWebCode] = useState("");
 
   const addRow = () => {
-    const newId = rows.length > 0 ? Math.max(...rows.map((row) => row.id)) + 1 : 1
-    setRows([...rows, { id: newId, property: "", value: "", description: "" }])
-  }
+    const newId =
+      rows.length > 0 ? Math.max(...rows.map((row) => row.id)) + 1 : 1;
+    setRows([...rows, { id: newId, property: "", value: "", description: "" }]);
+  };
 
   const removeRow = (id) => {
-    setRows(rows.filter((row) => row.id !== id))
-  }
+    setRows(rows.filter((row) => row.id !== id));
+  };
 
   const updateRow = (id, field, value) => {
-    setRows(rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)))
-  }
+    setRows(
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+  };
+
+  const fetchUserData = async () => {
+    try {
+      const response = await fetch("/api/auth/user");
+      const data = await response.json();
+      const webcode = data?.userData?.webcode;
+      // console.log("User webcode :", webcode)
+      if (webcode) {
+        setIsWebCode(webcode);
+        // console.log("Fetched user data:", userData);
+      }
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserData();
+  }, []);
 
   const handleSubmit = async () => {
-    setIsSubmitting(true)
-    setSubmitStatus(null)
-    setStatusMessage("")
-    
+    setIsSubmitting(true);
+    setSubmitStatus(null);
+    setStatusMessage("");
+
     try {
       // Validate data before submission
-      const invalidRows = rows.filter(row => !row.property || !row.value)
+      const invalidRows = rows.filter((row) => !row.property || !row.value);
       if (invalidRows.length > 0) {
-        throw new Error("All properties must have a name and value")
+        throw new Error("All properties must have a name and value");
       }
-      
+
       // Submit each row individually
       const results = await Promise.all(
         rows.map(async (row) => {
-          const formData = new FormData()
-          formData.append("property", row.property)
-          formData.append("value", row.value)
-          formData.append("description", row.description || "")
-          formData.append("productid", productId)
-          
+          const formData = new FormData();
+          formData.append("property", row.property);
+          formData.append("value", row.value);
+          formData.append("description", row.description || "");
+          formData.append("productid", productId);
+          formData.append("webcode", iswebcode);
+
+          // Append mode based on whether this is a new product or an edit
+          if (isEditMode) {
+            formData.append("Mode", "Edit");
+            formData.append("regid", productId);
+          } else {
+            formData.append("Mode", "New");
+            formData.append("regid", "0"); // Set default regid as 0
+          }
+
           const response = await fetch(
-            "https://tradetoppers.esoftideas.com/esi-api/requests/products/default3.aspx", 
+            "https://tradetoppers.esoftideas.com/esi-api/requests/products/default3.aspx",
             {
               method: "POST",
               body: formData,
             }
-          )
-          
-          const data = await response.json()
-          
-          if (!response.ok || (data.Response && data.Response.includes("Error"))) {
+          );
+
+          const data = await response.json();
+          // console.log("response from specs:", data);
+          if (
+            !response.ok ||
+            (data.Response && data.Response.includes("Error"))
+          ) {
             return {
               success: false,
-              message: data.Response || `Failed to save ${row.property}`
-            }
+              message: data.Response || `Failed to save ${row.property}`,
+            };
           }
-          
+
           return {
             success: true,
-            message: data.Response || `${row.property} saved successfully`
-          }
+            message: data.Response || `${row.property} saved successfully`,
+          };
         })
-      )
-      
+      );
+
       // Check if all submissions were successful
-      const failures = results.filter(result => !result.success)
-      
+      const failures = results.filter((result) => !result.success);
+
       if (failures.length === 0) {
-        setSubmitStatus("success")
-        setStatusMessage("All properties saved successfully")
+        setSubmitStatus("success");
+        setStatusMessage("All properties saved successfully");
       } else {
-        setSubmitStatus("error")
-        setStatusMessage(`Failed to save ${failures.length} of ${rows.length} properties`)
+        setSubmitStatus("error");
+        setStatusMessage(
+          `Failed to save ${failures.length} of ${rows.length} properties`
+        );
       }
-      
     } catch (error) {
-      setSubmitStatus("error")
-      setStatusMessage(error.message || "An error occurred while saving properties")
+      setSubmitStatus("error");
+      setStatusMessage(
+        error.message || "An error occurred while saving properties"
+      );
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card className="w-full">
@@ -125,33 +172,37 @@ export default function PropertyTable({initialData}) {
           {rows.map((row) => (
             <div key={row.id} className="grid grid-cols-12 gap-4 items-start">
               <div className="col-span-3">
-                <Input 
-                  placeholder="Heading name" 
-                  value={row.property} 
-                  onChange={(e) => updateRow(row.id, "property", e.target.value)} 
+                <Input
+                  placeholder="Heading name"
+                  value={row.property}
+                  onChange={(e) =>
+                    updateRow(row.id, "property", e.target.value)
+                  }
                 />
               </div>
               <div className="col-span-3">
-                <Input 
-                  placeholder="Lable name" 
-                  value={row.value} 
-                  onChange={(e) => updateRow(row.id, "value", e.target.value)} 
+                <Input
+                  placeholder="Lable name"
+                  value={row.value}
+                  onChange={(e) => updateRow(row.id, "value", e.target.value)}
                 />
               </div>
               <div className="col-span-5">
-                <Textarea 
-                  placeholder="Short description" 
-                  className="min-h-[60px] resize-none" 
-                  value={row.description} 
-                  onChange={(e) => updateRow(row.id, "description", e.target.value)} 
+                <Textarea
+                  placeholder="Short description"
+                  className="min-h-[60px] resize-none"
+                  value={row.description}
+                  onChange={(e) =>
+                    updateRow(row.id, "description", e.target.value)
+                  }
                 />
               </div>
               <div className="col-span-1 flex justify-center">
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  onClick={() => removeRow(row.id)} 
-                  className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10" 
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeRow(row.id)}
+                  className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
                   disabled={rows.length === 1}
                 >
                   <Trash2 className="h-4 w-4" />
@@ -182,12 +233,14 @@ export default function PropertyTable({initialData}) {
             <Button onClick={addRow} variant="outline" className="flex-1">
               <Plus className="h-4 w-4 mr-2" /> Add Another Row
             </Button>
-            
-            <Button 
-              onClick={handleSubmit} 
-              variant="default" 
+
+            <Button
+              onClick={handleSubmit}
+              variant="default"
               className="flex-1"
-              disabled={isSubmitting || rows.some(row => !row.property || !row.value)}
+              disabled={
+                isSubmitting || rows.some((row) => !row.property || !row.value)
+              }
             >
               {isSubmitting ? (
                 <>
@@ -209,5 +262,5 @@ export default function PropertyTable({initialData}) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

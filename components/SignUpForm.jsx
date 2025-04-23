@@ -17,6 +17,7 @@ import { redirect } from "next/navigation";
 // import { SocialSignInButtons } from "./SocialSignInButtons";
 import { Register } from "@/app/actions/signup";
 import { Eye, EyeOff } from "lucide-react"; // Import eye icons from lucide-react
+import SuccessToast from "./Welcome_onboard";
 
 export function SignUpForm() {
   const [formData, setFormData] = useState({
@@ -42,6 +43,7 @@ export function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // New state to track password match status in real-time
   const [passwordsMatch, setPasswordsMatch] = useState(true);
+  const [showToast, setShowToast] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -132,9 +134,10 @@ export function SignUpForm() {
 
     try {
       const result = await Register(formDataToSubmit);
-      console.log("Response from server :",result);
+      console.log("Response from server :", result);
 
       if (result.success) {
+        setShowToast(true);
         setSuccessMessage("Registration successful! Redirecting...");
         // Use a timeout to allow the success message to be shown before redirecting
         setTimeout(() => {
@@ -488,6 +491,17 @@ export function SignUpForm() {
           <span className="w-full border-t" />
         </div>
       </div>
+      {showToast && (
+        <SuccessToast
+          message={
+            <div>
+              <p className="font-bold">Welcome onboard!</p>
+              <p className="text-sm mt-1">Tell colleagues about this website</p>
+            </div>
+          }
+          onClose={() => setShowToast(false)}
+        />
+      )}
 
       {/* <SocialSignInButtons /> */}
     </div>
