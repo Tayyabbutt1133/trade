@@ -196,7 +196,7 @@ const Navbar = () => {
   }, [isMenuOpen, handleCloseMenu]);
 
   return (
-    <header className="bg-[#37bfb1] sticky top-0 z-50 pt-16">
+    <header className="bg-[#37bfb1] sticky top-0 z-50 pt-28 md:pt-16">
       <div className="flex flex-row py-3 px-8 items-center justify-between">
         {/* Logo */}
         <div className="flex gap-3 items-center">

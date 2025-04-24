@@ -462,7 +462,7 @@ export default function SideMenu({ onclose }) {
       {/* Side menu */}
       <div
         ref={menuRef}
-        className={`fixed z-20 inset-y-0 left-0 top-9 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed z-20 inset-y-0 left-0 top-16 md:top-9 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isVisible ? "translate-x-0" : "-translate-x-full"
         }`}
       >

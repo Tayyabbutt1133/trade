@@ -32,7 +32,7 @@ const TopCategoryFilter = () => {
         const response = await CALLFILTER();
         const data = response.data[0];
         setCategories(data);
-        console.log("Fetched category data:", data);
+        // console.log("Fetched category data:", data);
       } catch (error) {
         console.error("Error fetching categories:", error);
       } finally {
@@ -83,7 +83,7 @@ const TopCategoryFilter = () => {
         }
       });
       setTotalSubCategories(totalCount);
-      console.log("Total subcategories in", topCategory, ":", totalCount);
+      // console.log("Total subcategories in", topCategory, ":", totalCount);
     }
   };
 
@@ -126,19 +126,19 @@ const TopCategoryFilter = () => {
 
         // Update subcategory count for this specific main category
         setTotalSubCategories(uniqueSubCategories.length);
-        console.log(
-          "Number of subcategories in",
-          mainCategory,
-          ":",
-          uniqueSubCategories.length
-        );
+        // console.log(
+        //   "Number of subcategories in",
+        //   mainCategory,
+        //   ":",
+        //   uniqueSubCategories.length
+        // );
 
-        console.log(
-          "Subcategories for",
-          mainCategory,
-          ":",
-          uniqueSubCategories
-        );
+        // console.log(
+        //   "Subcategories for",
+        //   mainCategory,
+        //   ":",
+        //   uniqueSubCategories
+        // );
       }
     }
   };
