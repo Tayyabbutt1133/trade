@@ -47,8 +47,8 @@ export default function SideMenu({ onclose }) {
         const records = json.Records || [];
         const equipments = json.Equipments || [];
 
-        console.log("Records data:", records);
-        console.log("Equipment data:", equipments);
+        // console.log("Records data:", records);
+        // console.log("Equipment data:", equipments);
 
         if (records.length > 0) {
           setRecordsData(records[0]);
@@ -212,6 +212,11 @@ export default function SideMenu({ onclose }) {
     return [];
   };
 
+  // Check if a specific item is "No Record" and if we're in equipments data
+  const isNoRecordInEquipment = (item) => {
+    return currentDataSource === "equipments" && item.label === "No Record";
+  };
+
   // Render the root level with dropdowns
   const renderRootLevel = () => {
     const rootItems = [
@@ -224,11 +229,7 @@ export default function SideMenu({ onclose }) {
         {rootItems.map((item) => (
           <div key={item.id} className="mb-2">
             <div className="flex items-center justify-between w-full py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors">
-              <Link
-                href={``}
-                onClick={handleClose}
-                className="flex-grow"
-              >
+              <Link href={``} onClick={handleClose} className="flex-grow">
                 <span className={`${fonts.montserrat} text-black font-medium`}>
                   {item.label}
                 </span>
@@ -342,16 +343,21 @@ export default function SideMenu({ onclose }) {
           {items.map((item) => (
             <Link
               key={item.id}
-              href={`/${encodeURIComponent(
-                category
-              )}/${encodeURIComponent(subcategory)}/${encodeURIComponent(
-                item.label
-              )}`}
+              href={`/${encodeURIComponent(category)}/${encodeURIComponent(
+                subcategory
+              )}/${encodeURIComponent(item.label)}`}
               className="block py-3 px-4 hover:bg-gray-50 rounded-lg transition-colors"
               onClick={handleClose}
             >
               <span className={`${fonts.montserrat} text-black font-medium`}>
-                {item.label}
+                {currentDataSource === "equipments" &&
+                item.label === "No Record" ? (
+                  <em className="text-amber-600">
+                    This website is in development and data uploading stage
+                  </em>
+                ) : (
+                  item.label
+                )}
               </span>
             </Link>
           ))}
@@ -396,15 +402,6 @@ export default function SideMenu({ onclose }) {
   // Breadcrumb header with clickable links for each level
   const renderBreadcrumbs = () => {
     const crumbs = [];
-
-    // Root breadcrumb
-    // crumbs.push(
-    //   <span key="all" className={`${fonts.montserrat}`}>
-    //     <Link href="/" onClick={() => setNavigationPath([{ level: "main" }])}>
-    //       Categories
-    //     </Link>
-    //   </span>
-    // );
 
     // If we're in a deeper level, include data source
     if (navigationPath.length > 1) {
@@ -465,7 +462,7 @@ export default function SideMenu({ onclose }) {
       {/* Side menu */}
       <div
         ref={menuRef}
-        className={`fixed z-20 inset-y-0 left-0 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
+        className={`fixed z-20 inset-y-0 left-0 top-9 w-[300px] sm:w-[400px] bg-white shadow-lg transform transition-transform duration-300 ease-in-out ${
           isVisible ? "translate-x-0" : "-translate-x-full"
         }`}
       >
