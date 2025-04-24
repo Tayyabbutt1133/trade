@@ -9,6 +9,7 @@ export default function ProductCategoryHeader({ category, totalProducts }) {
     "Construction Chemicals",
     "Paper Industry",
     "Lab. Equipment",
+    "Packing/Packaging Material Manufacturers"
   ];
 
   const shouldShowCount = !categoriesToHideCount.includes(category);
