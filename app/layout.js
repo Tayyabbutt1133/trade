@@ -28,7 +28,7 @@ export default function RootLayout({ children }) {
           commit={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA} // optional but recommended
           branch={process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_REF} // optional but recommended
         />
-        {/* {!isHiddenRoute && <NewsTicker />} */}
+        {!isHiddenRoute && <NewsTicker />}
         {/* Show Navbar and Footer only if not on dashboard or expoevents routes */}
         {!isHiddenRoute && <Navbar />}
         {children}
