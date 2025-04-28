@@ -31,9 +31,9 @@ export function Menubar() {
       try {
         const res = await fetch(
           "https://tradetoppers.esoftideas.com/esi-api/responses/topcategories/",
-          { cache: "no-cache" }
         );
         const data = await res.json();
+        console.log("Data at tradetoppers :", data);
         // Assuming data.Records is an array of objects with a "category" field.
         const categories = data.Records.map((record) => record.category);
         setTopCategories(categories);
@@ -59,7 +59,7 @@ export function Menubar() {
   }, [showDropdown]);
 
   // Derive visible and extra categories
-  const visibleCategories = topCategories.slice(0, 6);
+  const visibleCategories = topCategories.slice(0, 7);
   const extraCategories = topCategories.slice(7);
 
   return (
