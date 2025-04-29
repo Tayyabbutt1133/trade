@@ -107,6 +107,7 @@ export default function ProductsPage() {
           >
             Products ({totalCount})
           </h1>
+          <div className="flex gap-4">
           <Link href="/dashboard/products/new">
             <Button
               onClick={handleClick}
@@ -116,7 +117,18 @@ export default function ProductsPage() {
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Product
             </Button>
-          </Link>
+            </Link>
+            <Link href={'/dashboard/products/uploaddoc'}>
+          <Button
+              onClick={handleClick}
+              disabled={isPending}
+              className={`flex items-center ${fonts.montserrat}`}
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Upload Product
+              </Button>
+              </Link>
+            </div>
         </div>
 
         {/* Show spinner while loading */}

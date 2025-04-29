@@ -78,11 +78,6 @@ export default async function ProductDetail({ params }) {
             <span className="hidden sm:inline">Specifications</span>
             <span className="sm:hidden">Specs</span>
           </TabsTrigger>
-          {/* ✅ New tab for uploading product via Excel */}
-          <TabsTrigger value="upload" className="flex-1 min-w-[80px]">
-            <span className="hidden sm:inline">Upload Product</span>
-            <span className="sm:hidden">Up</span>
-          </TabsTrigger>
         </TabsList>
 
         <div className="mt-6">

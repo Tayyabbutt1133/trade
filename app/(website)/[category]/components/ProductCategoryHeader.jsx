@@ -14,6 +14,8 @@ export default function ProductCategoryHeader({ category, totalProducts }) {
   ];
 
   const shouldShowCount = !categoriesToHideCount.includes(category);
+  const isLabOrMachine =
+    category === "Lab. Equipment" || category === "Industrial Machines";
 
   return (
     <div
@@ -27,9 +29,9 @@ export default function ProductCategoryHeader({ category, totalProducts }) {
         </div>
 
         <p className="text-gray-800 text-sm font-medium max-w-3xl">
-          Trade Toppers provide comprehensive range of ingredients used in Paint
-          and Coatings, Inks, Adhesive and Sealants and similar product line.
-          These ingredients are classified help user find a right product.
+          {isLabOrMachine
+            ? "Trade Toppers provide comprehensive range of Lab. Equipments, instruments and industrial machines used in Paint and Coatings, Inks, Adhesive and Sealants and similar product line. These Equipments and machines are further classified to help user find a right equipment/machine."
+            : "Trade Toppers provide comprehensive range of ingredients used in Paint and Coatings, Inks, Adhesive and Sealants and similar product line. These ingredients are classified help user find a right product."}
         </p>
       </section>
     </div>
