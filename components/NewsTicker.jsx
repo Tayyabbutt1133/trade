@@ -44,8 +44,8 @@ export default function NewsTicker() {
 
         {/* Book & Advertisement (17%) */}
         <div
-          className={`w-[17%] flex items-center justify-center text-sm font-semibold cursor-pointer 
-  bg-yellow-400 text-[#222c2e] hover:bg-yellow-500 transition duration-300
+          className={`w-[17%] flex items-center justify-center text-sm font-semibold  
+  bg-yellow-400 text-[#222c2e]  transition duration-300
   animate-pulse shadow-[0_0_8px_rgba(255,215,0,0.6)]
   ${fonts.lexendDeca}`}
         >
