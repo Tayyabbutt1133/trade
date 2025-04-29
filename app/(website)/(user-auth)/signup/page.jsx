@@ -25,11 +25,6 @@ export default function SignUpPage() {
             Sign in
           </Link>
         </p>
-        <p
-          className={`${fonts.montserrat} text-center text-[15px] underline animate-pulse text-[#277477]`}
-        >
-          Tell colleagues about this website
-        </p>
       </div>
     </div>
   );

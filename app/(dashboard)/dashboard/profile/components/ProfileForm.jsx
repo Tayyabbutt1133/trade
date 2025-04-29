@@ -20,6 +20,7 @@ import { GETPROFILE } from "@/app/actions/getprofiledata";
 import { POSTPROFILE } from "@/app/actions/postprofiledata";
 import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 import DeleteUser_Profile from "./DeleteUser_Profile";
+import Image from "next/image";
 
 // Simple loading spinner component
 const LoadingSpinner = () => (
@@ -46,6 +47,7 @@ export function ProfileForm({
     pocname: "",
     intro: "",
     logo: "",
+    picpath: "",
     "company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
   });
@@ -65,8 +67,15 @@ export function ProfileForm({
   const [showRouteLoader, setShowRouteLoader] = useState(false);
   const [LogoChanged, setLogoChanged] = useState(false);
 
+  // New state for profile image display
+  const [profileImageUrl, setProfileImageUrl] = useState("");
+  const [imageError, setImageError] = useState(false);
+
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  // Base URL for profile images
+  const BASE_IMAGE_URL = "https://tradetoppers.esoftideas.com/"; // Adjust this based on your actual base URL
 
   // Fetch all necessary data in a single useEffect with optimized parallel requests
   useEffect(() => {
@@ -102,7 +111,7 @@ export function ProfileForm({
             : { Country: countrycodes.map((code) => ({ code })) },
         ]);
 
-        // console.log("Profile data:", profileData);
+        console.log("Profile data:", profileData);
         const userstatus = profileData?.status;
         setIsUserStatus(userstatus);
         // Process industry data
@@ -121,6 +130,14 @@ export function ProfileForm({
         if (profileData) {
           const safeString = (str) => (str ? String(str).trim() : "");
 
+          // Handle profile image
+          if (profileData.picpath) {
+            const imagePath = safeString(profileData.picpath);
+            // Construct full image URL
+            const fullImageUrl = `${BASE_IMAGE_URL}${imagePath}`;
+            setProfileImageUrl(fullImageUrl);
+          }
+
           setFormData({
             name: safeString(profileData.name),
             email: safeString(profileData.email),
@@ -131,6 +148,7 @@ export function ProfileForm({
             address: safeString(profileData.caddress),
             pocname: safeString(profileData.pocname),
             intro: safeString(profileData.intro),
+            picpath: safeString(profileData.picpath),
             "company-contact": {
               countryCode: safeString(profileData.ccode),
               number: safeString(profileData.ccontact),
@@ -168,6 +186,11 @@ export function ProfileForm({
       return () => clearTimeout(timer);
     }
   }, [isPending, showRouteLoader]);
+
+  // Handle image error
+  const handleImageError = () => {
+    setImageError(true);
+  };
 
   // Validation function for a single field (memoized)
   const validateField = useCallback((id, value) => {
@@ -253,7 +276,7 @@ export function ProfileForm({
     });
   };
 
-  // Fix 2: Update handleFileChange function to use consistent naming
+  // Handle file change with preview functionality
   const handleFileChange = async (e) => {
     const { files } = e.target;
     if (files && files[0]) {
@@ -263,6 +286,12 @@ export function ProfileForm({
         try {
           // Convert the file to base64
           const base64 = await convertToBase64(file);
+
+          // Create a URL for preview
+          const fileUrl = URL.createObjectURL(file);
+          setProfileImageUrl(fileUrl);
+          setImageError(false);
+
           // Update formData with the logo using the correct key
           setFormData((prev) => ({ ...prev, logo: base64 }));
           setLogoChanged(true);
@@ -377,8 +406,8 @@ export function ProfileForm({
         // Submit separate country code and contact number for POC
         profileData.append("poccode", formData["poc-contact"].countryCode);
         profileData.append("pocontact", formData["poc-contact"].number);
-        // Fix 4: Always include the logo in the submission
-        // If logo is available in formData, submit it
+
+        // Include the logo in the submission if it was changed
         if (formData.logo) {
           profileData.append("pic", formData.logo);
         }
@@ -391,8 +420,8 @@ export function ProfileForm({
             error: null,
             success: "Profile updated successfully!",
           });
-          // console.log("User status right above time out:", isUserStatus);
-          if (isUserStatus == "Pending") {
+
+          if (isUserStatus === "Pending") {
             startTransition(() => {
               router.push("/dashboard/profile");
             });
@@ -468,6 +497,29 @@ export function ProfileForm({
   return (
     <>
       {showRouteLoader && <RouteTransitionLoader />}
+
+      {/* Profile Header with Image */}
+      <div className="mb-8 flex flex-col items-center">
+        <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-blue-500 mb-4 bg-gray-100 flex items-center justify-center">
+          {profileImageUrl && !imageError ? (
+            <img
+              src={profileImageUrl}
+              alt="Profile"
+              className="w-full h-full object-cover"
+              onError={handleImageError}
+            />
+          ) : (
+            <div className="text-5xl text-gray-400 font-bold">
+              {formData.name ? formData.name.charAt(0).toUpperCase() : "?"}
+            </div>
+          )}
+        </div>
+        <h2 className="text-2xl font-bold">{formData.name}</h2>
+        <p className="text-gray-600">
+          {formData.designation} at {formData.company}
+        </p>
+      </div>
+
       <form
         onSubmit={handleSubmit}
         className={`grid ${fonts.montserrat} gap-6`}
@@ -686,7 +738,6 @@ export function ProfileForm({
             )}
           </div>
           {/* User Profile Logo */}
-          {/* // Fix 5: Update the file input in the render to match the state */}
           <div className="grid gap-2">
             <Label htmlFor="logo">
               Profile Pic<span className="text-red-500">*</span>

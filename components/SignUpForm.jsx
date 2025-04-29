@@ -473,6 +473,11 @@ export function SignUpForm() {
         {successMessage && (
           <div className="text-green-500 text-sm">{successMessage}</div>
         )}
+        <p
+          className={`${fonts.montserrat} font-bold cursor-pointer px-4 py-2 text-center text-[17px] underline bg-yellow-400 text-[#222c2e] hover:bg-yellow-500 transition duration-300 rounded-md animate-pulse shadow-[0_0_12px_rgba(255,215,0,0.7)]`}
+        >
+          📣 Tell your colleagues about this website
+        </p>
 
         <Button
           type="submit"
