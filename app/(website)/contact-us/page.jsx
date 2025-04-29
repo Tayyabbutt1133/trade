@@ -7,6 +7,7 @@ import { CONTACT } from "@/app/actions/createContact";
 export default function ContactUsPage() {
   const [designations, setDesignations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [userWebcode, setUserWebcode] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,8 +25,7 @@ export default function ContactUsPage() {
           "https://tradetoppers.esoftideas.com/esi-api/responses/designation/"
         );
         const data = await response.json();
-        const designationData = data?.Designations || [];
-        setDesignations(designationData);
+        setDesignations(data?.Designations || []);
       } catch (error) {
         console.error("Error fetching designations:", error);
       } finally {
@@ -34,6 +34,54 @@ export default function ContactUsPage() {
     };
 
     fetchDesignations();
+  }, []);
+
+  // Fetch user webcode from cookie and hit profile API to auto-fill form
+  useEffect(() => {
+    const fetchWebcodeAndProfile = async () => {
+      try {
+        // Step 1: Get webcode from your own API
+        const response = await fetch("/api/auth/user");
+        const data = await response.json();
+        const webcode = data?.userData?.webcode;
+
+        if (webcode) {
+          setUserWebcode(webcode);
+
+          // Step 2: Fetch profile from external API
+          const formdata = new FormData();
+          formdata.append("code", webcode);
+
+          const profileResponse = await fetch(
+            "https://tradetoppers.esoftideas.com/esi-api/responses/profile/",
+            {
+              method: "POST",
+              body: formdata,
+            }
+          );
+
+          const profileData = await profileResponse.json();
+          console.log("Profile data :", profileData);
+          const user = profileData?.Registeration?.[0];
+          console.log("User from Contact", user);
+
+          // Step 3: Auto-fill form if user is not an Admin
+          if (user && user.type !== "Admin") {
+            setFormData({
+              name: user.name || "",
+              email: user.email || "",
+              contact: user.poccontact || "",
+              designation: user.designation || "",
+              remarks: "", // Keep remarks empty
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch user webcode or profile:", error);
+      }
+    };
+
+    fetchWebcodeAndProfile();
   }, []);
 
   // Handle all form field changes
@@ -47,15 +95,12 @@ export default function ContactUsPage() {
     setStatus("loading");
 
     const payload = new FormData();
-    payload.append("name", formData.name);
-    payload.append("email", formData.email);
-    payload.append("contact", formData.contact);
-    payload.append("designation", formData.designation);
-    payload.append("remarks", formData.remarks);
+    Object.entries(formData).forEach(([key, value]) => {
+      payload.append(key, value);
+    });
 
     try {
       const response = await CONTACT(payload);
-      console.log("response from contact server:", response);
 
       if (response.success) {
         setStatus("success");

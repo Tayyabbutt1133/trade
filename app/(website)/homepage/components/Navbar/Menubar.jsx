@@ -33,7 +33,7 @@ export function Menubar() {
           "https://tradetoppers.esoftideas.com/esi-api/responses/topcategories/"
         );
         const data = await res.json();
-        console.log("Data at tradetoppers :", data);
+        // console.log("Data at tradetoppers :", data);
         // Assuming data.Records is an array of objects with a "category" field.
         const categories = data.Records.map((record) => record.category);
         setTopCategories(categories);

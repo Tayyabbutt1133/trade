@@ -45,7 +45,7 @@ export function ProfileForm({
     address: "",
     pocname: "",
     intro: "",
-    logo:"",
+    logo: "",
     "company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
   });
@@ -253,19 +253,22 @@ export function ProfileForm({
     });
   };
 
+  // Fix 2: Update handleFileChange function to use consistent naming
   const handleFileChange = async (e) => {
-    const { id, files } = e.target;
+    const { files } = e.target;
     if (files && files[0]) {
       const file = files[0];
       const fileType = file.type.toLowerCase();
       if (fileType === "image/jpeg" || fileType === "image/png") {
-        // Convert the file to base64
-        const base64 = await convertToBase64(file);
-        setFormData((prev) => ({ ...prev, [id]: base64 }));
-
-        // Mark logo as changed
-        if (id === "profilelogo") {
+        try {
+          // Convert the file to base64
+          const base64 = await convertToBase64(file);
+          // Update formData with the logo using the correct key
+          setFormData((prev) => ({ ...prev, logo: base64 }));
           setLogoChanged(true);
+        } catch (error) {
+          console.error("Error converting file to base64:", error);
+          alert("Error processing the image. Please try another file.");
         }
       } else {
         alert("Please select a JPG or PNG file.");
@@ -374,7 +377,11 @@ export function ProfileForm({
         // Submit separate country code and contact number for POC
         profileData.append("poccode", formData["poc-contact"].countryCode);
         profileData.append("pocontact", formData["poc-contact"].number);
-        profileData.append("pic", formData.logo);
+        // Fix 4: Always include the logo in the submission
+        // If logo is available in formData, submit it
+        if (formData.logo) {
+          profileData.append("pic", formData.logo);
+        }
 
         // Submit the data
         const result = await POSTPROFILE(profileData);
@@ -485,7 +492,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.name}</p>
             )}
           </div>
-
           {/*  Email */}
           <div className="grid gap-2">
             <Label htmlFor="email">
@@ -505,7 +511,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.email}</p>
             )}
           </div>
-
           {/* Company Name */}
           <div className="grid gap-2">
             <Label htmlFor="company">
@@ -525,7 +530,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.company}</p>
             )}
           </div>
-
           {/* Company Contact */}
           <div className="grid gap-2">
             <Label htmlFor="company-contact">
@@ -544,7 +548,6 @@ export function ProfileForm({
               </p>
             )}
           </div>
-
           {/* Address */}
           <div className="grid gap-2">
             <Label htmlFor="address">
@@ -564,7 +567,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.address}</p>
             )}
           </div>
-
           {/* Country */}
           <div className="grid gap-2">
             <Label htmlFor="country">
@@ -587,7 +589,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.country}</p>
             )}
           </div>
-
           {/* Industry */}
           <div className="grid gap-2">
             <Label htmlFor="industry">
@@ -610,7 +611,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.industry}</p>
             )}
           </div>
-
           {/* Designation */}
           <div className="grid gap-2">
             <Label htmlFor="designation">
@@ -633,7 +633,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.designation}</p>
             )}
           </div>
-
           {/* POC Name */}
           <div className="grid gap-2">
             <Label htmlFor="poc-name">
@@ -654,7 +653,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.pocname}</p>
             )}
           </div>
-
           {/* POC Contact */}
           <div className="grid gap-2">
             <Label htmlFor="poc-contact">
@@ -670,7 +668,6 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors["poc-contact"]}</p>
             )}
           </div>
-
           {/* Company Introduction */}
           <div className="grid gap-2">
             <Label htmlFor="intro">
@@ -688,19 +685,22 @@ export function ProfileForm({
               <p className="text-red-500 text-sm">{errors.intro}</p>
             )}
           </div>
-
           {/* User Profile Logo */}
+          {/* // Fix 5: Update the file input in the render to match the state */}
           <div className="grid gap-2">
-          <Label htmlFor="intro">
-            Profile Pic<span className="text-red-500">*</span>
+            <Label htmlFor="logo">
+              Profile Pic<span className="text-red-500">*</span>
             </Label>
             <Input
-              id="profilelogo"
+              id="logo"
               type="file"
               required={false}
               onChange={handleFileChange}
               accept=".jpg,.jpeg,.png"
             />
+            {LogoChanged && (
+              <p className="text-green-500 text-sm">Logo selected</p>
+            )}
           </div>
         </div>
 

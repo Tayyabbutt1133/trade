@@ -7,7 +7,7 @@ import { fonts } from "@/components/ui/font";
 import RouteTransitionLoader from "@/components/RouteTransitionLoader";
 import ProductsGrid from "./ProductsGrid";
 
-const TopCategoryFilter = () => {
+const TopCategoryFilter = ({ category }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState({});
   const [mainDropdownOpen, setMainDropdownOpen] = useState(false);
@@ -25,6 +25,7 @@ const TopCategoryFilter = () => {
 
   // Get top level categories (catid)
   const topCategories = Object.keys(categories);
+  // console.log("category in categories filter :", category);
 
   useEffect(() => {
     const fetchData = async () => {
