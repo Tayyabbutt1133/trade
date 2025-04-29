@@ -30,7 +30,7 @@ export function Menubar() {
     async function fetchTopCategories() {
       try {
         const res = await fetch(
-          "https://tradetoppers.esoftideas.com/esi-api/responses/topcategories/",
+          "https://tradetoppers.esoftideas.com/esi-api/responses/topcategories/"
         );
         const data = await res.json();
         console.log("Data at tradetoppers :", data);
@@ -95,7 +95,13 @@ export function Menubar() {
                 className=""
               >
                 <p
-                  className={`text-[13px] text-white bg-[#404C4D] rounded-md shadow-sm px-3 py-2 hover:border-white hover:shadow-md transition  duration-300 hover:scale-105 ${fonts.montserrat}`}
+                  className={`text-[13px] text-white bg-[#404C4D] rounded-md px-3 py-2
+    shadow-[inset_0_0_4px_#2e3536,_0_4px_6px_rgba(0,0,0,0.4)]
+    hover:shadow-[inset_0_0_4px_#2e3536,_0_8px_12px_rgba(0,0,0,0.5)]
+    hover:border border-white
+    hover:scale-[1.08] active:scale-[0.98]
+    transition duration-300 ease-in-out
+    ${fonts.montserrat}`}
                 >
                   {category}
                 </p>

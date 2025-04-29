@@ -32,10 +32,11 @@ const Hero = () => {
                 all in one place.
               </span>
             </p>
-            <Link href={'/contact-us'}>
-              <p className="underline font-extrabold">Ask us about your biggest sourcing challenge?</p>
-              </Link>
-
+            <Link href={"/contact-us"}>
+              <p className="underline font-extrabold">
+                Ask us about your biggest sourcing challenge?
+              </p>
+            </Link>
           </div>
         </div>
       </Container>

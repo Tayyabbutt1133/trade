@@ -45,6 +45,7 @@ export function ProfileForm({
     address: "",
     pocname: "",
     intro: "",
+    logo:"",
     "company-contact": { countryCode: "", number: "" },
     "poc-contact": { countryCode: "", number: "" },
   });
@@ -62,6 +63,7 @@ export function ProfileForm({
   const [isUserStatus, setIsUserStatus] = useState();
   const [isLoading, setIsLoading] = useState(true);
   const [showRouteLoader, setShowRouteLoader] = useState(false);
+  const [LogoChanged, setLogoChanged] = useState(false);
 
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -235,6 +237,43 @@ export function ProfileForm({
     [handleInputChange]
   );
 
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove the data URL prefix (e.g., "data:image/png;base64,")
+        const base64String = reader.result;
+        const base64WithoutPrefix = base64String.substring(
+          base64String.indexOf(",") + 1
+        );
+        resolve(base64WithoutPrefix);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const handleFileChange = async (e) => {
+    const { id, files } = e.target;
+    if (files && files[0]) {
+      const file = files[0];
+      const fileType = file.type.toLowerCase();
+      if (fileType === "image/jpeg" || fileType === "image/png") {
+        // Convert the file to base64
+        const base64 = await convertToBase64(file);
+        setFormData((prev) => ({ ...prev, [id]: base64 }));
+
+        // Mark logo as changed
+        if (id === "profilelogo") {
+          setLogoChanged(true);
+        }
+      } else {
+        alert("Please select a JPG or PNG file.");
+        e.target.value = ""; // Clear the file input
+      }
+    }
+  };
+
   // Form validation logic (memoized)
   const validateForm = useCallback(() => {
     return new Promise((resolve) => {
@@ -335,6 +374,7 @@ export function ProfileForm({
         // Submit separate country code and contact number for POC
         profileData.append("poccode", formData["poc-contact"].countryCode);
         profileData.append("pocontact", formData["poc-contact"].number);
+        profileData.append("pic", formData.logo);
 
         // Submit the data
         const result = await POSTPROFILE(profileData);
@@ -426,7 +466,7 @@ export function ProfileForm({
         className={`grid ${fonts.montserrat} gap-6`}
       >
         <div className="grid gap-4">
-          {/* Seller Name */}
+          {/* Name */}
           <div className="grid gap-2">
             <Label htmlFor="name">
               Name <span className="text-red-500">*</span>
@@ -446,7 +486,7 @@ export function ProfileForm({
             )}
           </div>
 
-          {/* Seller Email */}
+          {/*  Email */}
           <div className="grid gap-2">
             <Label htmlFor="email">
               Email <span className="text-red-500">*</span>
@@ -647,6 +687,20 @@ export function ProfileForm({
             {errors.intro && (
               <p className="text-red-500 text-sm">{errors.intro}</p>
             )}
+          </div>
+
+          {/* User Profile Logo */}
+          <div className="grid gap-2">
+          <Label htmlFor="intro">
+            Profile Pic<span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="profilelogo"
+              type="file"
+              required={false}
+              onChange={handleFileChange}
+              accept=".jpg,.jpeg,.png"
+            />
           </div>
         </div>
 
